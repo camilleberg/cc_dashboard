@@ -3,7 +3,7 @@ toc: false
 ---
 
 <div class="hero">
-  <h1>Congressional Communities Dashbaord</h1>
+  <h1>Congressional Communities Dashboard</h1>
   <h2>What is your community?</h2>
 </div>
 
