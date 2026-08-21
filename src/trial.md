@@ -18,7 +18,7 @@ SET VARIABLE target_cols = (
 );
 
 -- Step 2: Use COLUMNS() and a lambda function to match the list
-CREATE OR REPLACE TABLE age_group_data AS (
+CREATE OR REPLACE TABLE age_group_data_raw AS (
   SELECT CCN20, col_name, value
   FROM (
       SELECT 
@@ -30,6 +30,23 @@ CREATE OR REPLACE TABLE age_group_data AS (
       value FOR col_name IN (COLUMNS(* EXCLUDE (CCN20)))
   )
 );
+```
+
+```sql 
+CREATE OR REPLACE TABLE age_group_data AS (
+    SELECT 
+        r.CCN20,
+        r.col_name,
+        r.value,
+        c."Dependency Ratio" AS "Dependency Ratio"
+    FROM age_group_data_raw r
+    JOIN cc_data c ON r.CCN20 = c.CCN20
+);
+```
+
+To check sql query 
+```sql
+SELECT * FROM age_group_data LIMIT 10
 ```
 
 + source: https://github.com/uwdata/mosaic-framework-example
@@ -46,9 +63,6 @@ The histogram will display
 const $brush = vg.Selection.crossfilter();
 ```
 
-```sql
-SELECT * FROM age_group_data LIMIT 10
-```
 
 ```js
 // this is the graph 
@@ -67,31 +81,26 @@ vg.vconcat(
     vg.width(600),
     vg.height(150)
   ), 
-vg.plot(
-  vg.barY(vg.from("age_group_data"), 
-  { x: 'col_name', y: vg.sum('value') , fill: "steelblue"})
-)
+  vg.plot(
+    vg.barY(vg.from("age_group_data", { filterBy: $brush }), 
+    { x: 'col_name', y: vg.sum('value') , fill: "steelblue"})
+  ), 
+  vg.plot(
+    vg.waffleY(
+      vg.from("age_group_data", { filterBy: $brush }),
+      {
+        unit: 100000,
+        round: false,
+        gap: 1,
+        rx: 3,
+        x: 'col_name',
+        y: vg.sum('value')
+      }
+    )
+    // ...other marks/plot-level options...
+  )
 )
 ```
-
-
-
-
-
-
-
-
-  vg.plot(
-  vg.waffleY(
-    vg.from("age_group_data"),
-    {
-      unit: 10,
-      round: false,
-      gap: 10,
-      rx: 3,
-      x: 'col_name',
-      y: vg.count()
-    }
-  )
-  // ...other marks/plot-level options...
-)
+```sql
+SELECT sum(value) FROM age_group_data
+```
