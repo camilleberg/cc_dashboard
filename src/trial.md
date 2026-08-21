@@ -7,7 +7,30 @@ sql:
 
 
 
+
 # Age and map stuff
+
+```sql id=age_group_data
+SET VARIABLE target_cols = (
+    SELECT list(col_name) 
+    FROM cc_data_grouping
+    WHERE "group" = 'tot_pop_1'
+);
+
+-- Step 2: Use COLUMNS() and a lambda function to match the list
+CREATE OR REPLACE TABLE age_group_data AS (
+  SELECT CCN20, col_name, value
+  FROM (
+      SELECT 
+          CCN20, -- Keep keys explicitly if desired
+          COLUMNS(c -> list_contains(getvariable('target_cols'), c))
+      FROM cc_data
+  ) sub
+  UNPIVOT (
+      value FOR col_name IN (COLUMNS(* EXCLUDE (CCN20)))
+  )
+);
+```
 
 + source: https://github.com/uwdata/mosaic-framework-example
 ## Interactive exploration of large-scale transportation data
@@ -21,6 +44,10 @@ The histogram will display
 ```js
 // a selection instance to manage selected intervals from each plot
 const $brush = vg.Selection.crossfilter();
+```
+
+```sql
+SELECT * FROM age_group_data LIMIT 10
 ```
 
 ```js
@@ -39,7 +66,32 @@ vg.vconcat(
     vg.yLabel("Number of Communities"),
     vg.width(600),
     vg.height(150)
-  )
+  ), 
+vg.plot(
+  vg.barY(vg.from("age_group_data"), 
+  { x: 'col_name', y: vg.sum('value') , fill: "steelblue"})
 )
-
+)
 ```
+
+
+
+
+
+
+
+
+  vg.plot(
+  vg.waffleY(
+    vg.from("age_group_data"),
+    {
+      unit: 10,
+      round: false,
+      gap: 10,
+      rx: 3,
+      x: 'col_name',
+      y: vg.count()
+    }
+  )
+  // ...other marks/plot-level options...
+)
