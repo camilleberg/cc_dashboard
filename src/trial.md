@@ -5,15 +5,6 @@ sql:
   cc_data_grouping: data/cc_data_grouping.parquet
 ---
 
-```js 
-import * as vg from "npm:@uwdata/vgplot";
-// import * as topojson from "npm:topojson-client";
-await vg.coordinator().exec([
-  vg.loadExtension("spatial"),
-  vg.loadSpatial("counties", "data/us-counties-10m.json", {layer: "counties"}),
-  vg.loadSpatial("states", "data/us-counties-10m.json", {layer: "states"})
-]);
-```
 
 
 # Age and map stuff
@@ -48,30 +39,6 @@ vg.vconcat(
     vg.yLabel("Number of Communities"),
     vg.width(600),
     vg.height(150)
-  ),
-  
-  vg.plot(
-    vg.geo(
-      vg.from("counties"),
-      {stroke: "currentColor", strokeWidth: 0.25}
-    ),
-    vg.geo(
-      vg.from("states"),
-      {stroke: "currentColor", strokeWidth: 1}
-    ),
-    vg.dot(
-      vg.from("counties"),
-      {
-        x: vg.centroidX("geom"),
-        y: vg.centroidY("geom"),
-        r: 2,
-        fill: "transparent",
-        tip: true,
-        title: "name"
-      }
-    ),
-    vg.margin(0),
-    vg.projectionType("albers")
   )
 )
 
