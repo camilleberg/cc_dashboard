@@ -1,5 +1,5 @@
 ---
-title: Flight Delays
+title: FLights Example
 header: |
   <div class="banner">
     <a target="_blank" href="https://github.com/uwdata/mosaic-framework-example/blob/main/docs/flight-delays.md?plain=1"><span>View source ↗</span></a>
