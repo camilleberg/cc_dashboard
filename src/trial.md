@@ -33,6 +33,7 @@ CREATE OR REPLACE TABLE age_group_data_raw AS (
 ```
 
 ```sql 
+-- this rejoins on the table for selection 
 CREATE OR REPLACE TABLE age_group_data AS (
     SELECT 
         r.CCN20,
@@ -42,11 +43,6 @@ CREATE OR REPLACE TABLE age_group_data AS (
     FROM age_group_data_raw r
     JOIN cc_data c ON r.CCN20 = c.CCN20
 );
-```
-
-To check sql query 
-```sql
-SELECT * FROM age_group_data LIMIT 10
 ```
 
 + source: https://github.com/uwdata/mosaic-framework-example
@@ -100,7 +96,4 @@ vg.vconcat(
     // ...other marks/plot-level options...
   )
 )
-```
-```sql
-SELECT sum(value) FROM age_group_data
 ```
