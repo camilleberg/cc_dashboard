@@ -5,11 +5,13 @@ sql:
   cc_data_grouping: data/cc_data_grouping.parquet
 ---
 
+
+
 # Dashboard
 + the basis of aalysis here will be to (1) select ccn20 and then it will show comparisons with states and congressional disrict
 + the other tabs will be to explore the data and issues ? Will be more for comparison's sake on the basis of that sub-category. But this page will be dedicated to _one_ congressional community
 
-```sql
+```sql id=cc_data_age
 CREATE OR REPLACE TABLE cc_data_age_prop AS (
     WITH base AS (
         SELECT
@@ -40,52 +42,44 @@ SELECT * FROM cc_data_age_prop;
 ```
 
 ```js
-const $ccn20 = vg.Param.value(10);
+const $ccn20 = vg.Selection.single();
+const plot_height = 150;
+const plot_width = 600;
 ```
-
-```sql id=ccn20_rows
--- this selects all the diff values 
-SELECT DISTINCT CCN20 FROM cc_data
-```
-```js
-// extracting options for ccn20
-ccn20List = ccn20_rows.map(d => d.CCN20)
-```
-
 
 ```js
 // remaking line charts 
-
 vg.vconcat(
-    vg.menu({ as: $ccn20, options: ccn20List, label: "Congressional Community" }),
+    vg.menu({ as: $ccn20, from: "cc_data_age_prop", column: "CCN20", label: "Congressional Community " }),
     vg.plot(
-        vg.dot(vg.from("cc_data_age_prop"), { x: "age_prop_under18", y: 0 })
+        vg.dot(vg.from("cc_data_age_prop", { filterBy: $ccn20 }), 
+        { x: "age_prop_under18", y: 0 , tip: true}), 
+        vg.xDomain([0, 1]), // Sets explicit min and max for X axis
+        vg.yDomain(vg.Fixed),  // Keeps Y axis domain fixed after initial load
+        vg.width(plot_width),
+        vg.height(plot_height),
+        vg.xLabel("Proportion Under 18"), 
+        vg.yAxis(null), 
+    ), 
+    vg.plot(
+        vg.dot(vg.from("cc_data_age_prop", { filterBy: $ccn20 }), 
+        { x: "age_prop_18_65", y: 0 , tip: true}), 
+        vg.xDomain([0, 1]), // Sets explicit min and max for X axis
+        vg.yDomain(vg.Fixed),  // Keeps Y axis domain fixed after initial load
+        vg.width(plot_width),
+        vg.height(plot_height),
+        vg.xLabel("Proportion Between 18 and 64"), 
+        vg.yAxis(null)
+    ), 
+    vg.plot(
+        vg.dot(vg.from("cc_data_age_prop", { filterBy: $ccn20 }), 
+        { x: "age_prop_over65", y: 0 , tip: true}), 
+        vg.xDomain([0, 1]), // Sets explicit min and max for X axis
+        vg.yDomain(vg.Fixed),  // Keeps Y axis domain fixed after initial load
+        vg.width(plot_width),
+        vg.height(plot_height),
+        vg.xLabel("Proportion 65 and Over"), 
+        vg.yAxis(null)
     )
 )
 ```
-
-vg.vconcat(
-  vg.hconcat(
-    vg.menu({as: $unit, options: [1, 2, 5, 10, 25, 50, 100], label: "Unit"}),
-    vg.menu({as: $round, options: [true, false], label: "Round"}),
-    vg.menu({as: $gap, options: [0, 1, 2, 3, 4, 5], label: "Gap"}),
-    vg.slider({as: $radius, min: 0, max: 10, step: 0.1, label: "Radius"})
-  ),
-  vg.vspace(10),
-  vg.plot(
-    vg.waffleY(
-      vg.from("athletes"),
-      {
-        unit: $unit,
-        round: $round,
-        gap: $gap,
-        rx: $radius,
-        x: vg.sql`5 * floor(year("date_of_birth") / 5)`,
-        y: vg.count()
-      }
-    ),
-    vg.xLabel(null),
-    vg.xTickSize(0),
-    vg.xTickFormat("d")
-  )
-);
