@@ -42,9 +42,20 @@ SELECT * FROM cc_data_age_prop;
 ```
 
 ```js
+// creating selection bar 
 const $ccn20 = vg.Selection.single();
-const plot_height = 150;
-const plot_width = 600;
+```
+
+```js
+// shared sttributes
+const attributes = [
+  vg.width(600),
+  vg.height(150),
+  vg.margin(0),
+  vg.yAxis(null),
+  vg.xDomain([0, 1]),
+  vg.colorScale("symlog")
+];
 ```
 
 ```js
@@ -54,32 +65,20 @@ vg.vconcat(
     vg.plot(
         vg.dot(vg.from("cc_data_age_prop", { filterBy: $ccn20 }), 
         { x: "age_prop_under18", y: 0 , tip: true}), 
-        vg.xDomain([0, 1]), // Sets explicit min and max for X axis
-        vg.yDomain(vg.Fixed),  // Keeps Y axis domain fixed after initial load
-        vg.width(plot_width),
-        vg.height(plot_height),
+        ...attributes,
         vg.xLabel("Proportion Under 18"), 
-        vg.yAxis(null), 
     ), 
     vg.plot(
         vg.dot(vg.from("cc_data_age_prop", { filterBy: $ccn20 }), 
         { x: "age_prop_18_65", y: 0 , tip: true}), 
-        vg.xDomain([0, 1]), // Sets explicit min and max for X axis
-        vg.yDomain(vg.Fixed),  // Keeps Y axis domain fixed after initial load
-        vg.width(plot_width),
-        vg.height(plot_height),
+        ...attributes,
         vg.xLabel("Proportion Between 18 and 64"), 
-        vg.yAxis(null)
     ), 
     vg.plot(
         vg.dot(vg.from("cc_data_age_prop", { filterBy: $ccn20 }), 
         { x: "age_prop_over65", y: 0 , tip: true}), 
-        vg.xDomain([0, 1]), // Sets explicit min and max for X axis
-        vg.yDomain(vg.Fixed),  // Keeps Y axis domain fixed after initial load
-        vg.width(plot_width),
-        vg.height(plot_height),
+        ...attributes,
         vg.xLabel("Proportion 65 and Over"), 
-        vg.yAxis(null)
     )
 )
 ```

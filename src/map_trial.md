@@ -35,7 +35,8 @@ SELECT * FROM ccn20_geo;
 ```js
 vg.plot(
   vg.geo(vg.from("ccn20_geo"), {geometry: "geometry", stroke: "currentColor", strokeWidth: 0.25}),
-  vg.margin(0)
+  vg.margin(0), 
+  vg.projectionType("albers")
 )
 ```
 
