@@ -1,12 +1,11 @@
 ---
-title: MAp Trial
+title: MAp Trial two
 sql:
-    ccn20_geo_raw: data/ccn20_geo.parquet
     cc_data: data/cc_data.parquet
     cc_data_grouping: data/cc_data_grouping.parquet
 ---
 
-# this is toload the map 
+# this is toload the map , again
 
 ```sql id=load_extensions
 -- loading spatial extension
@@ -16,16 +15,28 @@ LOAD spatial;
 
 Then attaching data
 
-```sql id=ccn20_geo 
--- transforming as geo 
-CREATE OR REPLACE TABLE ccn20_geo AS (
-    SELECT
-    CCN20,
-    DC,
-    State,
-    ST_AsGeoJSON(geometry) AS geometry
-    FROM ccn20_geo_raw
-);
+
+
+```js
+const ccn20_geo = await FileAttachment("./data/ccn20_geo_topo.json").json();
+```
+
+```js
+Object.keys(ccn20_geo)
+```
+
+```js
+Object.keys(ccn20_geo.objects)
+```
+
+```js
+await vg.coordinator().exec([
+  vg.loadSpatial(
+    "ccn20_geo",
+    "data/ccn20_geo_topo.json",
+    {layer: "data"}
+  )
+]);
 ```
 
 ```js

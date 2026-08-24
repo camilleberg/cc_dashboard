@@ -1,5 +1,7 @@
 ---
 title: Housing
+sql:
+  cc_data: data/cc_data.parquet
 ---
 # Housing
 
