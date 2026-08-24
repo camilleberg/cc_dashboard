@@ -6,8 +6,6 @@ sql:
 ---
 
 
-
-
 # Age and map stuff
 
 ```sql id=age_group_data
