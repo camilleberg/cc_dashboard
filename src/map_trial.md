@@ -1,5 +1,5 @@
 ---
-title: MAp Trial
+title: Map Trial
 sql:
     ccn20_geo_raw: data/ccn20_geo.parquet
     cc_data: data/cc_data.parquet

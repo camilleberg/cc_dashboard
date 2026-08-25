@@ -10,19 +10,18 @@ sql:
 
 <span style="color:blue">This age data pull /analysis is in progress! The full functionality is currently not availabel (i.e. the pull is not interesting) but the intercativty is intact. Pleas eplay around with the top grpah to filter age groups</span>.
 
-```sql id=age_group_data
+```sql id=age_group_data display
 SET VARIABLE target_cols = (
     SELECT list(col_name) 
     FROM cc_data_grouping
     WHERE "group" = 'tot_pop_1'
 );
 
--- Step 2: Use COLUMNS() and a lambda function to match the list
 CREATE OR REPLACE TABLE age_group_data_raw AS (
   SELECT CCN20, col_name, value
   FROM (
       SELECT 
-          CCN20, -- Keep keys explicitly if desired
+          CCN20,
           COLUMNS(c -> list_contains(getvariable('target_cols'), c))
       FROM cc_data
   ) sub
@@ -30,10 +29,7 @@ CREATE OR REPLACE TABLE age_group_data_raw AS (
       value FOR col_name IN (COLUMNS(* EXCLUDE (CCN20)))
   )
 );
-```
 
-```sql id=pulling
--- this rejoins on the table for selection 
 CREATE OR REPLACE TABLE age_group_data AS (
     SELECT 
         r.CCN20,
@@ -67,7 +63,7 @@ vg.vconcat(
   vg.plot(
     vg.rectY(
       vg.from("cc_data", { filterBy: $brush }),
-      { x: vg.bin("Dependency Ratio", {steps: 20}), y: vg.count(), fill: "steelblue", inset: 0.5 }
+      { x: vg.bin("Dependency Ratio", {steps: 40}), y: vg.count(), fill: "steelblue", inset: 0.5 }
     ),
     vg.intervalX({ as: $brush }),
     vg.xDomain([0,1]),
