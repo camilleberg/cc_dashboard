@@ -15,7 +15,7 @@ LOAD spatial;
 
 <!-- creating the tables-->
 
-```sql
+```sql id=create_tables
 
 CREATE OR REPLACE TABLE cc_data_age_table AS
 
