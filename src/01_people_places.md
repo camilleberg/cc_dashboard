@@ -421,31 +421,17 @@ function makeLineCompChartPlotly() {
   }</div>
 </div>
 
-
-<div class="grid grid-cols-2" style="grid-auto-rows: 540px;">
+<div class="grid grid-cols-1" style="grid-auto-rows: 350px;">
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
       const { traces, layout } = makeLineCompChartPlotly();
-      Plotly.newPlot(div, traces, { ...layout, width });
+      Plotly.newPlot(div, traces, { ...layout, hovermode: 'x unified', width });
       return div;
     }) 
   }</div>
-  <div class="card">${
-    resize((width) => Plot.plot({
-      title: "How big are penguins, anyway? 🐧",
-      width,
-      grid: true,
-      x: {label: "Body mass (g)"},
-      y: {label: "Flipper length (mm)"},
-      color: {legend: true},
-      marks: [
-        Plot.linearRegressionY(penguins, {x: "body_mass_g", y: "flipper_length_mm", stroke: "species"}),
-        Plot.dot(penguins, {x: "body_mass_g", y: "flipper_length_mm", stroke: "species", tip: true})
-      ]
-    }))
-  }</div>
 </div>
+
 
 
 <!-- plot attributes -->

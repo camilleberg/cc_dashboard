@@ -445,35 +445,6 @@ const community = sql`
 
 
 
-```js
-// remaking line charts 
-
-vg.vconcat(
-    vg.plot(
-        vg.dot(vg.from("cc_data_age_table"), 
-        { x: "age_prop_under18", y: 0 , tip: true}), 
-        ...attributes,
-        vg.xLabel("Proportion Under 18"), 
-    ), 
-    vg.plot(
-        vg.dot(vg.from("cc_data_age_table"), 
-        { x: "age_prop_18_65", y: 0 , tip: true}), 
-        ...attributes,
-        vg.xLabel("Proportion Between 18 and 64"), 
-    ), 
-    vg.plot(
-        vg.dot(vg.from("cc_data_age_table"), 
-        { x: "age_prop_over65", y: 0 , tip: true}), 
-        ...attributes,
-        vg.xLabel("Proportion 65 and Over"), 
-    )
-)
-```
-
-# remaking line maps in javascript
-
-
-
 [insert waffle map and line plots here in story map]
 
 Communities with younger (older) individuals often have different priorities, so understanding where your community sits on this spectrum helps explain which policy fights actually matter locally, even when they don't dominate the district-wide conversation.
