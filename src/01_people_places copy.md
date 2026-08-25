@@ -476,7 +476,7 @@ const countsByLabel = {
 };
 ```
 
-<div class="grid grid-cols-2 >
+<div class="grid grid-cols-2" >
   <div class="card">
     ${display(renderFullWaffle(ageBracketCols, countsByLabel))}
   </div>
