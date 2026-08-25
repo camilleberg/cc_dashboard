@@ -4,7 +4,7 @@ sql:
   cc_data: data/cc_data.parquet
   ccn20_geo_raw: data/ccn20_geo.parquet
 ---
-# People and Places 
+# People and Places Copy
 
 
 ```sql id=load_extensions
@@ -14,7 +14,10 @@ LOAD spatial;
 ```
 
 ```js
+// defining colors
 import Plotly from "npm:plotly.js-dist-min";
+const okabeItoColors = ["#E69F00", "#56B4E9", "#009E73"];
+const lighterItoColors = ["#F5D08A", "#B7E1F5", "#8FD9C4"];
 ```
 
 <!-- creating the tables-->
@@ -291,8 +294,7 @@ const myDiv = display(document.createElement("div"));
 // Fill in real hex values / ordering to match your Python palette.
 const ageBracketCols = ["over65", "18_65", "under18"];
 const ageGroupNames = ["65 and Older", "Between 18 and 64", "18 and Younger"]
-const okabeItoColors = ["#E69F00", "#56B4E9", "#009E73"];
-const lighterItoColors = ["#F5D08A", "#B7E1F5", "#8FD9C4"];
+
 
 function floorToDecimals(x, decimals) {
   const factor = 10 ** decimals;
