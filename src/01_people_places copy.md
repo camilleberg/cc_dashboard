@@ -6,6 +6,9 @@ sql:
 ---
 # People and Places Copy
 
+<span style="color:blue">This page will be dedicated to demographics and the like, there is another page (People and Place) that has the exact same information but with diffent chart options. This one has the three spearte grpaohs as different block but with dynamiclaly adjusting domains</span>.
+
+
 
 ```sql id=load_extensions
 -- loading spatial extension
@@ -16,8 +19,30 @@ LOAD spatial;
 ```js
 // defining colors
 import Plotly from "npm:plotly.js-dist-min";
+```
+
+```js
+// Font Awesome is only a stylesheet, so a <link> tag is safe here
+// (unlike a <script> tag, which won't execute when inserted this way).
+display(html`<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">`);
+```
+
+```js
+display(html`<style>
+  .waffle-section { margin: 10px  30px 0; text-align: center; }
+  .waffle-legend { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin: 0 auto 14px auto; width: fit-content; font-size: 12px; color: #333; }
+  .waffle-legend-item { display: flex; align-items: ; gap: 6px; }
+  .waffle-legend-swatch { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+  .waffle-grid-full { display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(10, 1fr); gap: 2px; width: 220px; margin: 0 auto; }
+  .waffle-grid-full i { font-size: 16px; line-height: 1; }
+</style>`);
+```
+
+
+```js
 const okabeItoColors = ["#E69F00", "#56B4E9", "#009E73"];
 const lighterItoColors = ["#F5D08A", "#B7E1F5", "#8FD9C4"];
+const waffleNotUsedColor = "#D8D8D8";
 ```
 
 <!-- creating the tables-->
@@ -262,34 +287,19 @@ const age_over65 = cc_data_age
 
 
 
-Your congressional community, **${ccn}**, is a community of **${cc_tot_pop.toLocaleString()}** individuals. Compared to your congressional district of **${Math.abs(dc_tot_pop).toFixed(0).toLocaleString()}** people, your community skews **${cc_dc_younger}** by **${(Math.abs(cc_dc_diff) * 100).toFixed(1)} percentage points**. It is similarly **${cc_state_younger}** than **${state_name}**, by **${(Math.abs(cc_state_diff) * 100).toFixed(1)} percentage points**.
-
-<!-- Cards with big numbers -->
-
-<div class="grid grid-cols-2 style="grid-auto-rows: 504px;">
-  <div class="card">
-    <h2>Total Community Population</h2>
-    <span class="big">${cc_tot_pop.toLocaleString()}</span>
-  </div>
-  <div class="card">
-    <h2>Children Population </h2>
-    <span class="big">${age_under_18.toLocaleString()}</span>
-  </div>
-  <div class="card">
-    <h2>Working Age Population</h2>
-    <span class="big">${age_18_65.toLocaleString()}</span>
-  </div>
-  <div class="card">
-    <h2>Over 65</h2>
-    <span class="big">${age_over65.toLocaleString()}</span>
-  </div>
-</div>
-
 ```js
+function highlight(text, index) {
+  const highlighted_text = html`<span style="color:${okabeItoColors[index]}">${text}</span>`;
+  return highlighted_text;
+}
+```
+
+
+```js make_div_bucket.js
 const myDiv = display(document.createElement("div"));
 ```
 
-```js
+```js helper_functions.js
 // Supporting arrays/helpers — define once, before the chart function.
 // Fill in real hex values / ordering to match your Python palette.
 const ageBracketCols = ["over65", "18_65", "under18"];
@@ -305,10 +315,75 @@ function ceilToDecimals(x, decimals) {
   const factor = 10 ** decimals;
   return Math.ceil(x * factor) / factor;
 }
+
+// Largest-remainder rounding: turns a list of raw counts into
+// integer icon counts (out of totalIcons) that sum exactly to totalIcons.
+function allocateIcons(rawCounts, totalIcons) {
+  const total = rawCounts.reduce((a, b) => a + b, 0);
+  if (total === 0) return rawCounts.map(() => 0);
+
+  const exact = rawCounts.map(c => (c / total) * totalIcons);
+  const floored = exact.map(Math.floor);
+  let remainder = totalIcons - floored.reduce((a, b) => a + b, 0);
+
+  const order = exact
+    .map((v, i) => ({i, frac: v - Math.floor(v)}))
+    .sort((a, b) => b.frac - a.frac);
+
+  const result = [...floored];
+  for (let k = 0; k < remainder; k++) {
+    result[order[k % order.length].i] += 1;
+  }
+  return result;
+}
+
+function renderWaffleLegend(labels) {
+  const legend = document.createElement("div");
+  legend.className = "waffle-legend";
+  labels.forEach((label) => {
+    const colorIdx = ageBracketCols.indexOf(label);
+    const item = document.createElement("div");
+    item.className = "waffle-legend-item";
+    item.innerHTML = `
+      <span class="waffle-legend-swatch" style="background:${okabeItoColors[colorIdx]}"></span>
+      ${ageGroupNames[colorIdx]}
+    `;
+    legend.appendChild(item);
+  });
+  return legend;
+}
+
+function renderFullWaffle(labels, countsByLabel) {
+  const rawCounts = labels.map((label) => countsByLabel[label]);
+  const iconCounts = allocateIcons(rawCounts, 100);
+
+  const cellColors = [];
+  labels.forEach((label, idx) => {
+    const colorIdx = ageBracketCols.indexOf(label);
+    const color = okabeItoColors[colorIdx];
+    for (let c = 0; c < iconCounts[idx]; c++) cellColors.push(color);
+  });
+  while (cellColors.length < 100) cellColors.push(waffleNotUsedColor);
+
+  const grid = document.createElement("div");
+  grid.className = "waffle-grid-full";
+  cellColors.forEach((color) => {
+    const icon = document.createElement("i");
+    icon.className = "fa-solid fa-user";
+    icon.style.color = color;
+    grid.appendChild(icon);
+  });
+
+  return html`<div class="waffle-section">
+    <div class="waffle-title">If your community was <br> 100 people... by age<br><br></div>
+    ${renderWaffleLegend(labels)}
+    ${grid}
+  </div>`;
+}
 ```
 
 
-```js
+```js make_plotly_charts.js
 function makeLineCompChartPlotly(ageGroupLabel) {
   const idx = ageBracketCols.indexOf(ageGroupLabel);
   const notUsed = lighterItoColors[idx];
@@ -330,7 +405,7 @@ function makeLineCompChartPlotly(ageGroupLabel) {
     x: intervals,
     y: intervals.map(() => 1),
     mode: "lines+markers",
-    marker: { symbol: "line-ns", size: 10, color: "lightgrey", line: { width: 1 } },
+    marker: { symbol: "line-ns", size: 10, color: "darkgrey", line: { width: 1 } },
     opacity: 0.5,
     hoverinfo: "skip",
     showlegend: false
@@ -379,7 +454,7 @@ function makeLineCompChartPlotly(ageGroupLabel) {
       ticktext: intervals.map((v) => `${Math.round(v * 100)}%`),
       showgrid: false,
       zeroline: false,
-      color: "lightgrey"
+      color: "darkgrey"
     },
     yaxis: { visible: false, range: [0.9, 1.1] },
     legend: { orientation: "h", yanchor: "bottom", y: 1.02, xanchor: "center", x: 0.5 },
@@ -393,9 +468,41 @@ function makeLineCompChartPlotly(ageGroupLabel) {
 }
 ```
 
+```js display_waffle.js
+const countsByLabel = {
+  under18: age_under_18,
+  "18_65": age_18_65,
+  over65: age_over65
+};
+```
+
+<div class="grid grid-cols-2 >
+  <div class="card">
+    ${display(renderFullWaffle(ageBracketCols, countsByLabel))}
+  </div>
+</div>
+
+Your congressional community, **${ccn}**, is a community of **${cc_tot_pop.toLocaleString()}** individuals. Compared to your congressional district of **${Math.abs(dc_tot_pop).toFixed(0).toLocaleString()}** people, your community skews **${cc_dc_younger}** by **${(Math.abs(cc_dc_diff) * 100).toFixed(1)} percentage points**. It is similarly **${cc_state_younger}** than **${state_name}**, by **${(Math.abs(cc_state_diff) * 100).toFixed(1)} percentage points**.
+
+<!-- Cards with big numbers -->
 
 
-<div class="grid grid-cols-3" style="grid-auto-rows: 200px;">
+<div class="grid grid-cols-3 style="grid-auto-rows: 504px;">
+  <div class="card">
+    <h2>${highlight("Under 18 Population", 2)}</h2>
+    <span class="big">${highlight(age_under_18.toLocaleString(), 2)}</span>
+  </div>
+  <div class="card">
+    <h2>${highlight("18 to 64 Population", 1)}</h2>
+    <span class="big">${highlight(age_18_65.toLocaleString(), 1)}</span>
+  </div>
+  <div class="card">
+    <h2>${highlight("65 and Over Population", 0)}</h2>
+    <span class="big">${highlight(age_over65.toLocaleString(), 0)}</span>
+  </div>
+</div>
+
+<div class="grid grid-cols-3" style="grid-auto-rows: 220px;">
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
@@ -424,30 +531,6 @@ function makeLineCompChartPlotly(ageGroupLabel) {
 
 
 <!-- plot attributes -->
-
-
-```js
-// shared sttributes
-const attributes = [
-  vg.width(600),
-  vg.height(150),
-  vg.margin(0),
-  vg.yAxis(null),
-  vg.xDomain([0, 1]),
-];
-```
-
-```js
-const community = sql`
-  SELECT *
-  FROM cc_data_age_table
-  WHERE CCN20 = ${ccn}
-`;
-```
-
-
-
-[insert waffle map and line plots here in story map]
 
 Communities with younger (older) individuals often have different priorities, so understanding where your community sits on this spectrum helps explain which policy fights actually matter locally, even when they don't dominate the district-wide conversation.
 
