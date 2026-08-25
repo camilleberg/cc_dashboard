@@ -1,5 +1,5 @@
 ---
-title: People and Places
+title: People and Places Copy
 sql:
   cc_data: data/cc_data.parquet
   ccn20_geo_raw: data/ccn20_geo.parquet
@@ -305,79 +305,69 @@ function ceilToDecimals(x, decimals) {
 }
 ```
 
+
 ```js
-function makeLineCompChartPlotly() {
+function makeLineCompChartPlotly(ageGroupLabel) {
+  const idx = ageBracketCols.indexOf(ageGroupLabel);
+  const notUsed = lighterItoColors[idx];
+  const colorUsed = okabeItoColors[idx];
+
   // number line ticks
   const intervals = Array.from({ length: 11 }, (_, i) => Math.round((i / 10) * 100) / 100);
 
+  // pull proportions straight from the already-computed age_prop_* columns
+  const propKey = `age_prop_${ageGroupLabel}`;
+  const xCc = cc_data_age.getChild(propKey).get(0);
+  const xCd = dc_data_age.getChild(propKey).get(0);
+  const xState = state_data_age.getChild(propKey).get(0);
+
   const traces = [];
-  const allX = [];
 
-  ageBracketCols.forEach((ageGroupLabel, i) => {
-    const yRow = i + 1; // 1, 2, 3
-    const notUsed = lighterItoColors[i];
-    const colorUsed = okabeItoColors[i];
-
-    const propKey = `age_prop_${ageGroupLabel}`;
-    const xCc = cc_data_age.getChild(propKey).get(0);
-    const xCd = dc_data_age.getChild(propKey).get(0);
-    const xState = state_data_age.getChild(propKey).get(0);
-
-    const label = ageGroupNames[i]
-
-    allX.push(xCc, xCd, xState);
-
-    // baseline number line for this row
-    traces.push({
-      x: intervals,
-      y: intervals.map(() => yRow),
-      mode: "lines+markers",
-      marker: { symbol: "line-ns", size: 10, color: "lightgrey", line: { width: 1 } },
-      opacity: 0.5,
-      hoverinfo: "skip",
-      showlegend: false
-    });
-
-    // State
-    traces.push({
-      x: [xState],
-      y: [yRow],
-      mode: "markers",
-      marker: { symbol: "diamond-x", size: 20, color: notUsed, line: { color: "white", width: 2 } },
-      name: "State",
-      legendgroup: "State",
-      showlegend: i === 0,
-      hovertemplate: `${label} — State: ${(xState * 100).toFixed(1)}%<extra></extra>`
-    });
-
-    // Congressional District
-    traces.push({
-      x: [xCd],
-      y: [yRow],
-      mode: "markers",
-      marker: { symbol: "circle", size: 20, color: notUsed, line: { color: "white", width: 2 } },
-      name: "Congressional District",
-      legendgroup: "Congressional District",
-      showlegend: i === 0,
-      hovertemplate: `${label} — Congressional District: ${(xCd * 100).toFixed(1)}%<extra></extra>`
-    });
-
-    // Congressional Community (highlighted color)
-    traces.push({
-      x: [xCc],
-      y: [yRow],
-      mode: "markers",
-      marker: { symbol: "circle", size: 20, color: colorUsed, line: { color: "white", width: 2 } },
-      name: "Congressional Community",
-      legendgroup: "Congressional Community",
-      showlegend: i === 0,
-      hovertemplate: `${label} — Congressional Community: ${(xCc * 100).toFixed(1)}%<extra></extra>`
-    });
+  // baseline number line (tick marks along y=1)
+  traces.push({
+    x: intervals,
+    y: intervals.map(() => 1),
+    mode: "lines+markers",
+    marker: { symbol: "line-ns", size: 10, color: "lightgrey", line: { width: 1 } },
+    opacity: 0.5,
+    hoverinfo: "skip",
+    showlegend: false
   });
 
-  // dynamically adjust x range across all three age groups
-  const xMin = floorToDecimals(Math.min(...allX), 1) - 0.01;
-  const xMax = ceilToDecimals(Math.max(...allX), 2) + 0.07;
+
+  // State
+  traces.push({
+    x: [xState],
+    y: [1],
+    mode: "markers",
+    marker: { symbol: "diamond-x", size: 20, color: notUsed, line: { color: "white", width: 2 } },
+    name: "State",
+    hovertemplate: `State: ${(xState * 100).toFixed(1)}%<extra></extra>`
+  });
+
+  // Congressional District
+  traces.push({
+    x: [xCd],
+    y: [1],
+    mode: "markers",
+    marker: { symbol: "circle", size: 20, color: notUsed, line: { color: "white", width: 2 } },
+    name: "Congressional District",
+    hovertemplate: `Congressional District: ${(xCd * 100).toFixed(1)}%<extra></extra>`
+  });
+
+  // Congressional Community (highlighted color)
+  traces.push({
+    x: [xCc],
+    y: [1],
+    mode: "markers",
+    marker: { symbol: "circle", size: 20, color: colorUsed, line: { color: "white", width: 2 } },
+    name: "Congressional Community",
+    hovertemplate: `Congressional Community: ${(xCc * 100).toFixed(1)}%<extra></extra>`
+  });
+
+  // dynamically adjust x range
+  const xMin = floorToDecimals(Math.min(xCc, xCd, xState), 1) - 0.01;
+  const xMax = ceilToDecimals(Math.max(xCc, xCd, xState), 2) + 0.07;
 
   const layout = {
     xaxis: {
@@ -387,22 +377,14 @@ function makeLineCompChartPlotly() {
       ticktext: intervals.map((v) => `${Math.round(v * 100)}%`),
       showgrid: false,
       zeroline: false,
-      color: "darkgrey"
+      color: "lightgrey"
     },
-    yaxis: {
-      range: [0.5, 3.5],
-      tickmode: "array",
-      tickvals: [1, 2, 3],
-      ticktext: ageGroupNames,
-      showgrid: false,
-      zeroline: false
-    },
+    yaxis: { visible: false, range: [0.9, 1.1] },
     legend: { orientation: "h", yanchor: "bottom", y: 1.02, xanchor: "center", x: 0.5 },
-    height: 320,
-    margin: { l: 120, r: 20, t: 40, b: 40 },
-    paper_bgcolor: "rgba(0,0,0,0)",
-    plot_bgcolor: "rgba(0,0,0,0)", 
-    hovermode: 'x',
+    height: 200,
+    margin: { l: 20, r: 20, t: 40, b: 40 },
+    paper_bgcolor: 'rgba(0,0,0,0)', // Makes the outer container transparent
+    plot_bgcolor: 'rgba(0,0,0,0)'  
   };
 
   return { traces, layout };
@@ -410,40 +392,31 @@ function makeLineCompChartPlotly() {
 ```
 
 
-<div class="grid grid-cols-1" style="grid-auto-rows: 350px;">
+
+<div class="grid grid-cols-3" style="grid-auto-rows: 200px;">
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
-      const { traces, layout } = makeLineCompChartPlotly();
-      Plotly.newPlot(div, traces, { ...layout, width });
-      return div;
-    }) 
-  }</div>
-</div>
-
-
-<div class="grid grid-cols-2" style="grid-auto-rows: 540px;">
-  <div class="card">${
-    resize((width) => {
-      const div = document.createElement("div");
-      const { traces, layout } = makeLineCompChartPlotly();
+      const { traces, layout } = makeLineCompChartPlotly("under18");
       Plotly.newPlot(div, traces, { ...layout, width });
       return div;
     }) 
   }</div>
   <div class="card">${
-    resize((width) => Plot.plot({
-      title: "How big are penguins, anyway? 🐧",
-      width,
-      grid: true,
-      x: {label: "Body mass (g)"},
-      y: {label: "Flipper length (mm)"},
-      color: {legend: true},
-      marks: [
-        Plot.linearRegressionY(penguins, {x: "body_mass_g", y: "flipper_length_mm", stroke: "species"}),
-        Plot.dot(penguins, {x: "body_mass_g", y: "flipper_length_mm", stroke: "species", tip: true})
-      ]
-    }))
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout } = makeLineCompChartPlotly("18_65");
+      Plotly.newPlot(div, traces, { ...layout, width });
+      return div;
+    }) 
+  }</div>
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout } = makeLineCompChartPlotly("over65");
+      Plotly.newPlot(div, traces, { ...layout, width });
+      return div;
+    }) 
   }</div>
 </div>
 
