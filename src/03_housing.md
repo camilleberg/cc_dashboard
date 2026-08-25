@@ -5,6 +5,7 @@ sql:
 ---
 # Housing
 
+<span style="color:blue">This housing data pull /analysis is in progress!</span>.
 
 
 In general, your community has xx,xxx housing units, of which x.x% are owned. That means that, compared to your congressional district and state, there are x.x% and x.x% more (fewer) homeowners, respectively.

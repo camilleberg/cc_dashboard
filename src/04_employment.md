@@ -3,6 +3,8 @@ title: Employment
 ---
 # Employment
 
+<span style="color:blue">This employment data pull /analysis is in progress!</span>.
+
 Local employment within your community is x.x%, with major employment industries of x, y, and z.
 [insert chart about employment]
 [link blocks to causes, e.g. tech, maybe wifi infrastructure or work-from-home stuff; if retail, maybe link to working hours]

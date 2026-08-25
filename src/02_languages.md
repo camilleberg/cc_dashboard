@@ -3,6 +3,8 @@ title: Languages
 ---
 # Languages
 
+<span style="color:blue">This data is not currenlty pulled in the spreadhseet - I am jst aware of the pfact it exists in the census data </span>.
+
 
 There are a total of x languages other than English spoken at home in your community.
 [insert graph with languages sorted]

@@ -8,6 +8,8 @@ sql:
 
 # Age and map stuff
 
+<span style="color:blue">This age data pull /analysis is in progress! The full functionality is currently not availabel (i.e. the pull is not interesting) but the intercativty is intact. Pleas eplay around with the top grpah to filter age groups</span>.
+
 ```sql id=age_group_data
 SET VARIABLE target_cols = (
     SELECT list(col_name) 
@@ -30,7 +32,7 @@ CREATE OR REPLACE TABLE age_group_data_raw AS (
 );
 ```
 
-```sql 
+```sql id=pulling
 -- this rejoins on the table for selection 
 CREATE OR REPLACE TABLE age_group_data AS (
     SELECT 
@@ -65,10 +67,10 @@ vg.vconcat(
   vg.plot(
     vg.rectY(
       vg.from("cc_data", { filterBy: $brush }),
-      { x: vg.bin("Dependency Ratio"), y: vg.count(), fill: "steelblue", inset: 0.5 }
+      { x: vg.bin("Dependency Ratio", {steps: 20}), y: vg.count(), fill: "steelblue", inset: 0.5 }
     ),
     vg.intervalX({ as: $brush }),
-    vg.xDomain(vg.Fixed),
+    vg.xDomain([0,1]),
     vg.yTickFormat("s"),
     vg.xLabel("Dependency Ratio"),
     vg.yLabel("Number of Communities"),

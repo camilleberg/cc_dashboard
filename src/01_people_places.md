@@ -1,10 +1,12 @@
 ---
-title: People and Places
+title: People and Places - Line Chart options (other)
 sql:
   cc_data: data/cc_data.parquet
   ccn20_geo_raw: data/ccn20_geo.parquet
 ---
 # People and Places 
+
+<span style="color:blue">This page contains alternatives to people and places line charts! </span>.
 
 
 ```sql id=load_extensions
@@ -502,12 +504,4 @@ vg.vconcat(
 )
 ```
 
-# remaking line maps in javascript
 
-
-
-[insert waffle map and line plots here in story map]
-
-Communities with younger (older) individuals often have different priorities, so understanding where your community sits on this spectrum helps explain which policy fights actually matter locally, even when they don't dominate the district-wide conversation.
-
-[link blocks to causes, e.g. youth – childcare, education, loans – can tag interest groups and integrate with fuzzy matching]
