@@ -1,5 +1,5 @@
 ---
-title: FLights Example
+title: Flights Example
 header: |
   <div class="banner">
     <a target="_blank" href="https://github.com/uwdata/mosaic-framework-example/blob/main/docs/flight-delays.md?plain=1"><span>View source ↗</span></a>
@@ -7,6 +7,8 @@ header: |
 sql:
   flights: data/flights-200k.parquet
 ---
+
+<span style="color:blue">This page is completely irrelevant to the current data, but I have left it here as reference and possible inspiration!</span>.
 
 # Flight Delays
 + source: https://github.com/uwdata/mosaic-framework-example

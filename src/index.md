@@ -7,6 +7,8 @@ toc: false
   <h2>What is your community?</h2>
 </div>
 
+<span style="color:blue">Current landing page! I'm not sure what to put in here -- ask Dan in meeting. Currenlty left template info</span>.
+
 <div class="grid grid-cols-2" style="grid-auto-rows: 504px;">
   <div class="card">${
     resize((width) => Plot.plot({

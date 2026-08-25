@@ -6,7 +6,11 @@ sql:
     cc_data_grouping: data/cc_data_grouping.parquet
 ---
 
-# this is toload the map 
+# this is to load the map 
+
+<span style="color:blue">Current map page. Right now, when you click on the communities it counts the number of states. Shift click allows for multipple selection. Further work si to actually integrate the data and get informaiton on each cc. 
+
+Possible other idea is to filter high earning communities or some metric of similairites and it will highlight on the mpa but that can be put on the back burner</span>.
 
 ```sql id=load_extensions
 -- loading spatial extension

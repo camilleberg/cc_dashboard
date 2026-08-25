@@ -5,7 +5,7 @@ sql:
   cc_data_grouping: data/cc_data_grouping.parquet
 ---
 
-
+<span style="color:blue">This page is to play aroudn in a new framework? If there maybe wants to be one compact dashabord for each community</span>.
 
 # Dashboard
 + the basis of aalysis here will be to (1) select ccn20 and then it will show comparisons with states and congressional disrict
