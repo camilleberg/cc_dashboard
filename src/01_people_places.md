@@ -13,6 +13,10 @@ INSTALL spatial;
 LOAD spatial;
 ```
 
+```js
+import Plotly from "npm:plotly.js-dist-min";
+```
+
 <!-- creating the tables-->
 
 ```sql id=create_tables
@@ -327,6 +331,28 @@ vg.vconcat(
 )
 ```
 
+# remaking line maps in javascript
+
+```js
+const myDiv = display(document.createElement("div"));
+```
+
+```js
+var cc_level = {
+  x: [cc_under18_prop],
+  y: [0], 
+  mode: 'markers', 
+  name: 'Congressional Community'
+};
+
+var data = [cc_level];
+
+var layout = {
+  title: {text: 'Adding new things'}
+};
+
+Plotly.newPlot(myDiv, data, layout);
+```
 
 
 [insert waffle map and line plots here in story map]
