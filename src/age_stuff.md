@@ -17,7 +17,7 @@ sql:
 
 # Age and map stuff
 
-<span style="color:blue">This age data pull /analysis is in progress! The full functionality is currently not availabel (i.e. the pull is not interesting) but the intercativty is intact. Pleas eplay around with the top grpah to filter age groups</span>.
+<span style="color:blue">This age data pull /analysis is in progress! The full functionality is currently not available (i.e. the pull is not interesting) but the interactivty is intact. Please play around with the top graph to filter age groups by dpeendency ratio</span>.
 
 ```sql id=age_group_data display
 SET VARIABLE target_cols = (
