@@ -31,7 +31,7 @@ LOAD spatial;
 import Plotly from "npm:plotly.js-dist-min";
 
 // https://observablehq.com/@floatingpurr/input-autocomplete
-import { SearchForm } from "@floatingpurr/input-autocomplete";
+import {SearchForm} from "/vendor/input-autocomplete.js";
 ```
 
 ```js
@@ -186,28 +186,37 @@ const ccnList = await sql`
 
 const ccnArray = [...ccnList];
 
-const ccn = view(
-    Inputs.select(
-        ccnArray.map(d => d.CCN20),
-        {label: "My Congressional Community"}
-    )
+```
+
+
+```js dynamic_search.js
+const ccn_search = view(
+  SearchForm({
+    placeholder: "Search for a community...",
+    description: "Start typing a CCN or place name",
+    format: (d) => d.label,
+    suggestion: async (text) => {
+      const rows = await sql`
+        SELECT DISTINCT CCN20 AS label
+        FROM cc_data
+        WHERE CCN20 ILIKE ${text + '%'}
+        LIMIT 10
+      `;
+      return [...rows];
+    }
+  })
 );
 
 ```
 
 ```js
-// trying out autocomplete new sleect option 
-const searchBox_1 = view(html`<input type="text" list="options" placeholder="Type to search..."><datalist id="options">
-  <option value="Apple">
-  <option value="Banana">
-  <option value="Cherry">
-</datalist>`)
-
+const ccn = ccn_search.label
 ```
+
 
 <!-- Filtering the data-->
 
-```sql id=cc_data_age
+```sql id=cc_data_age 
 SELECT *
 FROM cc_data_age_table
 WHERE CCN20 = ${ccn};
