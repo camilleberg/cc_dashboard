@@ -557,13 +557,15 @@ function boundsFromGeoJSON(geojson) {
 }
 ```
 
+other map options: https://madewithmaplibre.com/basemaps/gallery 
+
 ```js
 const mapDiv = display(document.createElement("div"));
 mapDiv.style = "height: 400px;";
 
 const map = new maplibregl.Map({
     container: mapDiv,
-    style: 'https://tiles.openfreemap.org/styles/bright',
+    style: "https://tiles.versatiles.org/assets/styles/colorful/style.json",
     //center: [-68.13734351262877, 45.137451890638886],
     zoom: 5
 });
