@@ -48,13 +48,20 @@ display(html`<style>
   .waffle-grid-full i { font-size: 16px; line-height: 1; }
 </style>`);
 ```
+<!-- color block-->
 
-
-```js
+```js assigning_colors.js
 const okabeItoColors = ["#E69F00", "#56B4E9", "#009E73"];
 const lighterItoColors = ["#F5D08A", "#B7E1F5", "#8FD9C4"];
 const waffleNotUsedColor = "#D8D8D8";
+
+
+function highlight(text, index) {
+  const highlighted_text = html`<span style="color:${okabeItoColors[index]}">${text}</span>`;
+  return highlighted_text;
+}
 ```
+
 
 <!-- creating the tables-->
 
@@ -192,7 +199,7 @@ FROM base
 GROUP BY State;
 ```
 
-<!-- slecting the community-->
+<!-- selecting the community-->
 
 ```js
 const ccnList = await sql`
@@ -239,7 +246,16 @@ WHERE State = (
 );
 ```
 
-
+```sql id=current_ccn_geo 
+-- transforming as geo 
+SELECT
+  CCN20,
+  DC,
+  State,
+  ST_AsGeoJSON(geometry) AS geometry
+  FROM ccn20_geo_raw 
+  WHERE CCN20 = ${ccn}
+```
 
 <!-- Cleaning and extracting data-->
 ```js
@@ -294,15 +310,10 @@ const age_18_65 = cc_data_age
 const age_over65 = cc_data_age
   .getChild("ageGroup_over65")
   .get(0);
-```
 
-
-
-```js
-function highlight(text, index) {
-  const highlighted_text = html`<span style="color:${okabeItoColors[index]}">${text}</span>`;
-  return highlighted_text;
-}
+const current_ccn_geojson = JSON.parse(
+  current_ccn_geo.getChild("geometry").get(0)
+);
 ```
 
 
@@ -393,6 +404,13 @@ function renderFullWaffle(labels, countsByLabel) {
 }
 ```
 
+```js display_waffle.js
+const countsByLabel = {
+  under18: age_under_18,
+  "18_65": age_18_65,
+  over65: age_over65
+};
+```
 
 ```js make_plotly_charts.js
 function makeLineCompChartPlotly(ageGroupLabel) {
@@ -421,7 +439,6 @@ function makeLineCompChartPlotly(ageGroupLabel) {
     hoverinfo: "skip",
     showlegend: false
   });
-
 
   // State
   traces.push({
@@ -479,22 +496,47 @@ function makeLineCompChartPlotly(ageGroupLabel) {
 }
 ```
 
-```js display_waffle.js
-const countsByLabel = {
-  under18: age_under_18,
-  "18_65": age_18_65,
-  over65: age_over65
-};
+<!-- Map chart -->
+
+
+
+```js make_ccn_map.js
+const div = display(document.createElement("div"));
+div.style = "height: 400px;";
+
+const map = L.map(div);
+
+var tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+}).addTo(map);
+
+const ccnLayer = L.geoJSON(current_ccn_geojson).addTo(map);
+
+const bounds = ccnLayer.getBounds();
+
+L.marker(bounds.getCenter())
+  .addTo(map)
+  .bindPopup("My community: " + ccn)
+  .openPopup();
+
+map.fitBounds(bounds);
+
 ```
+
+<!-- Waffle chart -->
 
 <div class="grid grid-cols-2">
   <div class="card">${
     resize((width) => renderFullWaffle(ageBracketCols, countsByLabel))
   }</div>
-  <div class="card">
-    map!
+  <div class="card">${
+    map
+  }
   </div>
 </div>
+
+<!-- Text -->
 
 Your congressional community, **${ccn}**, is a community of **${cc_tot_pop.toLocaleString()}** individuals. Compared to your congressional district of **${Math.abs(dc_tot_pop).toFixed(0).toLocaleString()}** people, your community skews **${cc_dc_younger}** by **${(Math.abs(cc_dc_diff) * 100).toFixed(1)} percentage points**. It is similarly **${cc_state_younger}** than **${state_name}**, by **${(Math.abs(cc_state_diff) * 100).toFixed(1)} percentage points**.
 
