@@ -489,7 +489,8 @@ function makeLineCompChartPlotly(ageGroupLabel) {
     height: 200,
     margin: { l: 20, r: 20, t: 40, b: 40 },
     paper_bgcolor: 'rgba(0,0,0,0)', // Makes the outer container transparent
-    plot_bgcolor: 'rgba(0,0,0,0)'  
+    plot_bgcolor: 'rgba(0,0,0,0)' , 
+    hovermode: 'x'
   };
 
   return { traces, layout };
