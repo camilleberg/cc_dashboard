@@ -30,7 +30,7 @@ LOAD spatial;
 
 Then attaching data
 
-```sql id=ccn20_geo 
+```sql id=ccn20_geo_query
 -- transforming as geo 
 CREATE OR REPLACE TABLE ccn20_geo AS (
     SELECT
@@ -41,6 +41,94 @@ CREATE OR REPLACE TABLE ccn20_geo AS (
     FROM ccn20_geo_raw
 );
 ```
+
+```sql id=ccn_geo
+-- transforming as geo 
+SELECT
+    CCN20,
+    DC,
+    State,
+    ST_AsGeoJSON(geometry) AS geometry
+    FROM ccn20_geo_raw
+```
+
+
+```js import_maplibre.js
+import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-gl.mjs';
+display(html`<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-gl.css">`);
+```
+
+```js find_bounds.js
+function boundsFromGeoJSON(geojson) {
+  const bounds = new maplibregl.LngLatBounds();
+
+  function extendWithCoords(coords) {
+    if (typeof coords[0] === "number") {
+      bounds.extend(coords);
+    } else {
+      coords.forEach(extendWithCoords);
+    }
+  }
+
+  // handle Feature, bare Geometry, or FeatureCollection
+  const geometry = geojson.type === "Feature" ? geojson.geometry
+                  : geojson.type === "FeatureCollection" ? null
+                  : geojson;
+
+  if (geojson.type === "FeatureCollection") {
+    geojson.features.forEach(f => extendWithCoords(f.geometry.coordinates));
+  } else {
+    extendWithCoords(geometry.coordinates);
+  }
+
+  return bounds;
+}
+```
+
+```js get_geo.js
+const ccn_geojson = {
+  type: "FeatureCollection",
+  features: ccn_geo.toArray().map(row => ({
+    type: "Feature",
+    properties: { CCN20: row.CCN20, DC: row.DC, State: row.State },
+    geometry: JSON.parse(row.geometry)
+  }))
+};
+```
+
+```js make_map.js
+const mapDiv = display(document.createElement("div"));
+mapDiv.style = "height: 400px;";
+
+const map = new maplibregl.Map({
+    container: mapDiv,
+    style: "https://tiles.versatiles.org/assets/styles/colorful/style.json",
+    //center: [-68.13734351262877, 45.137451890638886],
+    zoom: 5
+});
+
+map.on('load', () => {
+    map.addSource('maine', {
+        'type': 'geojson',
+        'data': ccn_geojson
+    });
+    map.addLayer({
+        'id': 'maine',
+        'type': 'fill',
+        'source': 'maine',
+        'layout': {},
+        'paint': {
+            'fill-color': '#088',
+            'fill-opacity': 0.8
+        }
+    });
+
+    const bounds = boundsFromGeoJSON(ccn_geojson);
+    map.fitBounds(bounds, { padding: 20 });
+});
+
+```
+
 
 ```js
 // A selection that accumulates clicked items (shift-click to add multiple)
