@@ -501,26 +501,92 @@ function makeLineCompChartPlotly(ageGroupLabel) {
 
 
 ```js make_ccn_map.js
-const div = display(document.createElement("div"));
-div.style = "height: 400px;";
+function make_map() {
+  const div = display(document.createElement("div"));
+  div.style = "height: 400px;";
 
-const map = L.map(div);
+  const map = L.map(div);
 
-var tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-}).addTo(map);
+  var tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(map);
 
-const ccnLayer = L.geoJSON(current_ccn_geojson).addTo(map);
+  const ccnLayer = L.geoJSON(current_ccn_geojson).addTo(map);
 
-const bounds = ccnLayer.getBounds();
+  const bounds = ccnLayer.getBounds();
 
-L.marker(bounds.getCenter())
-  .addTo(map)
-  .bindPopup("My community: " + ccn)
-  .openPopup();
+  L.marker(bounds.getCenter())
+    .addTo(map)
+    .bindPopup("My community: " + ccn)
+    .openPopup();
 
-map.fitBounds(bounds);
+  map.fitBounds(bounds);
+}
+```
+
+```js import_maplibre.js
+import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-gl.mjs';
+display(html`<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-gl.css">`);
+```
+
+```js find_bounds.js
+function boundsFromGeoJSON(geojson) {
+  const bounds = new maplibregl.LngLatBounds();
+
+  function extendWithCoords(coords) {
+    if (typeof coords[0] === "number") {
+      bounds.extend(coords);
+    } else {
+      coords.forEach(extendWithCoords);
+    }
+  }
+
+  // handle Feature, bare Geometry, or FeatureCollection
+  const geometry = geojson.type === "Feature" ? geojson.geometry
+                  : geojson.type === "FeatureCollection" ? null
+                  : geojson;
+
+  if (geojson.type === "FeatureCollection") {
+    geojson.features.forEach(f => extendWithCoords(f.geometry.coordinates));
+  } else {
+    extendWithCoords(geometry.coordinates);
+  }
+
+  return bounds;
+}
+```
+
+```js
+const mapDiv = display(document.createElement("div"));
+mapDiv.style = "height: 400px;";
+
+const map = new maplibregl.Map({
+    container: mapDiv,
+    style: 'https://tiles.openfreemap.org/styles/bright',
+    //center: [-68.13734351262877, 45.137451890638886],
+    zoom: 5
+});
+
+map.on('load', () => {
+    map.addSource('maine', {
+        'type': 'geojson',
+        'data': current_ccn_geojson
+    });
+    map.addLayer({
+        'id': 'maine',
+        'type': 'fill',
+        'source': 'maine',
+        'layout': {},
+        'paint': {
+            'fill-color': '#088',
+            'fill-opacity': 0.8
+        }
+    });
+
+    const bounds = boundsFromGeoJSON(current_ccn_geojson);
+    map.fitBounds(bounds, { padding: 20 });
+});
 
 ```
 
@@ -531,7 +597,7 @@ map.fitBounds(bounds);
     resize((width) => renderFullWaffle(ageBracketCols, countsByLabel))
   }</div>
   <div class="card">${
-    map
+    make_map()
   }
   </div>
 </div>
