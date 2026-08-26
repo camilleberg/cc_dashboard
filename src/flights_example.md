@@ -8,6 +8,17 @@ sql:
   flights: data/flights-200k.parquet
 ---
 
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2M9HMSTWCC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-2M9HMSTWCC');
+</script>
+
+
 <span style="color:blue">This page is completely irrelevant to the current data, but I have left it here as reference and possible inspiration!</span>.
 
 # Flight Delays

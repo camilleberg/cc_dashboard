@@ -6,6 +6,16 @@ sql:
 ---
 # People and Places 
 
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2M9HMSTWCC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-2M9HMSTWCC');
+</script>
+
 <span style="color:blue">This page contains alternatives to people and places line charts! </span>.
 
 

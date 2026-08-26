@@ -6,6 +6,16 @@ sql:
     cc_data_grouping: data/cc_data_grouping.parquet
 ---
 
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2M9HMSTWCC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-2M9HMSTWCC');
+</script>
+
 # this is to load the map 
 
 <span style="color:blue">Current map page. Right now, when you click on the communities it counts the number of states. Shift click allows for multipple selection. Further work si to actually integrate the data and get informaiton on each cc. 
