@@ -595,7 +595,7 @@ map.on('load', () => {
 
 <!-- Waffle chart -->
 
-<div class="grid grid-cols-2">
+<div class="grid grid-cols-2 style="grid-auto-rows: 504px;"">
   <div class="card">${
     resize((width) => renderFullWaffle(ageBracketCols, countsByLabel))
   }</div>
