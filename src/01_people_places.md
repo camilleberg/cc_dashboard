@@ -3,6 +3,7 @@ title: People and Places - Line Chart options (other)
 sql:
   cc_data: data/cc_data.parquet
   ccn20_geo_raw: data/ccn20_geo.parquet
+head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10/dist/css/autoComplete.min.css">'
 ---
 # People and Places 
 
@@ -29,9 +30,6 @@ LOAD spatial;
 ```js
 // defining colors
 import Plotly from "npm:plotly.js-dist-min";
-
-// https://observablehq.com/@floatingpurr/input-autocomplete
-import {SearchForm} from "/vendor/input-autocomplete.js";
 ```
 
 ```js
@@ -190,27 +188,63 @@ const ccnArray = [...ccnList];
 
 
 ```js dynamic_search.js
-const ccn_search = view(
-  SearchForm({
-    placeholder: "Search for a community...",
-    description: "Start typing a CCN or place name",
-    format: (d) => d.label,
-    suggestion: async (text) => {
-      const rows = await sql`
-        SELECT DISTINCT CCN20 AS label
-        FROM cc_data
-        WHERE CCN20 ILIKE ${text + '%'}
-        LIMIT 10
-      `;
-      return [...rows];
-    }
-  })
+
+const ccn = view(
+    Inputs.select(
+        ccnArray.map(d => d.CCN20),
+        {label: "My Congressional Community"}
+    )
 );
 
 ```
 
-```js
-const ccn = ccn_search.label
+<!-- Filtering the data https://tarekraafat.github.io/autoComplete.js/#/installation-->
+
+
+<input id="autoComplete">
+
+```js import_autocomplete.js
+//https://tarekraafat.github.io/autoComplete.js/#/installation
+import autoComplete from "npm:@tarekraafat/autocomplete.js";
+```
+
+```js create_autocomplete.js
+const autoCompleteJS = new autoComplete({
+    // message
+    placeHolder: "Search for Your Community...",
+    // HOLDS HISTROY
+    cache: true,
+    data: {
+        src: ccnArray.map(d => d.CCN20),
+        cache: true,
+    },
+    // SHOWS RESULTS ON CLICK 
+    threshold: 0,
+    resultsList: {
+        maxResults: undefined
+    },
+    // Need to figure out how to export 
+    resultItem: {
+        highlight: true
+    },
+    // actual event
+    events: {
+        input: {
+            selection: (event) => {
+                const selection = event.detail.selection.value;
+                autoCompleteJS.input.value = selection;
+            }
+        }
+    }
+});
+
+```
+
+```js access_search.js
+document.querySelector("#autoComplete").addEventListener("selection", function (event) {
+    const selection = event.detail.selection.value;
+    autoCompleteJS.input.value = selection;
+});
 ```
 
 

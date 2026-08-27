@@ -11,6 +11,7 @@
   "dependencies": {
     "@floatingpurr/input-autocomplete": "file:vendor/input-autocomplete.tgz",
     "@observablehq/framework": "^1.13.4",
+    "@tarekraafat/autocomplete.js": "^10.2.10",
     "d3-dsv": "^3.0.1",
     "d3-time-format": "^4.1.0"
   },
@@ -22,6 +23,7 @@
   },
   "allowScripts": {
     "esbuild@0.27.7": true,
-    "esbuild@0.28.2": true
+    "esbuild@0.28.2": true,
+    "fsevents@2.3.3": true
   }
 }
