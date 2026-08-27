@@ -36,7 +36,7 @@ SELECT * FROM ccn20_geo LIMIT 3
 ```
 
 
-```sql 
+```sql id=age_group_data display
 SET VARIABLE target_cols = (
     SELECT list(col_name) 
     FROM cc_data_grouping
@@ -56,17 +56,17 @@ CREATE OR REPLACE TABLE age_group_data_raw AS (
   )
 );
 
-CREATE OR REPLACE TABLE geo_data_merged AS (
+CREATE OR REPLACE TABLE age_group_data AS (
     SELECT 
         r.CCN20,
         r.col_name,
         r.value,
-        c."State" AS "State",
-        c."geometry" AS "geometry"
+        c."Dependency Ratio" AS "Dependency Ratio"
     FROM age_group_data_raw r
-    JOIN ccn20_geo c ON r.CCN20 = c.CCN20
+    JOIN cc_data c ON r.CCN20 = c.CCN20
 );
 ```
+
 
 
 ```js
@@ -74,12 +74,14 @@ CREATE OR REPLACE TABLE geo_data_merged AS (
 const $selection = vg.Selection.crossfilter();
 ```
 
+yyou chose${$selection.value}
+
 ```js
 vg.vconcat(
     vg.plot(
         vg.geo(vg.from("ccn20_geo"), {
             geometry: "geometry",
-            fill: "State",              // keep State as the field bound to fill
+            fill: "CCN20",              // keep State as the field bound to fill
             fillOpacity: 0.5,
             stroke: "currentColor",
             strokeWidth: 0.5
@@ -103,4 +105,8 @@ vg.vconcat(
         { x: 'col_name', y: vg.sum('value') , fill: "steelblue"})
     )
 )
+```
+
+```sql
+SELECT * FROM age_group_data LIMIT 3
 ```
