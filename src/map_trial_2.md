@@ -36,6 +36,38 @@ SELECT * FROM ccn20_geo LIMIT 3
 ```
 
 
+```sql 
+SET VARIABLE target_cols = (
+    SELECT list(col_name) 
+    FROM cc_data_grouping
+    WHERE "group" = 'tot_pop_1'
+);
+
+CREATE OR REPLACE TABLE age_group_data_raw AS (
+  SELECT CCN20, col_name, value
+  FROM (
+      SELECT 
+          CCN20,
+          COLUMNS(c -> list_contains(getvariable('target_cols'), c))
+      FROM cc_data
+  ) sub
+  UNPIVOT (
+      value FOR col_name IN (COLUMNS(* EXCLUDE (CCN20)))
+  )
+);
+
+CREATE OR REPLACE TABLE geo_data_merged AS (
+    SELECT 
+        r.CCN20,
+        r.col_name,
+        r.value,
+        c."State" AS "State",
+        c."geometry" AS "geometry"
+    FROM age_group_data_raw r
+    JOIN ccn20_geo c ON r.CCN20 = c.CCN20
+);
+```
+
 
 ```js
 // A selection that accumulates clicked items (shift-click to add multiple)
@@ -65,6 +97,10 @@ vg.vconcat(
             fill: "steelblue"
             }),
         vg.marginLeft(80)
+    ), 
+    vg.plot(
+        vg.barY(vg.from("age_group_data", { filterBy: $selection }), 
+        { x: 'col_name', y: vg.sum('value') , fill: "steelblue"})
     )
 )
 ```

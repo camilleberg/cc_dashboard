@@ -1,1 +1,5 @@
 gdown==6.1.0
+pandas
+gdown
+shapely
+pyarrow
