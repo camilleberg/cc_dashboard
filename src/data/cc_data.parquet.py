@@ -4,7 +4,12 @@
 
 import pandas as pd
 from pathlib import Path
+import sys
 
+
+def log(msg):
+    # stderr only — never contaminate stdout
+    print(msg, file=sys.stderr)
 
 def excel_to_parquet(file_path, sheet_name, output_path):
     df = pd.read_excel(file_path, sheet_name)
@@ -22,13 +27,15 @@ def excel_to_parquet(file_path, sheet_name, output_path):
     if 'DC' in df.columns:
         df['DC'] = df['DC'].astype(str).str.zfill(4)
 
-    df.to_parquet(output_path)
-    print("Data saved successfully to {}".format(output_path))
+    df.to_parquet(output_path, index = False)
+    log("Data saved successfully")
+    
+    sys.stdout.buffer.write(df)
+    log("Data exported")
+    
+    
 
 if __name__ == '__main__':
     SCRIPT_DIR = Path(__file__).parent
     excel_to_parquet(SCRIPT_DIR / 'input' / 'cc20_us_02052025_website.xlsx', 'CD119_CCN20_Itemset1', 
                      SCRIPT_DIR / 'cc_data.parquet')
-    excel_to_parquet(SCRIPT_DIR / 'input' / 'cc20_us_02052025_website.xlsx', 'grouping', 
-                         SCRIPT_DIR / 'cc_data_grouping.parquet')
-    # exports from as parquet

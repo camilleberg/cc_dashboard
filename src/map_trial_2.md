@@ -31,17 +31,6 @@ LOAD spatial;
 Then attaching data
 
 
--- transforming as geo 
-CREATE OR REPLACE TABLE ccn20_geo AS (
-    SELECT
-    CCN20,
-    DC,
-    State,
-    ST_AsGeoJSON(geometry) AS geometry
-    FROM ccn20_geo_raw
-);
-
-
 ```sql
 SELECT * FROM ccn20_geo LIMIT 3
 ```
