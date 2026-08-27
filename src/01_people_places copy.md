@@ -18,7 +18,7 @@ head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/au
 
 # People and Places Copy
 
-<span style="color:blue">This page will be dedicated to demographics and the like, there is another page (People and Place) that has the exact same information but with diffent chart options. This one has the three spearte grpaohs as different block but with dynamiclaly adjusting domains</span>.
+<span style="color:blue">This page will be dedicated to demographics and the like, there is another page (People and Place) that has the exact same information but with diffent chart options. This one has the three separate graphs as different blocks but with dynamically adjusting domains</span>.
 
 <br>
 <input id="autoComplete">
@@ -267,14 +267,14 @@ const ccn = Generators.input(autoCompleteJS.input);
 
 ```js blur_page.js
 // this selects the thing to blur 
-const action = (_action, ccn) => {
+const action = (action, ccn) => {
   const content = document.getElementById("page-content");
   const hasSelection = !(ccn === undefined || ccn === "");
   content.style.filter = hasSelection ? "none" : "blur(5px)";
 };
 
 // Apply blur immediately on landing, before any interaction
-action("blur", ccn);
+// action("blur", ccn);
 
 // does the reverse (for events)
 ["focus", "blur"].forEach((eventType) => {
