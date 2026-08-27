@@ -3,6 +3,8 @@ import sys
 import os
 import tempfile
 import gdown
+import pandas as pd
+import shapely
 
 FILE_ID = "1o-LGPQr-ML6xSp4hmTGGuGZO2pyWBLk5"
 
@@ -16,7 +18,6 @@ def main():
 
     try:
         log(f"Downloading file_id={FILE_ID} to temp path")
-        # quiet=True to guarantee no progress bar leaks into stdout
         result = gdown.download(id=FILE_ID, output=tmp_path, quiet=True)
 
         if result is None:
@@ -24,13 +25,19 @@ def main():
             sys.exit(1)
 
         with open(tmp_path, "rb") as f:
-            data = f.read()
+            header = f.read(4)
 
-        if data[:4] != b"PAR1":
+        if header != b"PAR1":
             log("Downloaded file does not look like valid Parquet (bad magic bytes)")
             sys.exit(1)
 
-        sys.stdout.buffer.write(data)
+        log("Transforming geometry column")
+        df = pd.read_parquet(tmp_path)
+        df = df[["CCN20", "DC", "State", "geometry"]].copy()
+        df["geometry"] = shapely.to_geojson(shapely.from_wkb(df["geometry"]))
+
+        out_buf = df.to_parquet(index=False)
+        sys.stdout.buffer.write(out_buf)
 
     finally:
         if os.path.exists(tmp_path):

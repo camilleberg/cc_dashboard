@@ -1,7 +1,7 @@
 ---
 title: Map Trial 1
 sql:
-    ccn20_geo_raw: data/ccn20_geo.parquet
+    ccn20_geo: data/ccn20_geo.parquet
     cc_data: data/cc_data.parquet
     cc_data_grouping: data/cc_data_grouping.parquet
 ---
@@ -32,12 +32,7 @@ Then attaching data
 
 ```sql id=ccn_geo
 -- transforming as geo 
-SELECT
-    CCN20,
-    DC,
-    State,
-    ST_AsGeoJSON(geometry) AS geometry
-    FROM ccn20_geo_raw
+SELECT * FROM ccn20_geo
 ```
 
 

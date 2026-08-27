@@ -1,7 +1,7 @@
 ---
 title: Map Trial 2
 sql:
-    ccn20_geo_raw: data/ccn20_geo.parquet
+    ccn20_geo: data/ccn20_geo.parquet
     cc_data: data/cc_data.parquet
     cc_data_grouping: data/cc_data_grouping.parquet
 ---
@@ -30,7 +30,7 @@ LOAD spatial;
 
 Then attaching data
 
-```sql id=ccn20_geo_query
+
 -- transforming as geo 
 CREATE OR REPLACE TABLE ccn20_geo AS (
     SELECT
@@ -40,9 +40,11 @@ CREATE OR REPLACE TABLE ccn20_geo AS (
     ST_AsGeoJSON(geometry) AS geometry
     FROM ccn20_geo_raw
 );
+
+
+```sql
+SELECT * FROM ccn20_geo LIMIT 3
 ```
-
-
 
 
 ```js
