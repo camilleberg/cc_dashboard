@@ -186,17 +186,6 @@ const ccnArray = [...ccnList];
 
 ```
 
-const ccn = view(
-    Inputs.select(
-        ccnArray.map(d => d.CCN20),
-        {label: "My Congressional Community"}
-    )
-);
-
-```js dynamic_search.js
-
-
-```
 
 <!-- Filtering the data https://tarekraafat.github.io/autoComplete.js/#/installation-->
 
@@ -245,7 +234,7 @@ const autoCompleteJS = new autoComplete({
 
 ```
 
-```js
+```js assining_output.js
 const ccn = Generators.input(autoCompleteJS.input);
 ```
 

@@ -3,6 +3,7 @@ title: People and Places Copy
 sql:
   cc_data: data/cc_data.parquet
   ccn20_geo_raw: data/ccn20_geo.parquet
+head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10/dist/css/autoComplete.min.css">'
 ---
 
 <!-- Google tag (gtag.js) -->
@@ -210,12 +211,56 @@ const ccnList = await sql`
 
 const ccnArray = [...ccnList];
 
-const ccn = view(
-    Inputs.select(
-        ccnArray.map(d => d.CCN20),
-        {label: "My Congressional Community"}
-    )
-);
+
+```
+
+
+<input id="autoComplete">
+
+```js import_autocomplete.js
+//https://tarekraafat.github.io/autoComplete.js/#/installation
+import autoComplete from "npm:@tarekraafat/autocomplete.js";
+```
+
+```js create_autocomplete.js
+const autoCompleteJS = new autoComplete({
+    // enter button
+    submit: true,
+    // message
+    placeHolder: "Search for Your Community...",
+    // HOLDS HISTROY
+    cache: true,
+    data: {
+        src: ccnArray.map(d => d.CCN20),
+        cache: true,
+    },
+    // SHOWS RESULTS ON CLICK 
+    threshold: 0,
+    resultsList: {
+        maxResults: undefined
+    },
+    // Need to figure out how to export 
+    resultItem: {
+        highlight: true
+    },
+    // actual event
+    events: {
+    input: {
+        selection: (event) => {
+            const feedback = event.detail;
+            const selection = feedback.selection.value; // flat array — no key needed
+            autoCompleteJS.input.value = selection;
+            // manually fire the event so Observable's reactivity notices the change
+            autoCompleteJS.input.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+    }
+}
+});
+
+```
+
+```js assining_output.js
+const ccn = Generators.input(autoCompleteJS.input);
 ```
 
 <!-- Filtering the data-->
