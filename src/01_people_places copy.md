@@ -20,6 +20,10 @@ head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/au
 
 <span style="color:blue">This page will be dedicated to demographics and the like, there is another page (People and Place) that has the exact same information but with diffent chart options. This one has the three spearte grpaohs as different block but with dynamiclaly adjusting domains</span>.
 
+<br>
+<input id="autoComplete">
+<div id="page-content">
+
 
 
 ```sql id=load_extensions
@@ -210,12 +214,7 @@ const ccnList = await sql`
 `;
 
 const ccnArray = [...ccnList];
-
-
 ```
-
-
-<input id="autoComplete">
 
 ```js import_autocomplete.js
 //https://tarekraafat.github.io/autoComplete.js/#/installation
@@ -261,6 +260,34 @@ const autoCompleteJS = new autoComplete({
 
 ```js assining_output.js
 const ccn = Generators.input(autoCompleteJS.input);
+```
+
+
+<!-- Blurring the page -->
+
+```js blur_page.js
+// this selects the thing to blur 
+const action = (_action, ccn) => {
+  const content = document.getElementById("page-content");
+  const hasSelection = !(ccn === undefined || ccn === "");
+  content.style.filter = hasSelection ? "none" : "blur(5px)";
+};
+
+// Apply blur immediately on landing, before any interaction
+action("blur", ccn);
+
+// does the reverse (for events)
+["focus", "blur"].forEach((eventType) => {
+  autoCompleteJS.input.addEventListener(eventType, () => {
+    // Blur page elements
+    if (eventType === "blur") {
+      action("dim");
+    } else if (eventType === "focus") {
+      // unBlur page elements
+      action("light");
+    }
+  });
+});
 ```
 
 <!-- Filtering the data-->

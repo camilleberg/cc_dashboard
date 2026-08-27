@@ -7,6 +7,7 @@ head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/au
 ---
 # People and Places 
 
+
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-2M9HMSTWCC"></script>
 <script>
@@ -17,7 +18,13 @@ head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/au
   gtag('config', 'G-2M9HMSTWCC');
 </script>
 
-<span style="color:blue">This page contains alternatives to people and places line charts! </span>.
+<!-- assigning everythign else -->
+<span style="color:blue">This page contains alternatives to people and places line charts! </span>
+<br>
+<input id="autoComplete">
+
+<div id="page-content">
+
 
 
 ```sql id=load_extensions
@@ -186,12 +193,6 @@ const ccnArray = [...ccnList];
 
 ```
 
-
-<!-- Filtering the data https://tarekraafat.github.io/autoComplete.js/#/installation-->
-
-
-<input id="autoComplete">
-
 ```js import_autocomplete.js
 //https://tarekraafat.github.io/autoComplete.js/#/installation
 import autoComplete from "npm:@tarekraafat/autocomplete.js";
@@ -200,7 +201,6 @@ import autoComplete from "npm:@tarekraafat/autocomplete.js";
 ```js create_autocomplete.js
 const autoCompleteJS = new autoComplete({
     // enter button
-    submit: true,
     // message
     placeHolder: "Search for Your Community...",
     // HOLDS HISTROY
@@ -236,6 +236,33 @@ const autoCompleteJS = new autoComplete({
 
 ```js assining_output.js
 const ccn = Generators.input(autoCompleteJS.input);
+```
+
+<!-- Blurring the page -->
+
+
+```js blur_page.js
+// this selects the thing to blur 
+const action = (_action, ccn) => {
+  const content = document.getElementById("page-content");
+  const hasSelection = !(ccn === undefined || ccn === "");
+  content.style.filter = hasSelection ? "none" : "blur(5px)";
+};
+
+// Apply blur immediately on landing, before any interaction
+action("blur", ccn);
+
+["focus", "blur"].forEach((eventType) => {
+  autoCompleteJS.input.addEventListener(eventType, () => {
+    // Blur page elements
+    if (eventType === "blur") {
+      action("dim");
+    } else if (eventType === "focus") {
+      // unBlur page elements
+      action("light");
+    }
+  });
+});
 ```
 
 <!-- Filtering the data-->
@@ -548,3 +575,4 @@ vg.vconcat(
 ```
 
 
+</div>
