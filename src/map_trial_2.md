@@ -31,12 +31,8 @@ LOAD spatial;
 Then attaching data
 
 
-```sql
-SELECT * FROM ccn20_geo LIMIT 3
-```
 
-
-```sql id=age_group_data display
+```sql id=age_group_data 
 SET VARIABLE target_cols = (
     SELECT list(col_name) 
     FROM cc_data_grouping
@@ -74,39 +70,42 @@ CREATE OR REPLACE TABLE age_group_data AS (
 const $selection = vg.Selection.crossfilter();
 ```
 
-yyou chose${$selection.value}
 
 ```js
-vg.vconcat(
-    vg.plot(
-        vg.geo(vg.from("ccn20_geo"), {
-            geometry: "geometry",
-            fill: "CCN20",              // keep State as the field bound to fill
-            fillOpacity: 0.5,
-            stroke: "currentColor",
-            strokeWidth: 0.5
-        }),
-        vg.toggle({as: $selection, channels: ["fill"]}),
-        vg.highlight({by: $selection}), // dims non-selected states on click
-        vg.colorRange(["steelblue"]),   // forces a single fill color (monocolor)
-        vg.projectionType("albers"),
-        vg.margin(0)
+vg.hconcat(
+    vg.vconcat(
+        vg.plot(
+            vg.barY(vg.from("age_group_data", { filterBy: $selection }), 
+            { x: 'col_name', y: vg.sum('value') , fill: "steelblue"}), 
+            vg.xTickRotate(-45),
+            vg.marginBottom(80),
+            vg.width(600),
+            vg.height(150)
         ),
+        vg.plot(
+            vg.geo(vg.from("ccn20_geo"), {
+                geometry: "geometry",
+                fill: "CCN20",              // keep State as the field bound to fill
+                fillOpacity: 0.5,
+                stroke: "currentColor",
+                strokeWidth: 0.5
+            }),
+            vg.toggle({as: $selection, channels: ["fill"]}),
+            vg.highlight({by: $selection}), // dims non-selected states on click
+            vg.colorRange(["steelblue"]),   // forces a single fill color (monocolor)
+            vg.projectionType("albers"),
+            vg.margin(0)
+            )
+    ),
     vg.plot(
         vg.barX(vg.from("ccn20_geo", {filterBy: $selection}), {
             x: vg.count(),
             y: "State",
             fill: "steelblue"
             }),
-        vg.marginLeft(80)
-    ), 
-    vg.plot(
-        vg.barY(vg.from("age_group_data", { filterBy: $selection }), 
-        { x: 'col_name', y: vg.sum('value') , fill: "steelblue"})
+        vg.marginLeft(80), 
+        vg.width(200),
+        vg.height(600)
     )
 )
-```
-
-```sql
-SELECT * FROM age_group_data LIMIT 3
 ```
