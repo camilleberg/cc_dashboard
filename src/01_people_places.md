@@ -186,15 +186,15 @@ const ccnArray = [...ccnList];
 
 ```
 
-
-```js dynamic_search.js
-
 const ccn = view(
     Inputs.select(
         ccnArray.map(d => d.CCN20),
         {label: "My Congressional Community"}
     )
 );
+
+```js dynamic_search.js
+
 
 ```
 
@@ -210,6 +210,8 @@ import autoComplete from "npm:@tarekraafat/autocomplete.js";
 
 ```js create_autocomplete.js
 const autoCompleteJS = new autoComplete({
+    // enter button
+    submit: true,
     // message
     placeHolder: "Search for Your Community...",
     // HOLDS HISTROY
@@ -229,24 +231,23 @@ const autoCompleteJS = new autoComplete({
     },
     // actual event
     events: {
-        input: {
-            selection: (event) => {
-                const selection = event.detail.selection.value;
-                autoCompleteJS.input.value = selection;
-            }
+    input: {
+        selection: (event) => {
+            const feedback = event.detail;
+            const selection = feedback.selection.value; // flat array — no key needed
+            autoCompleteJS.input.value = selection;
+            // manually fire the event so Observable's reactivity notices the change
+            autoCompleteJS.input.dispatchEvent(new Event("input", { bubbles: true }));
         }
     }
+}
 });
 
 ```
 
-```js access_search.js
-document.querySelector("#autoComplete").addEventListener("selection", function (event) {
-    const selection = event.detail.selection.value;
-    autoCompleteJS.input.value = selection;
-});
+```js
+const ccn = Generators.input(autoCompleteJS.input);
 ```
-
 
 <!-- Filtering the data-->
 
