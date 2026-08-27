@@ -2,7 +2,7 @@
 title: People and Places Copy
 sql:
   cc_data: data/cc_data.parquet
-  ccn20_geo_raw: data/ccn20_geo.parquet
+  ccn20_geo_raw: data/ccn20_geo_raw.parquet
 head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10/dist/css/autoComplete.min.css">'
 ---
 

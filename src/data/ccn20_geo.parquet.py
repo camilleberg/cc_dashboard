@@ -37,9 +37,9 @@ def main():
         df = df[["CCN20", "DC", "State", "geometry"]].copy()
         df["geometry"] = shapely.to_geojson(shapely.from_wkb(df["geometry"]))
         
-        log("Loading age data")
-        with open("/age_cc_data.json", "r") as file:
-            data = json.load(file)
+        # log("Loading age data")
+        # with open("/age_cc_data.json", "r") as file:
+        #   data = json.load(file)
 
         out_buf = df.to_parquet(index=False)
         sys.stdout.buffer.write(out_buf)

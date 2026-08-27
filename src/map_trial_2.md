@@ -36,6 +36,7 @@ SELECT * FROM ccn20_geo LIMIT 3
 ```
 
 
+
 ```js
 // A selection that accumulates clicked items (shift-click to add multiple)
 const $selection = vg.Selection.crossfilter();
