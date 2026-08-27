@@ -9,7 +9,6 @@
     "observable": "observable"
   },
   "dependencies": {
-    "@floatingpurr/input-autocomplete": "file:vendor/input-autocomplete.tgz",
     "@observablehq/framework": "^1.13.4",
     "@tarekraafat/autocomplete.js": "^10.2.10",
     "d3-dsv": "^3.0.1",
