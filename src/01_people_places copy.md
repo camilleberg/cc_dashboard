@@ -262,33 +262,20 @@ const autoCompleteJS = new autoComplete({
 const ccn = Generators.input(autoCompleteJS.input);
 ```
 
-
 <!-- Blurring the page -->
 
+
 ```js blur_page.js
-// this selects the thing to blur 
-const action = (action, ccn) => {
+const setBlurState = (ccn) => {
   const content = document.getElementById("page-content");
+  if (!content) return; // defensive, though this shouldn't happen anymore
   const hasSelection = !(ccn === undefined || ccn === "");
   content.style.filter = hasSelection ? "none" : "blur(5px)";
 };
 
-// Apply blur immediately on landing, before any interaction
-// action("blur", ccn);
-
-// does the reverse (for events)
-["focus", "blur"].forEach((eventType) => {
-  autoCompleteJS.input.addEventListener(eventType, () => {
-    // Blur page elements
-    if (eventType === "blur") {
-      action("dim");
-    } else if (eventType === "focus") {
-      // unBlur page elements
-      action("light");
-    }
-  });
-});
+setBlurState(ccn); // runs on load AND re-runs automatically whenever ccn changes
 ```
+
 
 <!-- Filtering the data-->
 

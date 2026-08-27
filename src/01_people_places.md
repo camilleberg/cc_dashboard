@@ -23,9 +23,6 @@ head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/au
 <br>
 <input id="autoComplete">
 
-<div id="page-content">
-
-
 
 ```sql id=load_extensions
 -- loading spatial extension
@@ -242,28 +239,17 @@ const ccn = Generators.input(autoCompleteJS.input);
 
 
 ```js blur_page.js
-// this selects the thing to blur 
-const action = (_action, ccn) => {
+const setBlurState = (ccn) => {
   const content = document.getElementById("page-content");
+  if (!content) return; // defensive, though this shouldn't happen anymore
   const hasSelection = !(ccn === undefined || ccn === "");
   content.style.filter = hasSelection ? "none" : "blur(5px)";
 };
 
-// Apply blur immediately on landing, before any interaction
-action("blur", ccn);
-
-["focus", "blur"].forEach((eventType) => {
-  autoCompleteJS.input.addEventListener(eventType, () => {
-    // Blur page elements
-    if (eventType === "blur") {
-      action("dim");
-    } else if (eventType === "focus") {
-      // unBlur page elements
-      action("light");
-    }
-  });
-});
+setBlurState(ccn); // runs on load AND re-runs automatically whenever ccn changes
 ```
+
+
 
 <!-- Filtering the data-->
 
@@ -352,7 +338,9 @@ const age_over65 = cc_data_age
 
 
 
-Your congressional community, **${ccn}**, is a community of **${cc_tot_pop.toLocaleString()}** individuals. Compared to your congressional district of **${Math.abs(dc_tot_pop).toFixed(0).toLocaleString()}** people, your community skews **${cc_dc_younger}** by **${(Math.abs(cc_dc_diff) * 100).toFixed(1)} percentage points**. It is similarly **${cc_state_younger}** than **${state_name}**, by **${(Math.abs(cc_state_diff) * 100).toFixed(1)} percentage points**.
+<div id="page-content">
+
+Your congressional community, **${ccn }**, is a community of **${cc_tot_pop.toLocaleString()}** individuals. Compared to your congressional district of **${Math.abs(dc_tot_pop).toFixed(0).toLocaleString()}** people, your community skews **${cc_dc_younger}** by **${(Math.abs(cc_dc_diff) * 100).toFixed(1)} percentage points**. It is similarly **${cc_state_younger}** than **${state_name}**, by **${(Math.abs(cc_state_diff) * 100).toFixed(1)} percentage points**.
 
 <!-- Cards with big numbers -->
 
