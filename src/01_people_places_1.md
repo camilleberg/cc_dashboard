@@ -1,5 +1,5 @@
 ---
-title: People and Places Copy
+title: People and Places 
 sql:
   cc_data: data/cc_data.parquet
   ccn20_geo_raw: data/ccn20_geo_raw.parquet
@@ -56,10 +56,10 @@ display(html`<style>
 <!-- color block-->
 
 ```js assigning_colors.js
-const okabeItoColors = ["#E69F00", "#56B4E9", "#009E73"];
-const lighterItoColors = ["#F5D08A", "#B7E1F5", "#8FD9C4"];
+const okabeItoColors = ['#E69F00', '#56B4E9', '#009E73', '#F0E442', '#0072B2', '#D55E00', '#CC79A7', '#000000'];
+// # at 40 % lighter
+const lighterItoColors = ['#F0C566', '#99D2F1', '#66C4AB', '#F6EE8D', '#66AAD0', '#E59E66', '#E0AECA', '#666666'];
 const waffleNotUsedColor = "#D8D8D8";
-
 
 function highlight(text, index) {
   const highlighted_text = html`<span style="color:${okabeItoColors[index]}">${text}</span>`;
@@ -587,6 +587,7 @@ function make_map() {
 
 ```js import_maplibre.js
 import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-gl.mjs';
+// bright basemap
 display(html`<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-gl.css">`);
 ```
 
@@ -619,6 +620,8 @@ function boundsFromGeoJSON(geojson) {
 
 other map options: https://madewithmaplibre.com/basemaps/gallery 
 
+
+
 ```js
 const mapDiv = display(document.createElement("div"));
 mapDiv.style = "height: 400px;";
@@ -626,7 +629,8 @@ mapDiv.style = "height: 400px;";
 const map = new maplibregl.Map({
     container: mapDiv,
     style: "https://tiles.versatiles.org/assets/styles/colorful/style.json",
-    //center: [-68.13734351262877, 45.137451890638886],
+    // close to center of us, but not wuite 
+    center: [ -90.137451890638886, 39.13734351262877],
     zoom: 5
 });
 
@@ -636,19 +640,36 @@ map.on('load', () => {
         'data': current_ccn_geojson
     });
     map.addLayer({
-        'id': 'maine',
+        'id': 'ccn20-fill',
         'type': 'fill',
         'source': 'maine',
         'layout': {},
         'paint': {
-            'fill-color': '#088',
-            'fill-opacity': 0.8
+            'fill-color': lighterItoColors[1],
+            'fill-opacity': 0.8, 
         }
     });
-
+    map.addLayer({
+        'id': 'ccn20-line',
+        'type': 'line',
+        'source': 'maine',
+        'layout': {},
+        'paint': {
+            "line-color": okabeItoColors[1],
+            "line-width": 3
+        }
+    });
+    // adding popup 
+    // https://maplibre.org/maplibre-gl-js/docs/examples/display-a-popup-on-hover/
+    // setting map bounds
     const bounds = boundsFromGeoJSON(current_ccn_geojson);
-    map.fitBounds(bounds, { padding: 20 });
+    map.fitBounds(bounds, { padding: 30 });
 });
+
+```
+
+```js adding_popup.js
+
 
 ```
 
