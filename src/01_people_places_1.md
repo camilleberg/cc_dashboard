@@ -32,9 +32,13 @@ INSTALL spatial;
 LOAD spatial;
 ```
 
-```js
+```js import_plotly.js
 // defining colors
 import Plotly from "npm:plotly.js-dist-min";
+```
+
+```js import_centroid.js
+import * as turf from "@turf/turf";
 ```
 
 ```js
@@ -635,27 +639,27 @@ const map = new maplibregl.Map({
 });
 
 map.on('load', () => {
-    map.addSource('maine', {
+    map.addSource('current_ccn_geo', {
         'type': 'geojson',
         'data': current_ccn_geojson
     });
     map.addLayer({
         'id': 'ccn20-fill',
         'type': 'fill',
-        'source': 'maine',
+        'source': 'current_ccn_geo',
         'layout': {},
         'paint': {
-            'fill-color': lighterItoColors[1],
-            'fill-opacity': 0.8, 
+            'fill-color': lighterItoColors[6],
+            'fill-opacity': 0.6, 
         }
     });
     map.addLayer({
         'id': 'ccn20-line',
         'type': 'line',
-        'source': 'maine',
+        'source': 'current_ccn_geo',
         'layout': {},
         'paint': {
-            "line-color": okabeItoColors[1],
+            "line-color": okabeItoColors[6],
             "line-width": 3
         }
     });
@@ -663,15 +667,68 @@ map.on('load', () => {
     // https://maplibre.org/maplibre-gl-js/docs/examples/display-a-popup-on-hover/
     // setting map bounds
     const bounds = boundsFromGeoJSON(current_ccn_geojson);
-    map.fitBounds(bounds, { padding: 30 });
+    map.fitBounds(bounds, { padding: 40 });
+
+
+    // adding control panels, zoom and everything
+    map.addControl(new maplibregl.NavigationControl({
+    visualizePitch: true,
+    visualizeRoll: true,
+    showZoom: true,
+    showCompass: true
+  }));
+
+   // capture zoom (and center) once the fitBounds animation completes
+    let fittedZoom;
+    map.once('moveend', () => {
+        fittedZoom = map.getZoom();
+        console.log('zoom after fitBounds:', fittedZoom);
+    });
+
+  // calculating the lat long
+  const current_ccn_center = turf.centroid(current_ccn_geojson)
+  const current_ccn_coords = current_ccn_center.geometry.coordinates
+
+  // the actual function
+  class ResetControl {
+    onAdd(map) {
+      this._map = map;
+      this._container = document.createElement('div');
+      this._container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
+      
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.innerHTML = '🏠'; // Or use an SVG icon
+      button.title = 'Reset Map';
+      button.onclick = () => {
+        this._map.flyTo({
+          center: current_ccn_coords, // Your initial longitude, latitude
+          zoom: fittedZoom,
+          bearing: 0,
+          pitch: 0
+        });
+      };
+
+      // adding the widget
+      this._container.appendChild(button);
+      return this._container;
+    }
+
+    onRemove() {
+      this._container.parentNode.removeChild(this._container);
+      this._map = undefined;
+    }
+  }
+
+// Add it to your map
+const resetControl = new ResetControl();
+map.addControl(resetControl, 'top-right');
+
 });
 
 ```
 
-```js adding_popup.js
 
-
-```
 
 <!-- Waffle chart -->
 
