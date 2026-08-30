@@ -1,5 +1,5 @@
 ---
-title: People and Places 
+title: Main Page
 sql:
   cc_data: data/cc_data.parquet
   ccn20_geo_raw: data/ccn20_geo_raw.parquet
@@ -16,13 +16,21 @@ head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/au
   gtag('config', 'G-2M9HMSTWCC');
 </script>
 
-# People and Places Copy
+<!-- Style tags-->
+<style>
+
+</style>
+
+
+# Main Page
 
 <span style="color:blue">This page will be dedicated to demographics and the like, there is another page (People and Place) that has the exact same information but with diffent chart options. This one has the three separate graphs as different blocks but with dynamically adjusting domains</span>.
 
 <br>
 <input id="autoComplete">
 <div id="page-content">
+
+<hr>
 
 
 
@@ -564,30 +572,6 @@ function makeLineCompChartPlotly(ageGroupLabel) {
 
 
 
-```js make_ccn_map.js
-function make_map() {
-  const div = display(document.createElement("div"));
-  div.style = "height: 400px;";
-
-  const map = L.map(div);
-
-  var tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-  }).addTo(map);
-
-  const ccnLayer = L.geoJSON(current_ccn_geojson).addTo(map);
-
-  const bounds = ccnLayer.getBounds();
-
-  L.marker(bounds.getCenter())
-    .addTo(map)
-    .bindPopup("My community: " + ccn)
-    .openPopup();
-
-  map.fitBounds(bounds);
-}
-```
 
 ```js import_maplibre.js
 import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-gl.mjs';
@@ -622,9 +606,8 @@ function boundsFromGeoJSON(geojson) {
 }
 ```
 
-other map options: https://madewithmaplibre.com/basemaps/gallery 
 
-
+## Map 
 
 ```js
 const mapDiv = display(document.createElement("div"));
@@ -728,6 +711,9 @@ map.addControl(resetControl, 'top-right');
 
 ```
 
+<hr>
+
+## People and Places
 
 
 <!-- Waffle chart -->
@@ -751,15 +737,15 @@ Your congressional community, **${ccn}**, is a community of **${cc_tot_pop.toLoc
 
 <div class="grid grid-cols-3 style="grid-auto-rows: 504px;">
   <div class="card">
-    <h2>${highlight("Under 18 Population", 2)}</h2>
+    <h3>${highlight("Under 18 Population", 2)}</h3>
     <span class="big">${highlight(age_under_18.toLocaleString(), 2)}</span>
   </div>
   <div class="card">
-    <h2>${highlight("18 to 64 Population", 1)}</h2>
+    <h3>${highlight("18 to 64 Population", 1)}</h3>
     <span class="big">${highlight(age_18_65.toLocaleString(), 1)}</span>
   </div>
   <div class="card">
-    <h2>${highlight("65 and Over Population", 0)}</h2>
+    <h3>${highlight("65 and Over Population", 0)}</h3>
     <span class="big">${highlight(age_over65.toLocaleString(), 0)}</span>
   </div>
 </div>
@@ -797,3 +783,208 @@ Your congressional community, **${ccn}**, is a community of **${cc_tot_pop.toLoc
 Communities with younger (older) individuals often have different priorities, so understanding where your community sits on this spectrum helps explain which policy fights actually matter locally, even when they don't dominate the district-wide conversation.
 
 [link blocks to causes, e.g. youth – childcare, education, loans – can tag interest groups and integrate with fuzzy matching]
+
+<hr>
+
+## Housing
+
+<!-- creating the tables for housing-->
+
+```sql id=create_tables_housing 
+
+CREATE OR REPLACE TABLE cc_data_housing_table AS
+
+WITH base AS (
+    SELECT
+        CCN20,
+        DC,
+        State,
+        "Total housing units" AS tot_housing,
+
+        "Occupied housing units - total housing units" AS tot_hholds,
+
+        "Occupied housing units - total housing units"
+            - "Owner-occupied housing units - Housing Tenure"
+            AS hholds_ownership_own,
+    
+    FROM cc_data
+)
+
+SELECT
+    *,
+    tot_hholds 
+        / NULLIF(tot_housing, 0)::DOUBLE
+        AS housing_occupancy_rate,
+
+    hholds_ownership_own
+        / NULLIF(tot_hholds, 0)::DOUBLE
+        AS housing_ownership_rate,
+
+
+FROM base;
+
+
+CREATE OR REPLACE TABLE dc_data_housing_table AS
+
+WITH base AS (
+    SELECT
+        DC,
+
+        "Total housing units" AS tot_housing,
+
+        "Occupied housing units - total housing units" AS tot_hholds, 
+
+        "Occupied housing units - total housing units"
+            - "Owner-occupied housing units - Housing Tenure"
+            AS hholds_ownership_own,
+    
+    FROM cc_data
+)
+
+SELECT
+    DC,
+
+    SUM(tot_housing) AS tot_housing,
+    SUM(tot_hholds) AS tot_hholds,
+    SUM(hholds_ownership_own) AS hholds_ownership_own,
+
+    SUM(tot_hholds)
+        / NULLIF(SUM(tot_housing), 0)::DOUBLE
+        AS housing_occupancy_rate,
+
+    SUM(hholds_ownership_own)
+        / NULLIF(SUM(tot_hholds), 0)::DOUBLE
+        AS housing_ownership_rate,
+
+FROM base
+GROUP BY DC;
+
+
+CREATE OR REPLACE TABLE state_data_housing_table AS
+
+WITH base AS (
+    SELECT
+        State,
+
+        "Total housing units" AS tot_housing,
+
+        "Occupied housing units - total housing units" AS tot_hholds, 
+
+        "Occupied housing units - total housing units"
+            - "Owner-occupied housing units - Housing Tenure"
+            AS hholds_ownership_own,
+    
+    FROM cc_data
+)
+
+SELECT
+    State,
+
+    SUM(tot_housing) AS tot_housing,
+    SUM(tot_hholds) AS tot_hholds,
+    SUM(hholds_ownership_own) AS hholds_ownership_own,
+
+    SUM(tot_hholds)
+        / NULLIF(SUM(tot_housing), 0)::DOUBLE
+        AS housing_occupancy_rate,
+
+    SUM(hholds_ownership_own)
+        / NULLIF(SUM(tot_hholds), 0)::DOUBLE
+        AS housing_ownership_rate,
+
+FROM base
+GROUP BY State;
+```
+
+```sql id=cc_data_housing
+SELECT *
+FROM cc_data_housing_table
+WHERE CCN20 = ${ccn};
+```
+
+```sql id=dc_data_housing
+SELECT *
+FROM dc_data_housing_table
+WHERE DC = (
+    SELECT DC
+    FROM cc_data_housing_table
+    WHERE CCN20 = ${ccn}
+);
+```
+
+```sql id=state_data_housing
+SELECT *
+FROM state_data_housing_table
+WHERE State = (
+    SELECT State
+    FROM cc_data_housing_table
+    WHERE CCN20 = ${ccn}
+);
+```
+
+
+<!-- Cleaning and extracting data-->
+```js
+const cc_tot_housing = cc_data_housing
+  .getChild("tot_housing")
+  .get(0);
+
+const dc_tot_housing = dc_data_housing
+  .getChild("tot_housing")
+  .get(0);
+
+const state_tot_housing = state_data_housing
+  .getChild("tot_housing")
+  .get(0);
+
+const cc_tot_hholds = cc_data_housing
+  .getChild("tot_hholds")
+  .get(0);
+
+const cc_occupancy_rate = cc_data_housing
+  .getChild("housing_occupancy_rate")
+  .get(0);
+
+const dc_occupancy_rate = dc_data_housing
+  .getChild("housing_occupancy_rate")
+  .get(0);
+
+const state_occupancy_rate = state_data_housing
+  .getChild("housing_occupancy_rate")
+  .get(0);
+
+const cc_own_rate = cc_data_housing
+  .getChild("housing_ownership_rate")
+  .get(0);
+
+const dc_own_rate = dc_data_housing
+  .getChild("housing_ownership_rate")
+  .get(0);
+
+const state_own_rate = state_data_housing
+  .getChild("housing_ownership_rate")
+  .get(0);
+
+const cc_dc_diff_own_rate =
+  cc_own_rate - dc_own_rate;
+
+const cc_dc_ownership =
+  cc_dc_diff_own_rate > 0 ? "higher" : "lower";
+
+const cc_state_diff_own_rate =
+  cc_own_rate - state_own_rate;
+
+const cc_state_ownership =
+  cc_state_diff_own_rate > 0 ? "higher" : "lower";
+
+```
+
+
+<span style="color:blue">This housing data pull /analysis is in progress!</span>.
+
+
+
+In general, your community has **${cc_tot_housing.toLocaleString()}** housing units, of which **${Math.abs(cc_own_rate).toFixed(0).toLocaleString()}**% are owned. That means that, compared to your congressional district and state, there are x.x% and x.x% more (fewer) homeowners, respectively.
+[insert graph about housing]
+Given the current state of the housing market, homeownership rates say a lot about how exposed a community is to rent increases, displacement, and housing-cost burden. Policies like rent stabilization or first-time buyer programs will therefore have varying levels of impact depending on the local environment. Knowing more about housing in your community can help you and your representative understand which policies will actually help you.
+[link blocks to causes — e.g., renters → tenant protections, rent stabilization; owners → property tax relief, homeowner assistance programs]
