@@ -491,7 +491,7 @@ function renderFullWaffle(labels, countsByLabel, type, group_name_list) {
   });
 
   return html`<div class="waffle-section">
-    <div class="waffle-title">If your community was <br> 100 ${title}...<br><br></div>
+    <div class="waffle-title">If your community was <br> 100 <strong>${title}</strong>...<br><br></div>
     ${renderWaffleLegend(labels, labels, group_name_list)}
     ${grid}
   </div>`;
