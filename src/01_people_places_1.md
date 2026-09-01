@@ -393,10 +393,6 @@ const current_ccn_geojson = JSON.parse(
 const myDiv = display(document.createElement("div"));
 ```
 
-```js assign_age_waffle.js
-const ageBracketCols = ["over65", "18_65", "under18"];
-const ageGroupNames = ["65 and Older", "Between 18 and 64", "18 and Younger"]
-```
 
 ```js helper_functions.js
 // Supporting arrays/helpers — define once, before the chart function.
@@ -498,29 +494,31 @@ function renderFullWaffle(labels, countsByLabel, type, group_name_list) {
 }
 ```
 
-```js display_waffle.js
-const countsByLabel_age = {
-  under18: age_under_18,
-  "18_65": age_18_65,
-  over65: age_over65
-};
-```
-
-
 ```js make_plotly_charts.js
-function makeLineCompChartPlotly(ageGroupLabel, group_list) {
-  const idx = group_list.indexOf(ageGroupLabel);
+function makeLineCompChartPlotly(label_list, group_list, var_list, type) {
+  // choosing the correct dfs 
+  const DF_SETS = {
+    age: { cc: cc_data_age, dc: dc_data_age, state: state_data_age },
+    housing: { cc: cc_data_housing, dc: dc_data_housing, state: state_data_housing }
+  };
+  const dfSet = DF_SETS[type];
+  if (!dfSet) throw new Error(`Unknown type: ${type}`);
+  const { cc: df_cc, dc: df_dc, state: df_state } = dfSet;
+
+  
+  // colors
+  const idx = group_list.indexOf(label_list);
   const notUsed = lighterItoColors[idx];
   const colorUsed = okabeItoColors[idx];
+
 
   // number line ticks
   const intervals = Array.from({ length: 11 }, (_, i) => Math.round((i / 10) * 100) / 100);
 
   // pull proportions straight from the already-computed age_prop_* columns
-  const propKey = `age_prop_${ageGroupLabel}`;
-  const xCc = cc_data_age.getChild(propKey).get(0);
-  const xCd = dc_data_age.getChild(propKey).get(0);
-  const xState = state_data_age.getChild(propKey).get(0);
+  const xCc = df_cc.getChild(var_list).get(0);
+  const xCd = df_dc.getChild(var_list).get(0);
+  const xState = df_state.getChild(var_list).get(0);
 
   const traces = [];
 
@@ -749,6 +747,18 @@ map.addControl(resetControl, 'top-right');
 
 <!-- Waffle chart -->
 
+```js display_waffle.js
+const countsByLabel_age = {
+  under18: age_under_18,
+  "18_65": age_18_65,
+  over65: age_over65
+};
+const ageBracketCols = ["over65", "18_65", "under18"];
+const ageGroupNames = ["65 and Older", "Between 18 and 64", "18 and Younger"]
+```
+
+
+
 <div class="grid grid-cols-2" style="grid-auto-rows: 330px;">
   <div class="card">${
     resize((width) => renderFullWaffle(ageBracketCols, countsByLabel_age, "people", ageGroupNames))
@@ -766,8 +776,7 @@ Your congressional community, **${ccn}**, is a community of **${cc_tot_pop.toLoc
 
 <!-- Cards with big numbers -->
 
-
-<div class="grid grid-cols-3 style="grid-auto-rows: 504px;">
+<div class="grid grid-cols-3">
   <div class="card">
     <h3>${highlight("Under 18 Population", 2)}</h3>
     <span class="big">${highlight(age_under_18.toLocaleString(), 2)}</span>
@@ -782,11 +791,17 @@ Your congressional community, **${ccn}**, is a community of **${cc_tot_pop.toLoc
   </div>
 </div>
 
+<!-- plotly graphs -->
+
+```js make_plotly_var_list_age.js
+const ageKey = [`age_prop_under18`, 'age_prop_18_65', 'age_prop_over65'];
+```
+
 <div class="grid grid-cols-3" style="grid-auto-rows: 220px;">
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
-      const { traces, layout, config } = makeLineCompChartPlotly("under18", ageBracketCols);
+      const { traces, layout, config } = makeLineCompChartPlotly("under18", ageBracketCols, ageKey[0], "age");
       Plotly.newPlot(div, traces, { ...layout, width }, config);
       return div;
     }) 
@@ -794,7 +809,7 @@ Your congressional community, **${ccn}**, is a community of **${cc_tot_pop.toLoc
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
-      const { traces, layout, config } = makeLineCompChartPlotly("18_65", ageBracketCols);
+      const { traces, layout, config } = makeLineCompChartPlotly("18_65", ageBracketCols, ageKey[1], "age");
       Plotly.newPlot(div, traces, { ...layout, width }, config);
       return div;
     }) 
@@ -802,7 +817,7 @@ Your congressional community, **${ccn}**, is a community of **${cc_tot_pop.toLoc
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
-      const { traces, layout, config } = makeLineCompChartPlotly("over65", ageBracketCols);
+      const { traces, layout, config } = makeLineCompChartPlotly("over65", ageBracketCols, ageKey[2], "age");
       Plotly.newPlot(div, traces, { ...layout, width }, config);
       return div;
     }) 
@@ -926,13 +941,17 @@ GROUP BY State;
 ```
 
 ```sql id=cc_data_housing
-SELECT *
+SELECT *, 
+  1 - housing_occupancy_rate AS housing_vacancy_rate, 
+  1 - housing_ownership_rate AS housing_rental_rate
 FROM cc_data_housing_table
 WHERE CCN20 = ${ccn};
 ```
 
 ```sql id=dc_data_housing
-SELECT *
+SELECT *, 
+  1 - housing_occupancy_rate AS housing_vacancy_rate, 
+  1 - housing_ownership_rate AS housing_rental_rate
 FROM dc_data_housing_table
 WHERE DC = (
     SELECT DC
@@ -942,7 +961,9 @@ WHERE DC = (
 ```
 
 ```sql id=state_data_housing
-SELECT *
+SELECT *, 
+  1 - housing_occupancy_rate AS housing_vacancy_rate, 
+  1 - housing_ownership_rate AS housing_rental_rate
 FROM state_data_housing_table
 WHERE State = (
     SELECT State
@@ -1015,18 +1036,11 @@ const cc_rented_units = cc_tot_hholds - cc_owned_units
 
 ```
 
-```js
-const type = "housinrg";
-const icon = type === "people" 
-  ? "fa-solid fa-user" 
-  : type === "housing" 
-    ? "fa-solid fa-house" 
-    : "fa-solid fa-question"; // Required fallback
-```
-
 
 
 <span style="color:blue">This housing data pull /analysis is in progress!</span>.
+
+### Housing Units
 
 <!-- Waffle chart -->
 
@@ -1037,8 +1051,65 @@ const countsByLabel_vacancy = {
   occupied: cc_tot_hholds,
   vacant: cc_vacant_units,
 }
+
 const vacancyGroupNames = ["Occupied Units", "Vacant Units"]
 ```
+
+
+<div class="grid grid-cols-2" style="grid-auto-rows: 310px;">
+  <div class="card">${
+    resize((width) => renderFullWaffle(vacancyCols, countsByLabel_vacancy, "housing", vacancyGroupNames))
+  }</div>
+  <div class="card">${
+    
+  }
+  </div>
+</div>
+
+
+
+In general, 
+
+<div class="grid grid-cols-2">
+  <div class="card">
+    <h3>${highlight("Occupied Units", 0)}</h3>
+    <span class="big">${highlight(cc_tot_hholds.toLocaleString(), 0)}</span>
+  </div>
+  <div class="card">
+    <h3>${highlight("Vacant Units", 1)}</h3>
+    <span class="big">${highlight(cc_vacant_units.toLocaleString(), 1)}</span>
+  </div>
+</div>
+
+
+<!-- plotly graphs -->
+
+```js make_plotly_var_list_vacancy.js
+const vacancyKey = [`housing_occupancy_rate`, 'housing_vacancy_rate'];
+```
+
+
+<div class="grid grid-cols-2" style="grid-auto-rows: 220px;">
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("occupied", vacancyCols, vacancyKey[0], "housing");
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("vacant", vacancyCols, vacancyKey[1], "housing");
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+</div>
+
+
+### Households
 
 ```js assign_hhold_waffle.js
 const ownershipCols = ["owned", "rented"]
@@ -1049,23 +1120,59 @@ const countsByLabel_ownership = {
 const ownershipGroupNames = ["Owned Households", "Rented Households"]
 ```
 
+<!-- waffle chart!-->
 
 <div class="grid grid-cols-2" style="grid-auto-rows: 310px;">
   <div class="card">${
-    resize((width) => renderFullWaffle(vacancyCols, countsByLabel_vacancy, "housing", vacancyGroupNames))
+    resize((width) => renderFullWaffle(ownershipCols, countsByLabel_ownership, "households", ownershipGroupNames))
   }</div>
   <div class="card">${
-    resize((width) => renderFullWaffle(ownershipCols, countsByLabel_ownership, "households", ownershipGroupNames))
+   
   }
   </div>
 </div>
 
+Of all occupied **${cc_tot_hholds.toLocaleString()}** housing units, **${Math.abs(cc_own_rate * 100).toFixed(1).toLocaleString()}**% are owned. That means that, compared to your congressional district and state, your congressional district's homeownership rate is **${Math.abs(cc_dc_diff_own_rate*100).toFixed(1).toLocaleString()}** percentage points **${cc_dc_ownership}** and your state's homeownerhsip rate is **${Math.abs(cc_state_diff_own_rate*100).toFixed(1).toLocaleString()}** percentage points **${cc_state_ownership}**. 
+
+<!-- cards with big numbers -->
+
+<div class="grid grid-cols-2">
+  <div class="card">
+    <h3>${highlight("Homeowner Households", 0)}</h3>
+    <span class="big">${highlight(cc_owned_units.toLocaleString(), 0)}</span>
+  </div>
+  <div class="card">
+    <h3>${highlight("Renter Househoolds", 1)}</h3>
+    <span class="big">${highlight(cc_rented_units.toLocaleString(), 1)}</span>
+  </div>
+</div>
 
 
-In general, your community has **${cc_tot_housing.toLocaleString()}** housing units, of which **${Math.abs(cc_own_rate * 100).toFixed(1).toLocaleString()}**% are owned. That means that, compared to your congressional district and state, your congressional district's homeownership rate is **${Math.abs(cc_dc_diff_own_rate*100).toFixed(1).toLocaleString()}** percentage points **${cc_dc_ownership}** and your state's homeownerhsip rate is **${Math.abs(cc_state_diff_own_rate*100).toFixed(1).toLocaleString()}** percentage points **${cc_state_ownership}**. 
+<!-- plotly graphs -->
+
+```js make_plotly_var_list_owner.js
+const ownershipKey = [`housing_ownership_rate`, 'housing_rental_rate'];
+```
 
 
-[insert graph about housing]
+<div class="grid grid-cols-2" style="grid-auto-rows: 220px;">
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("owned", ownershipCols, ownershipKey[0], "housing");
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("rented", ownershipCols, ownershipKey[1], "housing");
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+</div>
 
 
 Given the current state of the housing market, homeownership rates say a lot about how exposed a community is to rent increases, displacement, and housing-cost burden. Policies like rent stabilization or first-time buyer programs will therefore have varying levels of impact depending on the local environment. Knowing more about housing in your community can help you and your representative understand which policies will actually help you.
