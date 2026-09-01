@@ -1,5 +1,7 @@
 ---
 title: Employment
+sql:
+  cd119_geos: ./data/cd119_geos.parquet
 ---
 
 <!-- Google tag (gtag.js) -->
@@ -11,6 +13,12 @@ title: Employment
 
   gtag('config', 'G-2M9HMSTWCC');
 </script>
+
+
+```sql
+SELECT * FROM cd119_geos LIMIT 3
+```
+
 
 
 # Employment

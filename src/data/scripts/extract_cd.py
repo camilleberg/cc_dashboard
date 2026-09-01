@@ -153,7 +153,7 @@ if __name__ == '__main__':
     extract_inputs(extracted_fns, fns)
     
     # extracting and cleaning
-    EXPORT_DIR =  f"./src/data/cd119_geographies"
+    EXPORT_DIR =  f"./src/data/input/cd119_geographies"
     Path(EXPORT_DIR).mkdir(parents=True, exist_ok=True)
     
     # cleaning and saving

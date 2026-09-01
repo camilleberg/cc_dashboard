@@ -72,6 +72,7 @@ const okabeItoColors = ['#E69F00', '#56B4E9', '#009E73', '#F0E442', '#0072B2', '
 // # at 40 % lighter
 const lighterItoColors = ['#F0C566', '#99D2F1', '#66C4AB', '#F6EE8D', '#66AAD0', '#E59E66', '#E0AECA', '#666666'];
 const waffleNotUsedColor = "#D8D8D8";
+const block_color = "#f2e9e3";
 
 function highlight(text, index) {
   const highlighted_text = html`<span style="color:${okabeItoColors[index]}">${text}</span>`;
@@ -516,7 +517,7 @@ function makeLineCompChartPlotly(ageGroupLabel) {
     x: [xState],
     y: [1],
     mode: "markers",
-    marker: { symbol: "diamond-x", size: 20, color: notUsed, line: { color: "white", width: 2 } },
+    marker: { symbol: "diamond-x", size: 20, color: notUsed, line: { color: block_color, width: 2 } },
     name: "State",
     hovertemplate: `State: ${(xState * 100).toFixed(1)}%<extra></extra>`
   });
@@ -526,7 +527,7 @@ function makeLineCompChartPlotly(ageGroupLabel) {
     x: [xCd],
     y: [1],
     mode: "markers",
-    marker: { symbol: "circle", size: 20, color: notUsed, line: { color: "white", width: 2 } },
+    marker: { symbol: "circle", size: 20, color: notUsed, line: { color: block_color, width: 2 } },
     name: "Congressional District",
     hovertemplate: `Congressional District: ${(xCd * 100).toFixed(1)}%<extra></extra>`
   });
@@ -536,7 +537,7 @@ function makeLineCompChartPlotly(ageGroupLabel) {
     x: [xCc],
     y: [1],
     mode: "markers",
-    marker: { symbol: "circle", size: 20, color: colorUsed, line: { color: "white", width: 2 } },
+    marker: { symbol: "circle", size: 20, color: colorUsed, line: { color: block_color, width: 2 } },
     name: "Congressional Community",
     hovertemplate: `Congressional Community: ${(xCc * 100).toFixed(1)}%<extra></extra>`
   });
@@ -556,7 +557,9 @@ function makeLineCompChartPlotly(ageGroupLabel) {
       color: "darkgrey"
     },
     yaxis: { visible: false, range: [0.9, 1.1] },
-    legend: { orientation: "h", yanchor: "bottom", y: 1.02, xanchor: "center", x: 0.5 },
+    legend: { orientation: "h", yanchor: "bottom", y: 1.02, xanchor: "center", x: 0.5, 
+      "itemsizing": "constant", "itemwidth": 10
+     },
     height: 200,
     margin: { l: 20, r: 20, t: 40, b: 40 },
     paper_bgcolor: 'rgba(0,0,0,0)', // Makes the outer container transparent
