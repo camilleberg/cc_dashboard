@@ -458,7 +458,7 @@ function renderFullWaffle(labels, countsByLabel, type, group_name_list) {
       : type === "housing" 
         ? "fa-solid fa-house" 
         : type === "households"
-          ? "fa-solid fa-people-roof"
+          ? "fa-solid fa-house-chimney-user"
           : "fa-solid fa-question"; // Required fallback
 
   const title = 
@@ -749,7 +749,7 @@ map.addControl(resetControl, 'top-right');
 
 <!-- Waffle chart -->
 
-<div class="grid grid-cols-2 style="grid-auto-rows: 504px;"">
+<div class="grid grid-cols-2" style="grid-auto-rows: 330px;">
   <div class="card">${
     resize((width) => renderFullWaffle(ageBracketCols, countsByLabel_age, "people", ageGroupNames))
   }</div>
@@ -835,8 +835,7 @@ WITH base AS (
 
         "Occupied housing units - total housing units" AS tot_hholds,
 
-        "Occupied housing units - total housing units"
-            - "Owner-occupied housing units - Housing Tenure"
+        "Owner-occupied housing units - Housing Tenure"
             AS hholds_ownership_own,
     
     FROM cc_data
@@ -866,8 +865,7 @@ WITH base AS (
 
         "Occupied housing units - total housing units" AS tot_hholds, 
 
-        "Occupied housing units - total housing units"
-            - "Owner-occupied housing units - Housing Tenure"
+        "Owner-occupied housing units - Housing Tenure"
             AS hholds_ownership_own,
     
     FROM cc_data
@@ -902,8 +900,7 @@ WITH base AS (
 
         "Occupied housing units - total housing units" AS tot_hholds, 
 
-        "Occupied housing units - total housing units"
-            - "Owner-occupied housing units - Housing Tenure"
+        "Owner-occupied housing units - Housing Tenure"
             AS hholds_ownership_own,
     
     FROM cc_data
@@ -972,7 +969,6 @@ const cc_tot_hholds = cc_data_housing
   .getChild("tot_hholds")
   .get(0);
 
-const cc_vacant_units = cc_tot_housing - cc_tot_hholds;
 
 const cc_occupancy_rate = cc_data_housing
   .getChild("housing_occupancy_rate")
@@ -1010,6 +1006,13 @@ const cc_state_diff_own_rate =
 const cc_state_ownership =
   cc_state_diff_own_rate > 0 ? "higher" : "lower";
 
+// for waffle
+const cc_vacant_units = cc_tot_housing - cc_tot_hholds;
+const cc_owned_units = cc_data_housing
+  .getChild("hholds_ownership_own")
+  .get(0);
+const cc_rented_units = cc_tot_hholds - cc_owned_units
+
 ```
 
 ```js
@@ -1026,15 +1029,10 @@ const icon = type === "people"
 <span style="color:blue">This housing data pull /analysis is in progress!</span>.
 
 <!-- Waffle chart -->
-```js
-const ownershipCols = []
-const countsByLabel_ownership = {
 
-}
-```
 
-```js
-const vacancyCols = [JSON.stringify(cc_tot_hholds), JSON.stringify(cc_vacant_units)]
+```js assign_housing_waffle.js
+const vacancyCols = ["occupied", "vacant"];
 const countsByLabel_vacancy = {
   occupied: cc_tot_hholds,
   vacant: cc_vacant_units,
@@ -1042,19 +1040,22 @@ const countsByLabel_vacancy = {
 const vacancyGroupNames = ["Occupied Units", "Vacant Units"]
 ```
 
+```js assign_hhold_waffle.js
+const ownershipCols = ["owned", "rented"]
+const countsByLabel_ownership = {
+  owned: cc_owned_units,
+  rented: cc_rented_units
+}
+const ownershipGroupNames = ["Owned Households", "Rented Households"]
+```
 
 
-${Object.entries(countsByLabel_vacancy)}
-
-${vacancyCols}
-${ageBracketCols}
-
-<div class="grid grid-cols-2 style="grid-auto-rows: 504px;"">
+<div class="grid grid-cols-2" style="grid-auto-rows: 310px;">
   <div class="card">${
     resize((width) => renderFullWaffle(vacancyCols, countsByLabel_vacancy, "housing", vacancyGroupNames))
   }</div>
   <div class="card">${
-    make_map
+    resize((width) => renderFullWaffle(ownershipCols, countsByLabel_ownership, "households", ownershipGroupNames))
   }
   </div>
 </div>
