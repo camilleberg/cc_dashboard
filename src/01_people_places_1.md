@@ -393,13 +393,14 @@ const current_ccn_geojson = JSON.parse(
 const myDiv = display(document.createElement("div"));
 ```
 
+```js assign_age_waffle.js
+const ageBracketCols = ["over65", "18_65", "under18"];
+const ageGroupNames = ["65 and Older", "Between 18 and 64", "18 and Younger"]
+```
+
 ```js helper_functions.js
 // Supporting arrays/helpers — define once, before the chart function.
 // Fill in real hex values / ordering to match your Python palette.
-const ageBracketCols = ["over65", "18_65", "under18"];
-const ageGroupNames = ["65 and Older", "Between 18 and 64", "18 and Younger"]
-
-
 function floorToDecimals(x, decimals) {
   const factor = 10 ** decimals;
   return Math.floor(x * factor) / factor;
@@ -409,7 +410,9 @@ function ceilToDecimals(x, decimals) {
   const factor = 10 ** decimals;
   return Math.ceil(x * factor) / factor;
 }
+```
 
+```js make_waffle.js
 // Largest-remainder rounding: turns a list of raw counts into
 // integer icon counts (out of totalIcons) that sum exactly to totalIcons.
 function allocateIcons(rawCounts, totalIcons) {
@@ -431,29 +434,48 @@ function allocateIcons(rawCounts, totalIcons) {
   return result;
 }
 
-function renderWaffleLegend(labels) {
+function renderWaffleLegend(labels, group_list, group_name_list) {
   const legend = document.createElement("div");
   legend.className = "waffle-legend";
   labels.forEach((label) => {
-    const colorIdx = ageBracketCols.indexOf(label);
+    const colorIdx = group_list.indexOf(label);
     const item = document.createElement("div");
     item.className = "waffle-legend-item";
     item.innerHTML = `
       <span class="waffle-legend-swatch" style="background:${okabeItoColors[colorIdx]}"></span>
-      ${ageGroupNames[colorIdx]}
+      ${group_name_list[colorIdx]}
     `;
     legend.appendChild(item);
   });
   return legend;
 }
 
-function renderFullWaffle(labels, countsByLabel) {
+// to make wafle chart
+function renderFullWaffle(labels, countsByLabel, type, group_name_list) {
+  const iconClass = 
+    type === "people" 
+      ? "fa-solid fa-user" 
+      : type === "housing" 
+        ? "fa-solid fa-house" 
+        : type === "households"
+          ? "fa-solid fa-people-roof"
+          : "fa-solid fa-question"; // Required fallback
+
+  const title = 
+    type === "people" 
+      ? "people" 
+      : type === "housing" 
+        ? "housing units" 
+        : type === "households" 
+          ? "households" 
+          : "other"; // Required fallback
+
   const rawCounts = labels.map((label) => countsByLabel[label]);
   const iconCounts = allocateIcons(rawCounts, 100);
 
   const cellColors = [];
   labels.forEach((label, idx) => {
-    const colorIdx = ageBracketCols.indexOf(label);
+    const colorIdx = labels.indexOf(label);
     const color = okabeItoColors[colorIdx];
     for (let c = 0; c < iconCounts[idx]; c++) cellColors.push(color);
   });
@@ -462,31 +484,32 @@ function renderFullWaffle(labels, countsByLabel) {
   const grid = document.createElement("div");
   grid.className = "waffle-grid-full";
   cellColors.forEach((color) => {
-    const icon = document.createElement("i");
-    icon.className = "fa-solid fa-user";
-    icon.style.color = color;
-    grid.appendChild(icon);
+    const cellIcon = document.createElement("i");
+    cellIcon.className = iconClass;
+    cellIcon.style.color = color;
+    grid.appendChild(cellIcon);
   });
 
   return html`<div class="waffle-section">
-    <div class="waffle-title">If your community was <br> 100 people... by age<br><br></div>
-    ${renderWaffleLegend(labels)}
+    <div class="waffle-title">If your community was <br> 100 ${title}...<br><br></div>
+    ${renderWaffleLegend(labels, labels, group_name_list)}
     ${grid}
   </div>`;
 }
 ```
 
 ```js display_waffle.js
-const countsByLabel = {
+const countsByLabel_age = {
   under18: age_under_18,
   "18_65": age_18_65,
   over65: age_over65
 };
 ```
 
+
 ```js make_plotly_charts.js
-function makeLineCompChartPlotly(ageGroupLabel) {
-  const idx = ageBracketCols.indexOf(ageGroupLabel);
+function makeLineCompChartPlotly(ageGroupLabel, group_list) {
+  const idx = group_list.indexOf(ageGroupLabel);
   const notUsed = lighterItoColors[idx];
   const colorUsed = okabeItoColors[idx];
 
@@ -567,7 +590,12 @@ function makeLineCompChartPlotly(ageGroupLabel) {
     hovermode: 'x'
   };
 
-  return { traces, layout };
+const config = {
+  modeBarButtons: [[ 'toImage', 'resetScale2d' ]], 
+  displaylogo: false
+};
+
+  return { traces, layout, config };
 }
 ```
 
@@ -723,10 +751,10 @@ map.addControl(resetControl, 'top-right');
 
 <div class="grid grid-cols-2 style="grid-auto-rows: 504px;"">
   <div class="card">${
-    resize((width) => renderFullWaffle(ageBracketCols, countsByLabel))
+    resize((width) => renderFullWaffle(ageBracketCols, countsByLabel_age, "people", ageGroupNames))
   }</div>
   <div class="card">${
-    make_map()
+    make_map
   }
   </div>
 </div>
@@ -758,24 +786,24 @@ Your congressional community, **${ccn}**, is a community of **${cc_tot_pop.toLoc
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
-      const { traces, layout } = makeLineCompChartPlotly("under18");
-      Plotly.newPlot(div, traces, { ...layout, width });
+      const { traces, layout, config } = makeLineCompChartPlotly("under18", ageBracketCols);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
       return div;
     }) 
   }</div>
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
-      const { traces, layout } = makeLineCompChartPlotly("18_65");
-      Plotly.newPlot(div, traces, { ...layout, width });
+      const { traces, layout, config } = makeLineCompChartPlotly("18_65", ageBracketCols);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
       return div;
     }) 
   }</div>
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
-      const { traces, layout } = makeLineCompChartPlotly("over65");
-      Plotly.newPlot(div, traces, { ...layout, width });
+      const { traces, layout, config } = makeLineCompChartPlotly("over65", ageBracketCols);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
       return div;
     }) 
   }</div>
@@ -926,7 +954,6 @@ WHERE State = (
 );
 ```
 
-
 <!-- Cleaning and extracting data-->
 ```js
 const cc_tot_housing = cc_data_housing
@@ -944,6 +971,8 @@ const state_tot_housing = state_data_housing
 const cc_tot_hholds = cc_data_housing
   .getChild("tot_hholds")
   .get(0);
+
+const cc_vacant_units = cc_tot_housing - cc_tot_hholds;
 
 const cc_occupancy_rate = cc_data_housing
   .getChild("housing_occupancy_rate")
@@ -983,12 +1012,60 @@ const cc_state_ownership =
 
 ```
 
+```js
+const type = "housinrg";
+const icon = type === "people" 
+  ? "fa-solid fa-user" 
+  : type === "housing" 
+    ? "fa-solid fa-house" 
+    : "fa-solid fa-question"; // Required fallback
+```
+
+
 
 <span style="color:blue">This housing data pull /analysis is in progress!</span>.
 
+<!-- Waffle chart -->
+```js
+const ownershipCols = []
+const countsByLabel_ownership = {
+
+}
+```
+
+```js
+const vacancyCols = [JSON.stringify(cc_tot_hholds), JSON.stringify(cc_vacant_units)]
+const countsByLabel_vacancy = {
+  occupied: cc_tot_hholds,
+  vacant: cc_vacant_units,
+}
+const vacancyGroupNames = ["Occupied Units", "Vacant Units"]
+```
 
 
-In general, your community has **${cc_tot_housing.toLocaleString()}** housing units, of which **${Math.abs(cc_own_rate).toFixed(0).toLocaleString()}**% are owned. That means that, compared to your congressional district and state, there are **${Math.abs(cd_own_rate).toFixed(0).toLocaleString()}**% and **${Math.abs(state_own_rate).toFixed(0).toLocaleString()}**% more (fewer) homeowners, respectively.
+
+${Object.entries(countsByLabel_vacancy)}
+
+${vacancyCols}
+${ageBracketCols}
+
+<div class="grid grid-cols-2 style="grid-auto-rows: 504px;"">
+  <div class="card">${
+    resize((width) => renderFullWaffle(vacancyCols, countsByLabel_vacancy, "housing", vacancyGroupNames))
+  }</div>
+  <div class="card">${
+    make_map
+  }
+  </div>
+</div>
+
+
+
+In general, your community has **${cc_tot_housing.toLocaleString()}** housing units, of which **${Math.abs(cc_own_rate * 100).toFixed(1).toLocaleString()}**% are owned. That means that, compared to your congressional district and state, your congressional district's homeownership rate is **${Math.abs(cc_dc_diff_own_rate*100).toFixed(1).toLocaleString()}** percentage points **${cc_dc_ownership}** and your state's homeownerhsip rate is **${Math.abs(cc_state_diff_own_rate*100).toFixed(1).toLocaleString()}** percentage points **${cc_state_ownership}**. 
+
+
 [insert graph about housing]
+
+
 Given the current state of the housing market, homeownership rates say a lot about how exposed a community is to rent increases, displacement, and housing-cost burden. Policies like rent stabilization or first-time buyer programs will therefore have varying levels of impact depending on the local environment. Knowing more about housing in your community can help you and your representative understand which policies will actually help you.
 [link blocks to causes — e.g., renters → tenant protections, rent stabilization; owners → property tax relief, homeowner assistance programs]
