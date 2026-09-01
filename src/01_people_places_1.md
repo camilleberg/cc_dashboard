@@ -610,7 +610,7 @@ function boundsFromGeoJSON(geojson) {
 ```
 
 
-## Map 
+## Snapshot of your Congressional Community
 
 ```js
 const mapDiv = display(document.createElement("div"));
@@ -732,6 +732,7 @@ map.addControl(resetControl, 'top-right');
 </div>
 
 <!-- Text -->
+
 
 Your congressional community, **${ccn}**, is a community of **${cc_tot_pop.toLocaleString()}** individuals. Compared to your congressional district of **${Math.abs(dc_tot_pop).toFixed(0).toLocaleString()}** people, your community skews **${cc_dc_younger}** by **${(Math.abs(cc_dc_diff) * 100).toFixed(1)} percentage points**. It is similarly **${cc_state_younger}** than **${state_name}**, by **${(Math.abs(cc_state_diff) * 100).toFixed(1)} percentage points**.
 
