@@ -794,57 +794,83 @@ const current_ccn_within_cd_geojson = {
   }))
 };
 ```
-
-
 ```js make_dc_map.js
-function create_dc_map(container_name) {
+function create_dc_map(container, { invalidation } = {}) {
+  return new Promise((resolve) => {
 
-  const map_district = new maplibregl.Map({
-      container: container_name,
-      style: maplibre_style,
-      center: current_cd_coords,
-      zoom: 6,
-      // causes pan & zoom handlers not to be applied, similar to
-      // .dragging.disable() and other handler .disable() functions in Leaflet.
-      interactive: false
-  });
-
-  map_district.on('load', () => {
-    map_district.setPaintProperty('background', 'background-color', page_background_color);
-    map_district.addSource('current_ccn_within_cd_geo', {
-        'type': 'geojson',
-        'data': current_ccn_within_cd_geojson
+    // current ccn records 
+    const map_district = new maplibregl.Map({
+        container: container,
+        style: maplibre_style,
+        center: current_ccn_coords,
+        zoom: 6,
+        // causes pan & zoom handlers not to be applied, similar to
+        // .dragging.disable() and other handler .disable() functions in Leaflet.
+        interactive: false
     });
-    map_district.addLayer({
-          'id': 'ccn20-fill',
-          'type': 'fill',
-          'source': 'current_ccn_within_cd_geo',
+
+    //current cnn backgrounf
+    map_district.on('load', () => {
+      map_district.setPaintProperty('background', 'background-color', page_background_color);
+      
+      // cd outline
+      map_district.addSource('current_cd_geo', {
+          'type': 'geojson',
+          'data': current_cd_geo
+      });
+      map_district.addLayer({
+            'id': 'cd-line',
+            'type': 'line',
+            'source': 'current_cd_geo',
+            'layout': {},
+            'paint': {
+                'line-color': lighterItoColors[6],
+                'line-width': 3,
+            }
+        });
+
+        // current ccns
+      map_district.addSource('current_ccn_within_cd_geo', {
+          'type': 'geojson',
+          'data': current_ccn_within_cd_geojson
+      });
+      map_district.addLayer({
+            'id': 'ccn20-fill',
+            'type': 'fill',
+            'source': 'current_ccn_within_cd_geo',
+            'layout': {},
+            'paint': {
+                'fill-color': lighterItoColors[6],
+                'fill-opacity': 0.6,
+            }
+        });
+
+      // adding in outline for current
+      map_district.addSource('current_ccn_geo', {
+            'type': 'geojson',
+            'data': current_ccn_geojson
+        });
+      map_district.addLayer({
+          'id': 'ccn20-line',
+          'type': 'line',
+          'source': 'current_ccn_geo',
           'layout': {},
           'paint': {
-              'fill-color': lighterItoColors[6],
-              'fill-opacity': 0.6,
+              "line-color": okabeItoColors[6],
+              "line-width": 3
           }
       });
-    
-    // adding in outline for current
-    map_district.addSource('current_ccn_geo', {
-          'type': 'geojson',
-          'data': current_ccn_geojson
-      });
-    map_district.addLayer({
-        'id': 'ccn20-line',
-        'type': 'line',
-        'source': 'current_ccn_geo',
-        'layout': {},
-        'paint': {
-            "line-color": okabeItoColors[6],
-            "line-width": 3
-        }
+
+      resolve(map_district);
     });
+
+    // clean up when this cell reruns or is removed, if the caller passed invalidation in
+    if (invalidation) {
+      invalidation.then(() => map_district.remove());
+    }
   });
 }
 ```
-
 
 
 
