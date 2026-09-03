@@ -3,6 +3,7 @@ title: Main Page
 sql:
   cc_data: data/cc_data.parquet
   ccn20_geo_raw: data/ccn20_geo_raw.parquet
+  cd119_geos: ./data/cd119_geos.parquet
 head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10/dist/css/autoComplete.min.css">'
 ---
 
@@ -18,7 +19,6 @@ head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/au
 
 <!-- Style tags-->
 <style>
-
 </style>
 
 
@@ -78,6 +78,8 @@ function highlight(text, index) {
   const highlighted_text = html`<span style="color:${okabeItoColors[index]}">${text}</span>`;
   return highlighted_text;
 }
+const maplibre_style = "https://tiles.versatiles.org/assets/styles/colorful/style.json";
+const page_background_color = "#f9f0ea"
 ```
 
 
@@ -347,6 +349,10 @@ const state_name = cc_data_age
   .getChild("State")
   .get(0);
 
+const dc_name = cc_data_age
+  .getChild("DC")
+  .get(0);
+
 const cc_under18_prop = cc_data_age
   .getChild("age_prop_under18")
   .get(0);
@@ -454,7 +460,7 @@ function renderFullWaffle(labels, countsByLabel, type, group_name_list) {
       : type === "housing" 
         ? "fa-solid fa-house" 
         : type === "households"
-          ? "fa-solid fa-house-chimney-user"
+          ? "fa-solid fa-people-group"
           : "fa-solid fa-question"; // Required fallback
 
   const title = 
@@ -597,9 +603,9 @@ const config = {
 }
 ```
 
+
+
 <!-- Map chart -->
-
-
 
 
 ```js import_maplibre.js
@@ -636,7 +642,14 @@ function boundsFromGeoJSON(geojson) {
 ```
 
 
+
 ## Snapshot of your Congressional Community
+
+```js calc_ccn_coords.js
+// calculating the lat long
+const current_ccn_center = turf.centroid(current_ccn_geojson)
+const current_ccn_coords = current_ccn_center.geometry.coordinates
+```
 
 ```js
 const mapDiv = display(document.createElement("div"));
@@ -644,13 +657,14 @@ mapDiv.style = "height: 400px;";
 
 const map = new maplibregl.Map({
     container: mapDiv,
-    style: "https://tiles.versatiles.org/assets/styles/colorful/style.json",
+    style: maplibre_style,
     // close to center of us, but not wuite 
     center: [ -90.137451890638886, 39.13734351262877],
     zoom: 5
 });
 
 map.on('load', () => {
+    map.setPaintProperty('background', 'background-color', page_background_color);
     map.addSource('current_ccn_geo', {
         'type': 'geojson',
         'data': current_ccn_geojson
@@ -697,9 +711,6 @@ map.on('load', () => {
         console.log('zoom after fitBounds:', fittedZoom);
     });
 
-  // calculating the lat long
-  const current_ccn_center = turf.centroid(current_ccn_geojson)
-  const current_ccn_coords = current_ccn_center.geometry.coordinates
 
   // the actual function
   class ResetControl {
@@ -732,13 +743,112 @@ map.on('load', () => {
     }
   }
 
-// Add it to your map
-const resetControl = new ResetControl();
-map.addControl(resetControl, 'top-right');
+  // Add it to your map
+  const resetControl = new ResetControl();
+  map.addControl(resetControl, 'top-right');
 
 });
 
 ```
+
+
+<!-- To make CD chart -->
+
+
+
+```sql id=current_cd_geo
+SELECT DC, 
+  STATE, 
+  ST_AsGeoJSON(geometry) AS geometry
+FROM cd119_geos 
+WHERE DC = ${dc_name}
+```
+
+```js calc_ccn_coords.js
+// calculating the lat long
+const current_cd_geojson = JSON.parse(
+  current_cd_geo.getChild("geometry").get(0)
+  );
+const current_cd_center = turf.centroid(current_cd_geojson);
+const current_cd_coords = current_cd_center.geometry.coordinates;
+```
+
+```sql id=current_ccn_within_cd_geo
+-- transforming as geo 
+  SELECT
+    CCN20,
+    DC,
+    State,
+    ST_AsGeoJSON(geometry) AS geometry
+    FROM ccn20_geo_raw 
+    WHERE DC = ${dc_name}
+```
+
+```js grab_geo_data_dc.js
+const current_ccn_within_cd_geojson = {
+  type: "FeatureCollection",
+  features: current_ccn_within_cd_geo.toArray().map(row => ({
+    type: "Feature",
+    properties: { CCN20: row.CCN20, DC: row.DC, State: row.State },
+    geometry: JSON.parse(row.geometry)
+  }))
+};
+```
+
+
+```js make_dc_map.js
+function create_dc_map(container_name) {
+
+  const map_district = new maplibregl.Map({
+      container: container_name,
+      style: maplibre_style,
+      center: current_cd_coords,
+      zoom: 6,
+      // causes pan & zoom handlers not to be applied, similar to
+      // .dragging.disable() and other handler .disable() functions in Leaflet.
+      interactive: false
+  });
+
+  map_district.on('load', () => {
+    map_district.setPaintProperty('background', 'background-color', page_background_color);
+    map_district.addSource('current_ccn_within_cd_geo', {
+        'type': 'geojson',
+        'data': current_ccn_within_cd_geojson
+    });
+    map_district.addLayer({
+          'id': 'ccn20-fill',
+          'type': 'fill',
+          'source': 'current_ccn_within_cd_geo',
+          'layout': {},
+          'paint': {
+              'fill-color': lighterItoColors[6],
+              'fill-opacity': 0.6,
+          }
+      });
+    
+    // adding in outline for current
+    map_district.addSource('current_ccn_geo', {
+          'type': 'geojson',
+          'data': current_ccn_geojson
+      });
+    map_district.addLayer({
+        'id': 'ccn20-line',
+        'type': 'line',
+        'source': 'current_ccn_geo',
+        'layout': {},
+        'paint': {
+            "line-color": okabeItoColors[6],
+            "line-width": 3
+        }
+    });
+  });
+}
+```
+
+
+
+
+
 
 <hr>
 
@@ -759,12 +869,18 @@ const ageGroupNames = ["65 and Older", "Between 18 and 64", "18 and Younger"]
 
 
 
-<div class="grid grid-cols-2" style="grid-auto-rows: 330px;">
+
+<div class="grid grid-cols-3" style="grid-auto-rows: 330px;">
   <div class="card">${
     resize((width) => renderFullWaffle(ageBracketCols, countsByLabel_age, "people", ageGroupNames))
   }</div>
-  <div class="card">${
-    make_map
+  <div class="card grid-colspan-2">${
+    (() => {
+    const map_dc_age = document.createElement("div");
+    map_dc_age.style = "height: 300px;";
+    create_dc_map(map_dc_age); // don't need the resolved map object here, just trigger creation
+    return map_dc_age;
+  })()
   }
   </div>
 </div>
