@@ -871,7 +871,11 @@ function create_dc_map(container, { invalidation } = {}) {
               "line-width": 3
           }
       });
-
+      const bounds = boundsFromGeoJSON(current_cd_geojson);
+      map_district.fitBounds(
+        bounds, 
+        { padding: 40, animate: false  });
+      
       resolve(map_district);
     });
 
