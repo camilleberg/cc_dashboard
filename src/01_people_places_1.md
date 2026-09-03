@@ -49,6 +49,10 @@ import Plotly from "npm:plotly.js-dist-min";
 import * as turf from "@turf/turf";
 ```
 
+```js import_us_states.js
+import states from 'us-state-converter'
+```
+
 ```js
 // Font Awesome is only a stylesheet, so a <link> tag is safe here
 // (unlike a <script> tag, which won't execute when inserted this way).
@@ -78,8 +82,10 @@ function highlight(text, index) {
   const highlighted_text = html`<span style="color:${okabeItoColors[index]}">${text}</span>`;
   return highlighted_text;
 }
+
 const maplibre_style = "https://tiles.versatiles.org/assets/styles/colorful/style.json";
-const page_background_color = "#f9f0ea"
+const page_background_color = "#f9f0ea";
+const page_background_color_card = "#f2e9e3";
 ```
 
 
@@ -756,7 +762,7 @@ map.on('load', () => {
 
 
 
-```sql id=current_cd_geo
+```sql id=current_cd_geo 
 SELECT DC, 
   STATE, 
   ST_AsGeoJSON(geometry) AS geometry
@@ -764,16 +770,7 @@ FROM cd119_geos
 WHERE DC = ${dc_name}
 ```
 
-```js calc_ccn_coords.js
-// calculating the lat long
-const current_cd_geojson = JSON.parse(
-  current_cd_geo.getChild("geometry").get(0)
-  );
-const current_cd_center = turf.centroid(current_cd_geojson);
-const current_cd_coords = current_cd_center.geometry.coordinates;
-```
-
-```sql id=current_ccn_within_cd_geo
+```sql id=current_ccn_within_cd_geo 
 -- transforming as geo 
   SELECT
     CCN20,
@@ -783,6 +780,19 @@ const current_cd_coords = current_cd_center.geometry.coordinates;
     FROM ccn20_geo_raw 
     WHERE DC = ${dc_name}
 ```
+
+```js calc_ccn_coords.js
+// transfomring to geo
+const current_cd_geojson = JSON.parse(
+  current_cd_geo.getChild("geometry").get(0)
+  );
+  
+
+// calculating the lat long
+const current_cd_center = turf.centroid(current_cd_geojson);
+const current_cd_coords = current_cd_center.geometry.coordinates;
+```
+
 
 ```js grab_geo_data_dc.js
 const current_ccn_within_cd_geojson = {
@@ -794,6 +804,7 @@ const current_ccn_within_cd_geojson = {
   }))
 };
 ```
+
 ```js make_dc_map.js
 function create_dc_map(container, { invalidation } = {}) {
   return new Promise((resolve) => {
@@ -811,23 +822,7 @@ function create_dc_map(container, { invalidation } = {}) {
 
     //current cnn backgrounf
     map_district.on('load', () => {
-      map_district.setPaintProperty('background', 'background-color', page_background_color);
-      
-      // cd outline
-      map_district.addSource('current_cd_geo', {
-          'type': 'geojson',
-          'data': current_cd_geo
-      });
-      map_district.addLayer({
-            'id': 'cd-line',
-            'type': 'line',
-            'source': 'current_cd_geo',
-            'layout': {},
-            'paint': {
-                'line-color': lighterItoColors[6],
-                'line-width': 3,
-            }
-        });
+      map_district.setPaintProperty('background', 'background-color', page_background_color_card);
 
         // current ccns
       map_district.addSource('current_ccn_within_cd_geo', {
@@ -842,6 +837,22 @@ function create_dc_map(container, { invalidation } = {}) {
             'paint': {
                 'fill-color': lighterItoColors[6],
                 'fill-opacity': 0.6,
+            }
+        });
+
+      // cd outline
+      map_district.addSource('current_cd_geo', {
+          'type': 'geojson',
+          'data': current_cd_geojson
+      });
+      map_district.addLayer({
+            'id': 'cd-line',
+            'type': 'line',
+            'source': 'current_cd_geo',
+            'layout': {},
+            'paint': {
+                'line-color': lighterItoColors[6],
+                'line-width': 5,
             }
         });
 
@@ -893,6 +904,16 @@ const ageBracketCols = ["over65", "18_65", "under18"];
 const ageGroupNames = ["65 and Older", "Between 18 and 64", "18 and Younger"]
 ```
 
+```js
+async function buildMapDcAge() {
+  const container = document.createElement("div");
+  container.style = "height: 300px;";
+  const map = await create_dc_map(container, { invalidation });
+  requestAnimationFrame(() => map.resize());
+  return container;
+}
+const map_dc_age = buildMapDcAge()
+```
 
 
 
@@ -901,12 +922,7 @@ const ageGroupNames = ["65 and Older", "Between 18 and 64", "18 and Younger"]
     resize((width) => renderFullWaffle(ageBracketCols, countsByLabel_age, "people", ageGroupNames))
   }</div>
   <div class="card grid-colspan-2">${
-    (() => {
-    const map_dc_age = document.createElement("div");
-    map_dc_age.style = "height: 300px;";
-    create_dc_map(map_dc_age); // don't need the resolved map object here, just trigger creation
-    return map_dc_age;
-  })()
+    resize((width) => map_dc_age)
   }
   </div>
 </div>
@@ -914,8 +930,9 @@ const ageGroupNames = ["65 and Older", "Between 18 and 64", "18 and Younger"]
 <!-- Text -->
 
 
-Your congressional community, **${ccn}**, is a community of **${cc_tot_pop.toLocaleString()}** individuals. Compared to your congressional district of **${Math.abs(dc_tot_pop).toFixed(0).toLocaleString()}** people, your community skews **${cc_dc_younger}** by **${(Math.abs(cc_dc_diff) * 100).toFixed(1)} percentage points**. It is similarly **${cc_state_younger}** than **${state_name}**, by **${(Math.abs(cc_state_diff) * 100).toFixed(1)} percentage points**.
-
+<center>
+Your congressional community, <strong>${ccn}</strong>, is a community of <strong>${cc_tot_pop.toLocaleString()}</strong> individuals. Compared to your congressional district of <strong>${Math.abs(dc_tot_pop).toFixed(0).toLocaleString()}</strong> people, your community skews <strong>${cc_dc_younger}</strong> by <strong>${(Math.abs(cc_dc_diff) * 100).toFixed(1)} percentage points</strong>. It is similarly <strong>${cc_state_younger}</strong> than <strong>${states.fullName(state_name)}</strong>, by <strong>${(Math.abs(cc_state_diff) * 100).toFixed(1)} percentage points</strong>.
+</center>
 <!-- Cards with big numbers -->
 
 <div class="grid grid-cols-3">
@@ -969,7 +986,10 @@ const ageKey = [`age_prop_under18`, 'age_prop_18_65', 'age_prop_over65'];
 
 <!-- plot attributes -->
 
+<center>
 Communities with younger (older) individuals often have different priorities, so understanding where your community sits on this spectrum helps explain which policy fights actually matter locally, even when they don't dominate the district-wide conversation.
+
+</center>
 
 [link blocks to causes, e.g. youth – childcare, education, loans – can tag interest groups and integrate with fuzzy matching]
 
