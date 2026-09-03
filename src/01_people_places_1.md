@@ -106,9 +106,6 @@ WITH base AS (
 
         "65 years and over  - Tot Pop"
             AS ageGroup_over65
-        
-        "Both sexes - Median Age" 
-            AS median_age
 
     FROM cc_data
 )
