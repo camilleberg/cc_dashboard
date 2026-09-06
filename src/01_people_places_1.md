@@ -2,7 +2,7 @@
 title: Main Page
 sql:
   cc_data: data/cc_data.parquet
-  ccn20_geo_raw: data/ccn20_geo_raw.parquet
+  ccn20_geo: data/ccn20_geo.parquet
   cd119_geos: ./data/cd119_geos.parquet
 head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10/dist/css/autoComplete.min.css">'
 ---
@@ -342,8 +342,8 @@ SELECT
   CCN20,
   DC,
   State,
-  ST_AsGeoJSON(geometry) AS geometry
-  FROM ccn20_geo_raw 
+  geometry
+  FROM ccn20_geo
   WHERE CCN20 = ${ccn}
 ```
 
@@ -784,8 +784,8 @@ WHERE DC = ${dc_name}
     CCN20,
     DC,
     State,
-    ST_AsGeoJSON(geometry) AS geometry
-    FROM ccn20_geo_raw 
+    geometry
+    FROM ccn20_geo
     WHERE DC = ${dc_name}
 ```
 
@@ -811,8 +811,8 @@ SELECT
   g.DC,
   g.State,
   o.* EXCLUDE (DC, STATE, CCN20),                          -- all columns from the other table (rename below if there are collisions)
-  ST_AsGeoJSON(g.geometry) AS geometry
-FROM ccn20_geo_raw AS g
+  g.geometry
+FROM ccn20_geo AS g
 JOIN cc_data_age_table AS o
   ON g.CCN20 = o.CCN20          
 WHERE g.DC = ${dc_name};
@@ -1304,8 +1304,8 @@ SELECT
   o.* EXCLUDE (DC, STATE, CCN20),
   1 - o.housing_occupancy_rate AS housing_vacancy_rate,
   1 - o.housing_ownership_rate AS housing_rental_rate,
-  ST_AsGeoJSON(g.geometry) AS geometry
-FROM ccn20_geo_raw AS g
+  g.geometry
+FROM ccn20_geo AS g
 JOIN cc_data_housing_table AS o
   ON g.CCN20 = o.CCN20
 WHERE g.DC = ${dc_name};

@@ -4,6 +4,6 @@
 duckdb :memory: <<EOF
 COPY (
     SELECT *
-    FROM './src/data/input/cd119_geographies/*.parquet') 
+    FROM './src/data/input/ccn20_geos/*.parquet') 
     to '/dev/stdout' (format parquet, codec zstd)
 EOF
