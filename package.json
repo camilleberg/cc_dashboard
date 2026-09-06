@@ -9,12 +9,15 @@
     "observable": "observable"
   },
   "dependencies": {
+    "@mvt-proj/maplibre-gl-layers-control": "^0.2.0",
     "@observablehq/framework": "^1.13.3",
     "@tarekraafat/autocomplete.js": "^10.2.10",
     "@turf/centroid": "^7.4.0",
     "@turf/turf": "^7.4.0",
     "d3-dsv": "^3.0.1",
     "d3-time-format": "^4.1.0",
+    "maplibre-gl": "^5.24.0",
+    "maplibre-gl-layer-control": "^0.17.4",
     "us-state-converter": "^1.0.8"
   },
   "devDependencies": {
@@ -25,6 +28,7 @@
   },
   "allowScripts": {
     "fsevents@2.3.3": true,
+    "esbuild@0.27.7": true,
     "esbuild@0.28.2": true
   }
 }

@@ -53,6 +53,8 @@ import * as turf from "@turf/turf";
 import states from 'us-state-converter'
 ```
 
+
+
 ```js
 // Font Awesome is only a stylesheet, so a <link> tag is safe here
 // (unlike a <script> tag, which won't execute when inserted this way).
@@ -760,8 +762,6 @@ map.on('load', () => {
 
 <!-- To make CD chart -->
 
-
-
 ```sql id=current_cd_geo 
 SELECT DC, 
   STATE, 
@@ -770,7 +770,7 @@ FROM cd119_geos
 WHERE DC = ${dc_name}
 ```
 
-```sql id=current_ccn_within_cd_geo 
+```sql id=current_ccn_within_cd_geo
 -- transforming as geo 
   SELECT
     CCN20,
@@ -780,6 +780,55 @@ WHERE DC = ${dc_name}
     FROM ccn20_geo_raw 
     WHERE DC = ${dc_name}
 ```
+
+
+```js grab_geo_data_dc.js
+const current_ccn_within_cd_geojson = {
+  type: "FeatureCollection",
+  features: current_ccn_within_cd_geo.toArray().map(row => ({
+    type: "Feature",
+    properties: { CCN20: row.CCN20, DC: row.DC, State: row.State },
+    geometry: JSON.parse(row.geometry)
+  }))
+};
+
+```
+
+
+<!-- Merging to add data -->
+
+```sql id=current_ccn_merged_age display
+SELECT
+  g.CCN20,
+  g.DC,
+  g.State,
+  o.* EXCLUDE (DC, STATE, CCN20),                          -- all columns from the other table (rename below if there are collisions)
+  ST_AsGeoJSON(g.geometry) AS geometry
+FROM ccn20_geo_raw AS g
+JOIN cc_data_age_table AS o
+  ON g.CCN20 = o.CCN20          
+WHERE g.DC = ${dc_name};
+```
+
+
+```js merge_age_data.js
+const current_ccn_merged_geojson_age = {
+  type: "FeatureCollection",
+  features: current_ccn_merged_age.toArray()
+    .filter(row => row.geometry != null)
+    .map(row => {
+      const { geometry, ...properties } = row;   // everything except geometry becomes a property
+      return {
+        type: "Feature",
+        properties,
+        geometry: JSON.parse(geometry)
+      };
+    })
+};
+
+
+```
+
 
 ```js calc_ccn_coords.js
 // transfomring to geo
@@ -793,20 +842,25 @@ const current_cd_center = turf.centroid(current_cd_geojson);
 const current_cd_coords = current_cd_center.geometry.coordinates;
 ```
 
-
-```js grab_geo_data_dc.js
-const current_ccn_within_cd_geojson = {
-  type: "FeatureCollection",
-  features: current_ccn_within_cd_geo.toArray().map(row => ({
-    type: "Feature",
-    properties: { CCN20: row.CCN20, DC: row.DC, State: row.State },
-    geometry: JSON.parse(row.geometry)
-  }))
-};
+```js import layers_control.js
+//https://opengeos.org/maplibre-gl-layer-control/examples/full-demo/index.html
+//https://github.com/opengeos/maplibre-gl-layer-control
+import { LayerControl } from 'npm:maplibre-gl-layer-control';
+display(html`<link rel="stylesheet" href="https://unpkg.com/maplibre-gl-layer-control@0.17.4/dist/maplibre-gl-layer-control.css">`);
 ```
 
 ```js make_dc_map.js
-function create_dc_map(container, { invalidation } = {}) {
+function create_dc_map(container, ccn_geo_data, group_name, { invalidation } = {}) {
+
+  const heatmapPoint = {
+    type: "FeatureCollection",
+    features: ccn_geo_data.features.map(f => ({
+      type: "Feature",
+      properties: f.properties,
+      geometry: turf.centroid(f).geometry
+    }))
+  };
+
   return new Promise((resolve) => {
 
     // current ccn records 
@@ -824,21 +878,6 @@ function create_dc_map(container, { invalidation } = {}) {
     map_district.on('load', () => {
       map_district.setPaintProperty('background', 'background-color', page_background_color_card);
 
-        // current ccns
-      map_district.addSource('current_ccn_within_cd_geo', {
-          'type': 'geojson',
-          'data': current_ccn_within_cd_geojson
-      });
-      map_district.addLayer({
-            'id': 'ccn20-fill',
-            'type': 'fill',
-            'source': 'current_ccn_within_cd_geo',
-            'layout': {},
-            'paint': {
-                'fill-color': lighterItoColors[6],
-                'fill-opacity': 0.6,
-            }
-        });
 
       // cd outline
       map_district.addSource('current_cd_geo', {
@@ -871,13 +910,70 @@ function create_dc_map(container, { invalidation } = {}) {
               "line-width": 3
           }
       });
+
+      // adding in heat map
+      map_district.addSource('heatmap_points', {
+          'type': 'geojson',
+          'data': heatmapPoint
+      });
+
+      const layer_name =  group_name + '_heat'
+
+      map_district.addLayer({
+          'id': layer_name,
+          'type': 'heatmap',
+          'source': 'heatmap_points',
+          'maxzoom': 9,
+          'paint': {
+              'heatmap-weight': [
+                  'interpolate', ['linear'], ['get', group_name],
+                  0, 0,
+                  6, 1
+              ],
+              'heatmap-intensity': [
+                  'interpolate', ['linear'], ['zoom'],
+                  0, 1,
+                  9, 3
+              ],
+              'heatmap-color': [
+                  'interpolate', ['linear'], ['heatmap-density'],
+                  0, 'rgba(255,255,255,0)',
+                  0.5, lighterItoColors[0],
+                  1, okabeItoColors[0]
+              ],
+              'heatmap-radius': [
+                  'interpolate', ['linear'], ['zoom'],
+                  0, 2,
+                  9, 20
+              ],
+              'heatmap-opacity': [
+                  'interpolate', ['linear'], ['zoom'],
+                  7, 1,
+                  9, 0
+              ]
+          }
+      });
+
       const bounds = boundsFromGeoJSON(current_cd_geojson);
       map_district.fitBounds(
         bounds, 
         { padding: 40, animate: false  });
       
+      const layerControl = new LayerControl({
+        collapsed: false,
+        layerStates: {
+          [layer_name] : {
+            visible: true, 
+            opacity: 0.5, 
+            name: 'heat map'
+          }, 
+        }
+      });
+      map_district.addControl(layerControl, 'top-right');
+      
       resolve(map_district);
     });
+
 
     // clean up when this cell reruns or is removed, if the caller passed invalidation in
     if (invalidation) {
@@ -906,19 +1002,24 @@ const countsByLabel_age = {
 };
 const ageBracketCols = ["over65", "18_65", "under18"];
 const ageGroupNames = ["65 and Older", "Between 18 and 64", "18 and Younger"]
+const age_array_labels = ['ageGroup_under18', 'ageGroup_18_65', 'ageGroup_over65']
 ```
+${age_array_labels[0] + '_heat'}
 
 ```js
 async function buildMapDcAge() {
   const container = document.createElement("div");
   container.style = "height: 300px;";
-  const map = await create_dc_map(container, { invalidation });
+  const map = await create_dc_map(container, current_ccn_merged_geojson_age, age_array_labels[0], { invalidation });
   requestAnimationFrame(() => map.resize());
   return container;
 }
 const map_dc_age = buildMapDcAge()
 ```
 
+```js
+
+```
 
 
 <div class="grid grid-cols-3" style="grid-auto-rows: 330px;">
