@@ -67,7 +67,7 @@ display(html`<style>
   .waffle-legend { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin: 0 auto 14px auto; width: fit-content; font-size: 12px; color: #333; }
   .waffle-legend-item { display: flex; align-items: ; gap: 6px; }
   .waffle-legend-swatch { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
-  .waffle-grid-full { display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(10, 1fr); gap: 2px; width: 220px; margin: 0 auto; }
+  .waffle-grid-full { display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(10, 1fr); gap: 2px; width: 200px; margin: 0 auto; }
   .waffle-grid-full i { font-size: 16px; line-height: 1; }
 </style>`);
 ```
@@ -669,7 +669,7 @@ const current_ccn_coords = current_ccn_center.geometry.coordinates
 
 ```js
 const mapDiv = display(document.createElement("div"));
-mapDiv.style = "height: 400px;";
+mapDiv.style = "height: 300px;";
 
 const map = new maplibregl.Map({
     container: mapDiv,
@@ -942,7 +942,10 @@ function create_dc_map(container, ccn_geo_data, array_labels, array_names, { inv
       });
 
       const bounds = boundsFromGeoJSON(current_cd_geojson);
-      map_district.fitBounds(bounds, { padding: 40, animate: false });
+      map_district.fitBounds(bounds, {
+        padding: { top: 20, bottom: 20, left: 10, right: 130 },
+        animate: false
+      });
 
       const layerControl = new LayerControl({
         collapsed: false,
@@ -957,7 +960,12 @@ function create_dc_map(container, ccn_geo_data, array_labels, array_names, { inv
               }
             ])
           )
-        }
+        }, 
+        panelWidth: 150,
+        panelMinWidth: 100,
+        panelMaxWidth: 250,
+        showStyleEditor: false,
+        showOpacitySlider: false,
       });
       map_district.addControl(layerControl, 'top-right');
 
@@ -990,14 +998,14 @@ const countsByLabel_age = {
 };
 const ageBracketCols = ["over65", "18_65", "under18"];
 const ageGroupNames = ["65 and Older", "Between 18 and 64", "18 and Younger"]
-const age_array_labels = ['age_prop_under18', 'age_prop_18_65', 'age_prop_over65']
+const ageKey = [`age_prop_under18`, 'age_prop_18_65', 'age_prop_over65'];
 ```
 
 ```js
 async function buildMapDcAge() {
   const container = document.createElement("div");
   container.style = "height: 300px;";
-  const map = await create_dc_map(container, current_ccn_merged_geojson_age, age_array_labels.toReversed(), ageGroupNames, { invalidation });
+  const map = await create_dc_map(container, current_ccn_merged_geojson_age, ageKey.toReversed(), ageGroupNames, { invalidation });
   requestAnimationFrame(() => map.resize());
   return container;
 }
@@ -1009,7 +1017,7 @@ const map_dc_age = buildMapDcAge()
 ```
 
 
-<div class="grid grid-cols-3" style="grid-auto-rows: 330px;">
+<div class="grid grid-cols-3">
   <div class="card">${
     resize((width) => renderFullWaffle(ageBracketCols, countsByLabel_age, "people", ageGroupNames))
   }</div>
@@ -1044,11 +1052,9 @@ Your congressional community, <strong>${ccn}</strong>, is a community of <strong
 
 <!-- plotly graphs -->
 
-```js make_plotly_var_list_age.js
-const ageKey = [`age_prop_under18`, 'age_prop_18_65', 'age_prop_over65'];
-```
 
-<div class="grid grid-cols-3" style="grid-auto-rows: 220px;">
+
+<div class="grid grid-cols-3" >
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
@@ -1290,7 +1296,7 @@ const cc_rented_units = cc_tot_hholds - cc_owned_units
 
 ```
 
-```sql id=current_ccn_merged_housing display
+```sql id=current_ccn_merged_housing 
 SELECT
   g.CCN20,
   g.DC,
@@ -1339,14 +1345,14 @@ const countsByLabel_vacancy = {
 }
 
 const vacancyGroupNames = ["Occupied Units", "Vacant Units"]
-const vacancy_array_labels = ['housing_occupancy_rate', 'housing_vacancy_rate']
+const vacancyKey = [`housing_occupancy_rate`, 'housing_vacancy_rate'];
 ```
 
 ```js
 async function buildMapDcAge() {
   const container_vac = document.createElement("div");
   container_vac.style = "height: 300px;";
-  const map = await create_dc_map(container_vac, current_ccn_merged_geojson_housing, vacancy_array_labels.toReversed(), vacancyGroupNames, { invalidation });
+  const map = await create_dc_map(container_vac, current_ccn_merged_geojson_housing, vacancyKey, vacancyGroupNames, { invalidation });
   requestAnimationFrame(() => map.resize());
   return container_vac;
 }
@@ -1354,11 +1360,11 @@ const map_dc_vacancy = buildMapDcAge()
 ```
 
 
-<div class="grid grid-cols-2" style="grid-auto-rows: 310px;">
+<div class="grid grid-cols-3" >
   <div class="card">${
     resize((width) => renderFullWaffle(vacancyCols, countsByLabel_vacancy, "housing", vacancyGroupNames))
   }</div>
-  <div class="card">${
+  <div class="card grid-colspan-2">${
     resize((width) => map_dc_vacancy)
   }
   </div>
@@ -1382,12 +1388,9 @@ In general,
 
 <!-- plotly graphs -->
 
-```js make_plotly_var_list_vacancy.js
-const vacancyKey = [`housing_occupancy_rate`, 'housing_vacancy_rate'];
-```
 
 
-<div class="grid grid-cols-2" style="grid-auto-rows: 220px;">
+<div class="grid grid-cols-2" >
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
@@ -1416,14 +1419,15 @@ const countsByLabel_ownership = {
   rented: cc_rented_units
 }
 const ownershipGroupNames = ["Owned Households", "Rented Households"]
-const ownership_array_labels = ['housing_ownership_rate', 'housing_rental_rate']
+const ownershipKey = [`housing_ownership_rate`, 'housing_rental_rate'];
 ```
+
 
 ```js
 async function buildMapDcAge() {
   const container_own = document.createElement("div");
   container_own.style = "height: 300px;";
-  const map = await create_dc_map(container_own, current_ccn_merged_geojson_housing, ownership_array_labels.toReversed(), ownershipGroupNames, { invalidation });
+  const map = await create_dc_map(container_own, current_ccn_merged_geojson_housing, ownershipKey, ownershipGroupNames, { invalidation });
   requestAnimationFrame(() => map.resize());
   return container_own;
 }
@@ -1433,11 +1437,11 @@ const map_dc_ownership = buildMapDcAge()
 
 <!-- waffle chart!-->
 
-<div class="grid grid-cols-2" style="grid-auto-rows: 310px;">
+<div class="grid grid-cols-3">
   <div class="card">${
     resize((width) => renderFullWaffle(ownershipCols, countsByLabel_ownership, "households", ownershipGroupNames))
   }</div>
-  <div class="card">${
+  <div class="card grid-colspan-2">${
    resize((width) => map_dc_ownership)
   }
   </div>
@@ -1461,12 +1465,9 @@ Of all occupied **${cc_tot_hholds.toLocaleString()}** housing units, **${Math.ab
 
 <!-- plotly graphs -->
 
-```js make_plotly_var_list_owner.js
-const ownershipKey = [`housing_ownership_rate`, 'housing_rental_rate'];
-```
 
 
-<div class="grid grid-cols-2" style="grid-auto-rows: 220px;">
+<div class="grid grid-cols-2">
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
