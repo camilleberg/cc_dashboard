@@ -75,8 +75,16 @@ display(html`<style>
 
 ```js assigning_colors.js
 const okabeItoColors = ['#E69F00', '#56B4E9', '#009E73', '#F0E442', '#0072B2', '#D55E00', '#CC79A7', '#000000'];
+// at 20% lighter
+const okabeItoColors_20 = ['#EBB233', '#77C3ED', '#33B18F', '#F3E967', '#338EC1', '#DD7E33', '#D693B8', '#333333'];
 // # at 40 % lighter
 const lighterItoColors = ['#F0C566', '#99D2F1', '#66C4AB', '#F6EE8D', '#66AAD0', '#E59E66', '#E0AECA', '#666666'];
+// at 60% lighter
+const lighterItoColors_60 = ['#F5D899', '#BBE1F6', '#99D8C7', '#F9F4B3', '#99C6E0', '#EEBE99', '#EAC9DB', '#999999'];
+// at 80% lighter
+const lighterItoColors_80 = ['#FAEBCC', '#DDF0FA', '#CCEBE3', '#FCF9D9', '#CCE2EF', '#F6DECC', '#F4E4ED', '#CCCCCC'];
+
+// waffle colors
 const waffleNotUsedColor = "#D8D8D8";
 const block_color = "#f2e9e3";
 
@@ -797,7 +805,7 @@ const current_ccn_within_cd_geojson = {
 
 <!-- Merging to add data -->
 
-```sql id=current_ccn_merged_age display
+```sql id=current_ccn_merged_age 
 SELECT
   g.CCN20,
   g.DC,
@@ -811,7 +819,7 @@ WHERE g.DC = ${dc_name};
 ```
 
 
-```js merge_age_data.js
+```js merge_age_data.js 
 const current_ccn_merged_geojson_age = {
   type: "FeatureCollection",
   features: current_ccn_merged_age.toArray()
@@ -825,8 +833,6 @@ const current_ccn_merged_geojson_age = {
       };
     })
 };
-
-
 ```
 
 
@@ -849,53 +855,77 @@ import { LayerControl } from 'npm:maplibre-gl-layer-control';
 display(html`<link rel="stylesheet" href="https://unpkg.com/maplibre-gl-layer-control@0.17.4/dist/maplibre-gl-layer-control.css">`);
 ```
 
-```js make_dc_map.js
-function create_dc_map(container, ccn_geo_data, group_name, { invalidation } = {}) {
+```js quatile_breaks.js
+function computeQuantileBreaks(features, property, numClasses = 5) {
+  const values = features
+    .map(f => f.properties[property])
+    .filter(v => typeof v === "number" && !Number.isNaN(v))
+    .sort((a, b) => a - b);
 
-  const heatmapPoint = {
-    type: "FeatureCollection",
-    features: ccn_geo_data.features.map(f => ({
-      type: "Feature",
-      properties: f.properties,
-      geometry: turf.centroid(f).geometry
-    }))
-  };
+  if (values.length === 0) return [0, 1]; // fallback for empty/missing data
+
+  const breaks = [];
+  for (let i = 0; i <= numClasses; i++) {
+    const idx = Math.min(
+      values.length - 1,
+      Math.floor((i / numClasses) * (values.length - 1))
+    );
+    breaks.push(values[idx]);
+  }
+  // de-duplicate in case of many repeated values (e.g. lots of zeros)
+  return [...new Set(breaks)];
+}
+```
+
+```js make_dc_map.js
+function create_dc_map(container, ccn_geo_data, array_labels, array_names, { invalidation } = {}) {
 
   return new Promise((resolve) => {
 
-    // current ccn records 
     const map_district = new maplibregl.Map({
         container: container,
         style: maplibre_style,
         center: current_ccn_coords,
         zoom: 6,
-        // causes pan & zoom handlers not to be applied, similar to
-        // .dragging.disable() and other handler .disable() functions in Leaflet.
         interactive: false
     });
 
-    //current cnn backgrounf
     map_district.on('load', () => {
       map_district.setPaintProperty('background', 'background-color', page_background_color_card);
 
-
-      // cd outline
-      map_district.addSource('current_cd_geo', {
+      // ccn fill data
+      map_district.addSource('ccn_geo_data', {
           'type': 'geojson',
-          'data': current_cd_geojson
+          'data': ccn_geo_data
       });
-      map_district.addLayer({
-            'id': 'cd-line',
-            'type': 'line',
-            'source': 'current_cd_geo',
-            'layout': {},
-            'paint': {
-                'line-color': lighterItoColors[6],
-                'line-width': 5,
-            }
-        });
 
-      // adding in outline for current
+      // one fill layer per age group — loop body ONLY builds layers
+      array_labels.forEach((label, i) => {
+        const layer_name = label + '_chloropleth';
+        const breaks = computeQuantileBreaks(ccn_geo_data.features, label, 5);
+
+        // build interpolate stops: [val0, color0, val1, color1, ...]
+        const colorRamp = [lighterItoColors_80[i], lighterItoColors_60[i], lighterItoColors[i], okabeItoColors_20[i], okabeItoColors[i]]; // 
+        const stops = breaks.flatMap((val, idx) => [val, colorRamp[idx % colorRamp.length]]);
+
+        map_district.addLayer({
+        'id': layer_name,
+        'type': 'fill',
+        'source': 'ccn_geo_data',
+        'layout': { 'visibility': i === 0 ? 'visible' : 'none' },
+        'paint': {
+            'fill-outline-color': '#000000',
+            'fill-color': [
+                'interpolate', ['linear'],
+                ['get', label],
+                ...stops
+            ],
+            'fill-opacity': 0.75
+          }
+        });
+      }); 
+
+            // outline for current ccn
       map_district.addSource('current_ccn_geo', {
             'type': 'geojson',
             'data': current_ccn_geojson
@@ -906,76 +936,34 @@ function create_dc_map(container, ccn_geo_data, group_name, { invalidation } = {
           'source': 'current_ccn_geo',
           'layout': {},
           'paint': {
-              "line-color": okabeItoColors[6],
-              "line-width": 3
-          }
-      });
-
-      // adding in heat map
-      map_district.addSource('heatmap_points', {
-          'type': 'geojson',
-          'data': heatmapPoint
-      });
-
-      const layer_name =  group_name + '_heat'
-
-      map_district.addLayer({
-          'id': layer_name,
-          'type': 'heatmap',
-          'source': 'heatmap_points',
-          'maxzoom': 9,
-          'paint': {
-              'heatmap-weight': [
-                  'interpolate', ['linear'], ['get', group_name],
-                  0, 0,
-                  6, 1
-              ],
-              'heatmap-intensity': [
-                  'interpolate', ['linear'], ['zoom'],
-                  0, 1,
-                  9, 3
-              ],
-              'heatmap-color': [
-                  'interpolate', ['linear'], ['heatmap-density'],
-                  0, 'rgba(255,255,255,0)',
-                  0.5, lighterItoColors[0],
-                  1, okabeItoColors[0]
-              ],
-              'heatmap-radius': [
-                  'interpolate', ['linear'], ['zoom'],
-                  0, 2,
-                  9, 20
-              ],
-              'heatmap-opacity': [
-                  'interpolate', ['linear'], ['zoom'],
-                  7, 1,
-                  9, 0
-              ]
+              "line-color": 'rgba(0, 0 ,0, 0.5)',
+              "line-width": 2
           }
       });
 
       const bounds = boundsFromGeoJSON(current_cd_geojson);
-      map_district.fitBounds(
-        bounds, 
-        { padding: 40, animate: false  });
-      
+      map_district.fitBounds(bounds, { padding: 40, animate: false });
+
       const layerControl = new LayerControl({
         collapsed: false,
         layerStates: {
-          [layer_name] : {
-            visible: true, 
-            opacity: 0.5, 
-            name: 'heat map'
-          }, 
+          ...Object.fromEntries(
+            array_labels.map((label, i) => [
+              label + '_chloropleth',
+              {
+                visible: i === 0,
+                opacity: 0.5,
+                name: array_names ? array_names[i] : label
+              }
+            ])
+          )
         }
       });
       map_district.addControl(layerControl, 'top-right');
-      
+
       resolve(map_district);
     });
 
-
-    // clean up when this cell reruns or is removed, if the caller passed invalidation in
     if (invalidation) {
       invalidation.then(() => map_district.remove());
     }
@@ -1002,15 +990,14 @@ const countsByLabel_age = {
 };
 const ageBracketCols = ["over65", "18_65", "under18"];
 const ageGroupNames = ["65 and Older", "Between 18 and 64", "18 and Younger"]
-const age_array_labels = ['ageGroup_under18', 'ageGroup_18_65', 'ageGroup_over65']
+const age_array_labels = ['age_prop_under18', 'age_prop_18_65', 'age_prop_over65']
 ```
-${age_array_labels[0] + '_heat'}
 
 ```js
 async function buildMapDcAge() {
   const container = document.createElement("div");
   container.style = "height: 300px;";
-  const map = await create_dc_map(container, current_ccn_merged_geojson_age, age_array_labels[0], { invalidation });
+  const map = await create_dc_map(container, current_ccn_merged_geojson_age, age_array_labels.toReversed(), ageGroupNames, { invalidation });
   requestAnimationFrame(() => map.resize());
   return container;
 }
@@ -1303,6 +1290,38 @@ const cc_rented_units = cc_tot_hholds - cc_owned_units
 
 ```
 
+```sql id=current_ccn_merged_housing display
+SELECT
+  g.CCN20,
+  g.DC,
+  g.State,
+  o.* EXCLUDE (DC, STATE, CCN20),
+  1 - o.housing_occupancy_rate AS housing_vacancy_rate,
+  1 - o.housing_ownership_rate AS housing_rental_rate,
+  ST_AsGeoJSON(g.geometry) AS geometry
+FROM ccn20_geo_raw AS g
+JOIN cc_data_housing_table AS o
+  ON g.CCN20 = o.CCN20
+WHERE g.DC = ${dc_name};
+```
+
+
+```js merge_age_data.js 
+const current_ccn_merged_geojson_housing = {
+  type: "FeatureCollection",
+  features: current_ccn_merged_housing.toArray()
+    .filter(row => row.geometry != null)
+    .map(row => {
+      const { geometry, ...properties } = row;   // everything except geometry becomes a property
+      return {
+        type: "Feature",
+        properties,
+        geometry: JSON.parse(geometry)
+      };
+    })
+};
+```
+
 
 
 <span style="color:blue">This housing data pull /analysis is in progress!</span>.
@@ -1320,6 +1339,18 @@ const countsByLabel_vacancy = {
 }
 
 const vacancyGroupNames = ["Occupied Units", "Vacant Units"]
+const vacancy_array_labels = ['housing_occupancy_rate', 'housing_vacancy_rate']
+```
+
+```js
+async function buildMapDcAge() {
+  const container_vac = document.createElement("div");
+  container_vac.style = "height: 300px;";
+  const map = await create_dc_map(container_vac, current_ccn_merged_geojson_housing, vacancy_array_labels.toReversed(), vacancyGroupNames, { invalidation });
+  requestAnimationFrame(() => map.resize());
+  return container_vac;
+}
+const map_dc_vacancy = buildMapDcAge()
 ```
 
 
@@ -1328,7 +1359,7 @@ const vacancyGroupNames = ["Occupied Units", "Vacant Units"]
     resize((width) => renderFullWaffle(vacancyCols, countsByLabel_vacancy, "housing", vacancyGroupNames))
   }</div>
   <div class="card">${
-    
+    resize((width) => map_dc_vacancy)
   }
   </div>
 </div>
@@ -1385,7 +1416,20 @@ const countsByLabel_ownership = {
   rented: cc_rented_units
 }
 const ownershipGroupNames = ["Owned Households", "Rented Households"]
+const ownership_array_labels = ['housing_ownership_rate', 'housing_rental_rate']
 ```
+
+```js
+async function buildMapDcAge() {
+  const container_own = document.createElement("div");
+  container_own.style = "height: 300px;";
+  const map = await create_dc_map(container_own, current_ccn_merged_geojson_housing, ownership_array_labels.toReversed(), ownershipGroupNames, { invalidation });
+  requestAnimationFrame(() => map.resize());
+  return container_own;
+}
+const map_dc_ownership = buildMapDcAge()
+```
+
 
 <!-- waffle chart!-->
 
@@ -1394,7 +1438,7 @@ const ownershipGroupNames = ["Owned Households", "Rented Households"]
     resize((width) => renderFullWaffle(ownershipCols, countsByLabel_ownership, "households", ownershipGroupNames))
   }</div>
   <div class="card">${
-   
+   resize((width) => map_dc_ownership)
   }
   </div>
 </div>
