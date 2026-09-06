@@ -930,14 +930,25 @@ function create_dc_map(container, ccn_geo_data, array_labels, array_names, { inv
             'type': 'geojson',
             'data': current_ccn_geojson
         });
+      // FILL
       map_district.addLayer({
-          'id': 'ccn20-line',
+          'id': 'current-ccn20',
+          'type': 'fill',
+          'source': 'current_ccn_geo',
+          'layout': {},
+          'paint': {
+              'fill-outline-color': 'rgba(0, 0 ,0, 1)',
+              'fill-color': 'rgba(0, 0 ,0, 0)'
+          }
+      });
+      map_district.addLayer({
+          'id': 'current-ccn20-line',
           'type': 'line',
           'source': 'current_ccn_geo',
           'layout': {},
           'paint': {
-              "line-color": 'rgba(0, 0 ,0, 0.5)',
-              "line-width": 2
+              'line-color': 'rgba(0, 0 ,0, 0.5)',
+              'line-width': 3
           }
       });
 
@@ -968,6 +979,35 @@ function create_dc_map(container, ccn_geo_data, array_labels, array_names, { inv
         showOpacitySlider: false,
       });
       map_district.addControl(layerControl, 'top-right');
+
+      // When a click event occurs on a feature in the states layer, open a popup at the
+      // location of the click, with description HTML from its properties.
+      // Reuse a single popup instance instead of creating a new one every time
+    const linePopup = new maplibregl.Popup({
+      closeButton: false,
+      closeOnClick: false
+    });
+
+    map_district.on('mouseenter', 'current-ccn20', (e) => {
+      map_district.getCanvas().style.cursor = 'pointer'; // indicate interactivity
+
+      linePopup
+        .setLngLat(e.lngLat)
+        .setHTML(e.features[0].properties.name)
+        .addTo(map_district);
+    });
+
+    // Update popup position as the mouse moves along the line
+    map_district.on('mousemove', 'current-ccn20', (e) => {
+      linePopup
+        .setLngLat(e.lngLat)
+        .setHTML(e.features[0].properties.name);
+    });
+
+    map_district.on('mouseleave', 'current-ccn20', () => {
+      map_district.getCanvas().style.cursor = '';
+      linePopup.remove(); // actually remove the popup
+    });
 
       resolve(map_district);
     });
