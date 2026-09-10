@@ -930,7 +930,7 @@ function create_dc_map(container, ccn_geo_data, array_labels, array_names, { inv
             'type': 'geojson',
             'data': current_ccn_geojson
         });
-      // FILL
+      // FILL for tooltip
       map_district.addLayer({
           'id': 'current-ccn20',
           'type': 'fill',
@@ -941,14 +941,15 @@ function create_dc_map(container, ccn_geo_data, array_labels, array_names, { inv
               'fill-color': 'rgba(0, 0 ,0, 0)'
           }
       });
+      // actual line
       map_district.addLayer({
           'id': 'current-ccn20-line',
           'type': 'line',
           'source': 'current_ccn_geo',
           'layout': {},
           'paint': {
-              'line-color': 'rgba(0, 0 ,0, 0.5)',
-              'line-width': 3
+              'line-color': okabeItoColors[6],
+              'line-width': 2
           }
       });
 
@@ -961,6 +962,11 @@ function create_dc_map(container, ccn_geo_data, array_labels, array_names, { inv
       const layerControl = new LayerControl({
         collapsed: false,
         layerStates: {
+          'current-ccn20-line': {
+            visible: true,
+            opacity: 1,
+            name: 'My Congressional Community'
+          },
           ...Object.fromEntries(
             array_labels.map((label, i) => [
               label + '_chloropleth',
@@ -1001,7 +1007,7 @@ function create_dc_map(container, ccn_geo_data, array_labels, array_names, { inv
     map_district.on('mousemove', 'current-ccn20', (e) => {
       linePopup
         .setLngLat(e.lngLat)
-        .setHTML(e.features[0].properties.name);
+        .setHTML("My congressional community!");
     });
 
     map_district.on('mouseleave', 'current-ccn20', () => {
@@ -1018,9 +1024,6 @@ function create_dc_map(container, ccn_geo_data, array_labels, array_names, { inv
   });
 }
 ```
-
-
-
 
 
 <hr>
@@ -1041,27 +1044,36 @@ const ageGroupNames = ["65 and Older", "Between 18 and 64", "18 and Younger"]
 const ageKey = [`age_prop_under18`, 'age_prop_18_65', 'age_prop_over65'];
 ```
 
-```js
-async function buildMapDcAge() {
+```js dc_title.js
+function makeMapDCTitle(type) {
   const container = document.createElement("div");
-  container.style = "height: 300px;";
+  container.style = "height: 30px;";
+  container.innerHTML = "Map of your Congressional District by " + type;
+  return container;
+}
+
+const title_age = makeMapDCTitle("Age");
+```
+
+
+```js
+async function buildMapDcAge(title) {
+  const container = document.createElement("div");
+  container.style = "height: 270px;";
   const map = await create_dc_map(container, current_ccn_merged_geojson_age, ageKey.toReversed(), ageGroupNames, { invalidation });
   requestAnimationFrame(() => map.resize());
   return container;
 }
-const map_dc_age = buildMapDcAge()
+const map_dc_age = buildMapDcAge(title_age)
 ```
 
-```js
-
-```
 
 
 <div class="grid grid-cols-3">
   <div class="card">${
     resize((width) => renderFullWaffle(ageBracketCols, countsByLabel_age, "people", ageGroupNames))
   }</div>
-  <div class="card grid-colspan-2">${
+  <div class="card grid-colspan-2"><h3>${title_age}</h3>${
     resize((width) => map_dc_age)
   }
   </div>
@@ -1391,12 +1403,13 @@ const vacancyKey = [`housing_occupancy_rate`, 'housing_vacancy_rate'];
 ```js
 async function buildMapDcAge() {
   const container_vac = document.createElement("div");
-  container_vac.style = "height: 300px;";
+  container_vac.style = "height: 270px;";
   const map = await create_dc_map(container_vac, current_ccn_merged_geojson_housing, vacancyKey, vacancyGroupNames, { invalidation });
   requestAnimationFrame(() => map.resize());
   return container_vac;
 }
 const map_dc_vacancy = buildMapDcAge()
+const title_vac = makeMapDCTitle("Housing Vacancy");
 ```
 
 
@@ -1404,7 +1417,7 @@ const map_dc_vacancy = buildMapDcAge()
   <div class="card">${
     resize((width) => renderFullWaffle(vacancyCols, countsByLabel_vacancy, "housing", vacancyGroupNames))
   }</div>
-  <div class="card grid-colspan-2">${
+  <div class="card grid-colspan-2"><h3>${title_vac}</h3>${
     resize((width) => map_dc_vacancy)
   }
   </div>
@@ -1466,12 +1479,13 @@ const ownershipKey = [`housing_ownership_rate`, 'housing_rental_rate'];
 ```js
 async function buildMapDcAge() {
   const container_own = document.createElement("div");
-  container_own.style = "height: 300px;";
+  container_own.style = "height: 270px;";
   const map = await create_dc_map(container_own, current_ccn_merged_geojson_housing, ownershipKey, ownershipGroupNames, { invalidation });
   requestAnimationFrame(() => map.resize());
   return container_own;
 }
 const map_dc_ownership = buildMapDcAge()
+const title_own = makeMapDCTitle("Housing Ownership");
 ```
 
 
@@ -1481,14 +1495,15 @@ const map_dc_ownership = buildMapDcAge()
   <div class="card">${
     resize((width) => renderFullWaffle(ownershipCols, countsByLabel_ownership, "households", ownershipGroupNames))
   }</div>
-  <div class="card grid-colspan-2">${
+  <div class="card grid-colspan-2"><h3>${title_own}</h3>${
    resize((width) => map_dc_ownership)
   }
   </div>
 </div>
 
-Of all occupied **${cc_tot_hholds.toLocaleString()}** housing units, **${Math.abs(cc_own_rate * 100).toFixed(1).toLocaleString()}**% are owned. That means that, compared to your congressional district and state, your congressional district's homeownership rate is **${Math.abs(cc_dc_diff_own_rate*100).toFixed(1).toLocaleString()}** percentage points **${cc_dc_ownership}** and your state's homeownerhsip rate is **${Math.abs(cc_state_diff_own_rate*100).toFixed(1).toLocaleString()}** percentage points **${cc_state_ownership}**. 
-
+<center>
+Of all occupied <strong>${cc_tot_hholds.toLocaleString()}</strong> housing units, <strong>${Math.abs(cc_own_rate * 100).toFixed(1).toLocaleString()}%</strong> are owned. That means that, compared to your congressional district and state, your congressional district's homeownership rate is <strong>${Math.abs(cc_dc_diff_own_rate*100).toFixed(1).toLocaleString()}</strong> percentage points <strong>${cc_dc_ownership}</strong> and your state's homeownerhsip rate is <strong>${Math.abs(cc_state_diff_own_rate*100).toFixed(1).toLocaleString()}</strong> percentage points <strong>${cc_state_ownership}</strong>. 
+</center>
 <!-- cards with big numbers -->
 
 <div class="grid grid-cols-2">
