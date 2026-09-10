@@ -1073,13 +1073,15 @@ const map_dc_age = buildMapDcAge(title_age)
   <div class="card">${
     resize((width) => renderFullWaffle(ageBracketCols, countsByLabel_age, "people", ageGroupNames))
   }</div>
-  <div class="card grid-colspan-2"><h3>${title_age}</h3>${
+  <div class="card grid-colspan-2"><h2>${title_age}</h2>${
     resize((width) => map_dc_age)
   }
   </div>
 </div>
 
 <!-- Text -->
+
+[add note about zooming in and UI for plotly]
 
 
 <center>
@@ -1417,7 +1419,7 @@ const title_vac = makeMapDCTitle("Housing Vacancy");
   <div class="card">${
     resize((width) => renderFullWaffle(vacancyCols, countsByLabel_vacancy, "housing", vacancyGroupNames))
   }</div>
-  <div class="card grid-colspan-2"><h3>${title_vac}</h3>${
+  <div class="card grid-colspan-2"><h2>${title_vac}</h2>${
     resize((width) => map_dc_vacancy)
   }
   </div>
