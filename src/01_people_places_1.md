@@ -245,46 +245,86 @@ const ccnList = await sql`
 `;
 
 const ccnArray = [...ccnList];
+const all_ccn = ccnArray.map(d => d.CCN20);
+
+const dc_list = await sql`
+    SELECT DISTINCT DC
+    FROM cc_data
+    ORDER BY DC
+`;
+
+const dc_array = [...dc_list];
+const all_dc  = dc_array.map(d => d.DC);
 ```
+
+```js
+const all_options = [
+  ...all_ccn.map(d => ({ Community: d, District: "" })),
+  ...all_dc.map(d => ({ Community: "", District: d }))
+];
+```
+
 
 ```js import_autocomplete.js
 //https://tarekraafat.github.io/autoComplete.js/#/installation
 import autoComplete from "npm:@tarekraafat/autocomplete.js";
 ```
 
+
 ```js create_autocomplete.js
 const autoCompleteJS = new autoComplete({
     // enter button
     submit: true,
     // message
-    placeHolder: "Search for Your Community...",
+    placeHolder: "Search for Your Community or District...",
     // HOLDS HISTROY
     cache: true,
     data: {
-        src: ccnArray.map(d => d.CCN20),
+        src: all_options,
+        keys: ["Community", "District"],
         cache: true,
+        // makes so resulst are 5 per group 
+        filter: (list) => {
+            const grouped = {};
+            for (const item of list) {
+                if (!grouped[item.key]) grouped[item.key] = [];
+                if (grouped[item.key].length < 5) {
+                    grouped[item.key].push(item);
+                }
+            }
+            return Object.values(grouped).flat();
+        }   
     },
     // SHOWS RESULTS ON CLICK 
     threshold: 0,
     resultsList: {
         maxResults: undefined
     },
-    // Need to figure out how to export 
+    // Need to figure out how to export, displays community or didtrict tag 
     resultItem: {
-        highlight: true
+      element: (item, data) => {
+          item.style = "display: flex; justify-content: space-between;";
+          item.innerHTML = `
+          <span style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+              ${data.match}
+          </span>
+          <span style="display: flex; align-items: center; font-size: 12px; font-weight: 100; text-transform: uppercase; color: rgba(0,0,0,.3);">
+              ${data.key}
+          </span>`;
+      },
+      highlight: true
     },
     // actual event
-    events: {
+events: {
     input: {
         selection: (event) => {
             const feedback = event.detail;
-            const selection = feedback.selection.value; // flat array — no key needed
+            const selection = feedback.selection.value[feedback.selection.key];
             autoCompleteJS.input.value = selection;
-            // manually fire the event so Observable's reactivity notices the change
             autoCompleteJS.input.dispatchEvent(new Event("input", { bubbles: true }));
         }
     }
-}
+  }
 });
 
 ```
@@ -292,6 +332,12 @@ const autoCompleteJS = new autoComplete({
 ```js assining_output.js
 const ccn = Generators.input(autoCompleteJS.input);
 ```
+
+```js check_dc.js
+const isDC = ccn.length < 7;
+const debugCheck = `${ccn} | len=${ccn.length} | isDC=${isDC}`;
+```
+
 
 <!-- Blurring the page -->
 
@@ -310,42 +356,56 @@ setBlurState(ccn); // runs on load AND re-runs automatically whenever ccn change
 
 <!-- Filtering the data-->
 
-```sql id=cc_data_age
-SELECT *
-FROM cc_data_age_table
-WHERE CCN20 = ${ccn};
+```js cc_data_age_calc.js
+const cc_data_age = isDC
+  ? await sql`SELECT * FROM dc_data_age_table WHERE DC = ${ccn}`
+  : await sql`SELECT * FROM cc_data_age_table WHERE CCN20 = ${ccn}`;
 ```
 
-```sql id=dc_data_age
-SELECT *
-FROM dc_data_age_table
-WHERE DC = (
-    SELECT DC
-    FROM cc_data_age_table
-    WHERE CCN20 = ${ccn}
-);
+```js dc_age_calc.js
+const dc_data_age = isDC
+  ? await sql`SELECT * FROM dc_data_age_table WHERE DC = ${ccn}`
+  : await sql`SELECT * FROM dc_data_age_table WHERE DC = (SELECT DC FROM cc_data_age_table WHERE CCN20 = ${ccn})`;
 ```
 
-```sql id=state_data_age
-SELECT *
-FROM state_data_age_table
-WHERE State = (
-    SELECT State
-    FROM cc_data_age_table
-    WHERE CCN20 = ${ccn}
-);
+```js state_age_calc.js
+const state_data_age = isDC
+  ? await sql`SELECT *
+      FROM state_data_age_table
+      WHERE State = (
+          SELECT State
+          FROM cc_data_age_table
+          WHERE DC = ${ccn}
+          LIMIT 1
+      )`
+  : await sql`SELECT *
+      FROM state_data_age_table
+      WHERE State = (
+          SELECT State
+          FROM cc_data_age_table
+          WHERE CCN20 = ${ccn}
+      )`;
 ```
 
-```sql id=current_ccn_geo 
--- transforming as geo 
-SELECT
+
+```js current_geo_calc.js
+const current_ccn_geo = isDC
+  ? await sql`SELECT
+  DC,
+  State,
+  geometry
+  FROM cd119_geos
+  WHERE DC = ${ccn}`
+  : await sql`SELECT
   CCN20,
   DC,
   State,
   geometry
   FROM ccn20_geo
-  WHERE CCN20 = ${ccn}
+  WHERE CCN20 = ${ccn}`;
 ```
+
+
 
 <!-- Cleaning and extracting data-->
 ```js
@@ -657,9 +717,12 @@ function boundsFromGeoJSON(geojson) {
 }
 ```
 
+```js
+const title = isDC ? "Congressional District" : "Congressional Community";
+```
 
 
-## Snapshot of your Congressional Community
+## Snapshot of your ${title}
 
 ```js calc_ccn_coords.js
 // calculating the lat long
