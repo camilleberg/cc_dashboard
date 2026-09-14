@@ -1171,6 +1171,10 @@ Your ${title_choice.toLowerCase()}, <strong>${ccn}</strong>, is a community of <
 </center>
 <!-- Cards with big numbers -->
 
+ ${dc_data_age
+  .getChild("ageGroup_under18")
+  .get(0)}
+
 <div class="grid grid-cols-3">
   <div class="card">
     <h3>${highlight("Under 18 Population", 2)}</h3>
