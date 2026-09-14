@@ -356,9 +356,18 @@ setBlurState(ccn); // runs on load AND re-runs automatically whenever ccn change
 
 <!-- Filtering the data-->
 
+
 ```js cc_data_age_calc.js
 const cc_data_age = isDC
-  ? await sql`SELECT * FROM dc_data_age_table WHERE DC = ${ccn}`
+  ? await sql`
+  SELECT 
+    d.*,
+    c.State
+  FROM dc_data_age_table AS d
+  INNER JOIN cc_data_age_table AS c
+    ON c.DC = d.DC
+  WHERE d.DC = ${ccn}
+  LIMIT 1`
   : await sql`SELECT * FROM cc_data_age_table WHERE CCN20 = ${ccn}`;
 ```
 
@@ -388,12 +397,13 @@ const state_data_age = isDC
 ```
 
 
+
 ```js current_geo_calc.js
 const current_ccn_geo = isDC
   ? await sql`SELECT
   DC,
   State,
-  geometry
+  ST_AsGeoJSON(geometry) AS geometry
   FROM cd119_geos
   WHERE DC = ${ccn}`
   : await sql`SELECT
@@ -404,8 +414,6 @@ const current_ccn_geo = isDC
   FROM ccn20_geo
   WHERE CCN20 = ${ccn}`;
 ```
-
-
 
 <!-- Cleaning and extracting data-->
 ```js
@@ -469,6 +477,7 @@ const current_ccn_geojson = JSON.parse(
   current_ccn_geo.getChild("geometry").get(0)
 );
 ```
+
 
 
 ```js make_div_bucket.js
@@ -569,7 +578,7 @@ function renderFullWaffle(labels, countsByLabel, type, group_name_list) {
   });
 
   return html`<div class="waffle-section">
-    <div class="waffle-title">If your community was <br> 100 <strong>${title}</strong>...<br><br></div>
+    <div class="waffle-title">If your ${title_choice} was <br> 100 <strong>${title}</strong>...<br><br></div>
     ${renderWaffleLegend(labels, labels, group_name_list)}
     ${grid}
   </div>`;
@@ -577,7 +586,7 @@ function renderFullWaffle(labels, countsByLabel, type, group_name_list) {
 ```
 
 ```js make_plotly_charts.js
-function makeLineCompChartPlotly(label_list, group_list, var_list, type) {
+function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
   // choosing the correct dfs 
   const DF_SETS = {
     age: { cc: cc_data_age, dc: dc_data_age, state: state_data_age },
@@ -636,14 +645,20 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type) {
   });
 
   // Congressional Community (highlighted color)
-  traces.push({
-    x: [xCc],
-    y: [1],
-    mode: "markers",
-    marker: { symbol: "circle", size: 20, color: colorUsed, line: { color: block_color, width: 2 } },
-    name: "Congressional Community",
-    hovertemplate: `Congressional Community: ${(xCc * 100).toFixed(1)}%<extra></extra>`
-  });
+
+  // if it is CD, then dropping cc trace i.e data point
+  const cc_trace = isDC
+    ? null
+    : {
+        x: [xCc],
+        y: [1],
+        mode: "markers",
+        marker: { symbol: "circle", size: 20, color: colorUsed, line: { color: block_color, width: 2 } },
+        name: "Congressional Community",
+        hovertemplate: `Congressional Community: ${(xCc * 100).toFixed(1)}%<extra></extra>`
+      };
+
+  if (!isDC) traces.push(cc_trace);
 
   // dynamically adjust x range
   const xMin = floorToDecimals(Math.min(xCc, xCd, xState), 1) - 0.01;
@@ -718,11 +733,11 @@ function boundsFromGeoJSON(geojson) {
 ```
 
 ```js
-const title = isDC ? "Congressional District" : "Congressional Community";
+const title_choice = isDC ? "Congressional District" : "Congressional Community";
 ```
 
 
-## Snapshot of your ${title}
+## Snapshot of your ${title_choice}
 
 ```js calc_ccn_coords.js
 // calculating the lat long
@@ -918,6 +933,8 @@ import { LayerControl } from 'npm:maplibre-gl-layer-control';
 display(html`<link rel="stylesheet" href="https://unpkg.com/maplibre-gl-layer-control@0.17.4/dist/maplibre-gl-layer-control.css">`);
 ```
 
+
+
 ```js quatile_breaks.js
 function computeQuantileBreaks(features, property, numClasses = 5) {
   const values = features
@@ -1028,7 +1045,7 @@ function create_dc_map(container, ccn_geo_data, array_labels, array_names, { inv
           'current-ccn20-line': {
             visible: true,
             opacity: 1,
-            name: 'My Congressional Community'
+            name: 'My ${title_choice}'
           },
           ...Object.fromEntries(
             array_labels.map((label, i) => [
@@ -1070,7 +1087,7 @@ function create_dc_map(container, ccn_geo_data, array_labels, array_names, { inv
     map_district.on('mousemove', 'current-ccn20', (e) => {
       linePopup
         .setLngLat(e.lngLat)
-        .setHTML("My congressional community!");
+       .setHTML(`My ${title_choice}!`);
     });
 
     map_district.on('mouseleave', 'current-ccn20', () => {
@@ -1148,7 +1165,7 @@ const map_dc_age = buildMapDcAge(title_age)
 
 
 <center>
-Your congressional community, <strong>${ccn}</strong>, is a community of <strong>${cc_tot_pop.toLocaleString()}</strong> individuals. Compared to your congressional district of <strong>${Math.abs(dc_tot_pop).toFixed(0).toLocaleString()}</strong> people, your community skews <strong>${cc_dc_younger}</strong> by <strong>${(Math.abs(cc_dc_diff) * 100).toFixed(1)} percentage points</strong>. It is similarly <strong>${cc_state_younger}</strong> than <strong>${states.fullName(state_name)}</strong>, by <strong>${(Math.abs(cc_state_diff) * 100).toFixed(1)} percentage points</strong>.
+Your ${title_choice.toLowerCase()}, <strong>${ccn}</strong>, is a community of <strong>${cc_tot_pop.toLocaleString()}</strong> individuals. ${isDC ? "" : `Compared to your congressional district of <strong>${Math.abs(dc_tot_pop).toLocaleString()}</strong> people, your community skews <strong>${cc_dc_younger}</strong> by <strong>${(Math.abs(cc_dc_diff) * 100).toFixed(1)} percentage points</strong>`}. It is similarly <strong>${cc_state_younger}</strong> than <strong>${states.fullName(state_name)}</strong>, by <strong>${(Math.abs(cc_state_diff) * 100).toFixed(1)} percentage points</strong>.
 </center>
 <!-- Cards with big numbers -->
 
@@ -1175,7 +1192,7 @@ Your congressional community, <strong>${ccn}</strong>, is a community of <strong
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
-      const { traces, layout, config } = makeLineCompChartPlotly("under18", ageBracketCols, ageKey[0], "age");
+      const { traces, layout, config } = makeLineCompChartPlotly("under18", ageBracketCols, ageKey[0], "age", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
       return div;
     }) 
@@ -1183,7 +1200,7 @@ Your congressional community, <strong>${ccn}</strong>, is a community of <strong
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
-      const { traces, layout, config } = makeLineCompChartPlotly("18_65", ageBracketCols, ageKey[1], "age");
+      const { traces, layout, config } = makeLineCompChartPlotly("18_65", ageBracketCols, ageKey[1], "age", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
       return div;
     }) 
@@ -1191,7 +1208,7 @@ Your congressional community, <strong>${ccn}</strong>, is a community of <strong
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
-      const { traces, layout, config } = makeLineCompChartPlotly("over65", ageBracketCols, ageKey[2], "age");
+      const { traces, layout, config } = makeLineCompChartPlotly("over65", ageBracketCols, ageKey[2], "age", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
       return div;
     }) 
@@ -1243,6 +1260,11 @@ SELECT
         / NULLIF(tot_hholds, 0)::DOUBLE
         AS housing_ownership_rate,
 
+    --adding in extra  rates
+    1 - housing_occupancy_rate AS housing_vacancy_rate, 
+    1 - housing_ownership_rate AS housing_rental_rate
+
+
 
 FROM base;
 
@@ -1277,6 +1299,9 @@ SELECT
     SUM(hholds_ownership_own)
         / NULLIF(SUM(tot_hholds), 0)::DOUBLE
         AS housing_ownership_rate,
+
+    1 - housing_occupancy_rate AS housing_vacancy_rate, 
+    1 - housing_ownership_rate AS housing_rental_rate
 
 FROM base
 GROUP BY DC;
@@ -1313,44 +1338,75 @@ SELECT
         / NULLIF(SUM(tot_hholds), 0)::DOUBLE
         AS housing_ownership_rate,
 
+    1 - housing_occupancy_rate AS housing_vacancy_rate, 
+    1 - housing_ownership_rate AS housing_rental_rate
+
 FROM base
 GROUP BY State;
 ```
 
-```sql id=cc_data_housing
-SELECT *, 
-  1 - housing_occupancy_rate AS housing_vacancy_rate, 
-  1 - housing_ownership_rate AS housing_rental_rate
-FROM cc_data_housing_table
-WHERE CCN20 = ${ccn};
+
+<!-- Filtering the data-->
+
+
+```js cc_data_housing_calc.js
+const cc_data_housing = isDC
+  ? await sql`
+    SELECT 
+      d.*,
+      c.State
+    FROM dc_data_housing_table AS d
+    INNER JOIN cc_data_housing_table AS c
+      ON c.DC = d.DC
+    WHERE d.DC = ${ccn}
+    LIMIT 1`
+  : await sql`
+    SELECT *, 
+    FROM cc_data_housing_table
+    WHERE CCN20 = ${ccn}`;
 ```
 
-```sql id=dc_data_housing
-SELECT *, 
-  1 - housing_occupancy_rate AS housing_vacancy_rate, 
-  1 - housing_ownership_rate AS housing_rental_rate
-FROM dc_data_housing_table
-WHERE DC = (
-    SELECT DC
-    FROM cc_data_housing_table
-    WHERE CCN20 = ${ccn}
-);
+```js dc_data_housing_calc.js
+const dc_data_housing = isDC
+  ? await sql`
+    SELECT *, 
+    FROM dc_data_housing_table
+    WHERE DC = ${ccn}` 
+  : await sql`
+    SELECT *, 
+    FROM dc_data_housing_table
+    WHERE DC = (
+        SELECT DC
+        FROM cc_data_housing_table
+        WHERE CCN20 = ${ccn}
+    )`;
 ```
 
-```sql id=state_data_housing
-SELECT *, 
-  1 - housing_occupancy_rate AS housing_vacancy_rate, 
-  1 - housing_ownership_rate AS housing_rental_rate
-FROM state_data_housing_table
-WHERE State = (
-    SELECT State
-    FROM cc_data_housing_table
-    WHERE CCN20 = ${ccn}
-);
+```js state_data_housing_calc.js
+const state_data_housing = isDC
+  ? await sql`
+    SELECT *, 
+    FROM state_data_housing_table
+    WHERE State = (
+        SELECT State
+        FROM cc_data_housing_table
+        WHERE DC = ${ccn} 
+        LIMIT 1
+    )`
+  : await sql`
+    SELECT *, 
+    FROM state_data_housing_table
+    WHERE State = (
+        SELECT State
+        FROM cc_data_housing_table
+        WHERE CCN20 = ${ccn}
+    )`;
 ```
+
+
 
 <!-- Cleaning and extracting data-->
-```js
+```js select_housing_vars.js
 const cc_tot_housing = cc_data_housing
   .getChild("tot_housing")
   .get(0);
@@ -1410,8 +1466,8 @@ const cc_owned_units = cc_data_housing
   .getChild("hholds_ownership_own")
   .get(0);
 const cc_rented_units = cc_tot_hholds - cc_owned_units
-
 ```
+
 
 ```sql id=current_ccn_merged_housing 
 SELECT
@@ -1419,15 +1475,12 @@ SELECT
   g.DC,
   g.State,
   o.* EXCLUDE (DC, STATE, CCN20),
-  1 - o.housing_occupancy_rate AS housing_vacancy_rate,
-  1 - o.housing_ownership_rate AS housing_rental_rate,
   g.geometry
 FROM ccn20_geo AS g
 JOIN cc_data_housing_table AS o
   ON g.CCN20 = o.CCN20
 WHERE g.DC = ${dc_name};
 ```
-
 
 ```js merge_age_data.js 
 const current_ccn_merged_geojson_housing = {
@@ -1444,7 +1497,6 @@ const current_ccn_merged_geojson_housing = {
     })
 };
 ```
-
 
 
 <span style="color:blue">This housing data pull /analysis is in progress!</span>.
@@ -1466,14 +1518,14 @@ const vacancyKey = [`housing_occupancy_rate`, 'housing_vacancy_rate'];
 ```
 
 ```js
-async function buildMapDcAge() {
+async function buildMapDcHousing() {
   const container_vac = document.createElement("div");
   container_vac.style = "height: 270px;";
   const map = await create_dc_map(container_vac, current_ccn_merged_geojson_housing, vacancyKey, vacancyGroupNames, { invalidation });
   requestAnimationFrame(() => map.resize());
   return container_vac;
 }
-const map_dc_vacancy = buildMapDcAge()
+const map_dc_vacancy = buildMapDcHousing()
 const title_vac = makeMapDCTitle("Housing Vacancy");
 ```
 
@@ -1512,7 +1564,7 @@ In general,
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
-      const { traces, layout, config } = makeLineCompChartPlotly("occupied", vacancyCols, vacancyKey[0], "housing");
+      const { traces, layout, config } = makeLineCompChartPlotly("occupied", vacancyCols, vacancyKey[0], "housing", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
       return div;
     }) 
@@ -1520,7 +1572,7 @@ In general,
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
-      const { traces, layout, config } = makeLineCompChartPlotly("vacant", vacancyCols, vacancyKey[1], "housing");
+      const { traces, layout, config } = makeLineCompChartPlotly("vacant", vacancyCols, vacancyKey[1], "housing", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
       return div;
     }) 
@@ -1542,14 +1594,14 @@ const ownershipKey = [`housing_ownership_rate`, 'housing_rental_rate'];
 
 
 ```js
-async function buildMapDcAge() {
+async function buildMapDcOwnership() {
   const container_own = document.createElement("div");
   container_own.style = "height: 270px;";
   const map = await create_dc_map(container_own, current_ccn_merged_geojson_housing, ownershipKey, ownershipGroupNames, { invalidation });
   requestAnimationFrame(() => map.resize());
   return container_own;
 }
-const map_dc_ownership = buildMapDcAge()
+const map_dc_ownership = buildMapDcOwnership()
 const title_own = makeMapDCTitle("Housing Ownership");
 ```
 
@@ -1591,7 +1643,7 @@ Of all occupied <strong>${cc_tot_hholds.toLocaleString()}</strong> housing units
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
-      const { traces, layout, config } = makeLineCompChartPlotly("owned", ownershipCols, ownershipKey[0], "housing");
+      const { traces, layout, config } = makeLineCompChartPlotly("owned", ownershipCols, ownershipKey[0], "housing", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
       return div;
     }) 
@@ -1599,7 +1651,7 @@ Of all occupied <strong>${cc_tot_hholds.toLocaleString()}</strong> housing units
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
-      const { traces, layout, config } = makeLineCompChartPlotly("rented", ownershipCols, ownershipKey[1], "housing");
+      const { traces, layout, config } = makeLineCompChartPlotly("rented", ownershipCols, ownershipKey[1], "housing", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
       return div;
     }) 
