@@ -1124,6 +1124,8 @@ const ageGroupNames = ["65 and Older", "Between 18 and 64", "18 and Younger"]
 const ageKey = [`age_prop_under18`, 'age_prop_18_65', 'age_prop_over65'];
 ```
 
+
+
 ```js dc_title.js
 function makeMapDCTitle(type) {
   const container = document.createElement("div");
@@ -1246,6 +1248,12 @@ WITH base AS (
 
         "Owner-occupied housing units - Housing Tenure"
             AS hholds_ownership_own,
+        
+        "Total housing units" - 
+          "Occupied housing units - total housing units" AS tot_vacant,
+
+        "Occupied housing units - total housing units" - 
+          "Owner-occupied housing units - Housing Tenure" AS tot_rented,
     
     FROM cc_data
 )
@@ -1263,6 +1271,7 @@ SELECT
     --adding in extra  rates
     1 - housing_occupancy_rate AS housing_vacancy_rate, 
     1 - housing_ownership_rate AS housing_rental_rate
+    
 
 
 
@@ -1281,6 +1290,12 @@ WITH base AS (
 
         "Owner-occupied housing units - Housing Tenure"
             AS hholds_ownership_own,
+        
+         "Total housing units" - 
+          "Occupied housing units - total housing units" AS tot_vacant,
+
+         "Occupied housing units - total housing units" - 
+          "Owner-occupied housing units - Housing Tenure" AS tot_rented,
     
     FROM cc_data
 )
@@ -1291,6 +1306,8 @@ SELECT
     SUM(tot_housing) AS tot_housing,
     SUM(tot_hholds) AS tot_hholds,
     SUM(hholds_ownership_own) AS hholds_ownership_own,
+    SUM(tot_vacant) AS tot_vacant,
+    SUM(tot_rented) AS tot_rented,
 
     SUM(tot_hholds)
         / NULLIF(SUM(tot_housing), 0)::DOUBLE
@@ -1319,6 +1336,12 @@ WITH base AS (
 
         "Owner-occupied housing units - Housing Tenure"
             AS hholds_ownership_own,
+        
+         "Total housing units" - 
+          "Occupied housing units - total housing units" AS tot_vacant,
+
+         "Occupied housing units - total housing units" - 
+          "Owner-occupied housing units - Housing Tenure" AS tot_rented,
     
     FROM cc_data
 )
@@ -1329,6 +1352,8 @@ SELECT
     SUM(tot_housing) AS tot_housing,
     SUM(tot_hholds) AS tot_hholds,
     SUM(hholds_ownership_own) AS hholds_ownership_own,
+    SUM(tot_vacant) AS tot_vacant,
+    SUM(tot_rented) AS tot_rented,
 
     SUM(tot_hholds)
         / NULLIF(SUM(tot_housing), 0)::DOUBLE
@@ -1344,7 +1369,6 @@ SELECT
 FROM base
 GROUP BY State;
 ```
-
 
 <!-- Filtering the data-->
 
@@ -1461,11 +1485,15 @@ const cc_state_ownership =
   cc_state_diff_own_rate > 0 ? "higher" : "lower";
 
 // for waffle
-const cc_vacant_units = cc_tot_housing - cc_tot_hholds;
+const cc_vacant_units = cc_data_housing
+  .getChild("tot_vacant")
+  .get(0);
 const cc_owned_units = cc_data_housing
   .getChild("hholds_ownership_own")
   .get(0);
-const cc_rented_units = cc_tot_hholds - cc_owned_units
+const cc_rented_units = cc_data_housing
+  .getChild("tot_rented")
+  .get(0);
 ```
 
 
