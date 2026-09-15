@@ -422,17 +422,17 @@ const current_ccn_geo = isDC
 
 <!-- Cleaning and extracting data-->
 ```js
-const cc_tot_pop = cc_data_age
+const cc_tot_pop = Number(cc_data_age
   .getChild("tot_pop")
-  .get(0);
+  .get(0));
 
-const dc_tot_pop = dc_data_age
+const dc_tot_pop = Number(dc_data_age
   .getChild("tot_pop")
-  .get(0);
+  .get(0));
 
-const state_tot_pop = state_data_age
+const state_tot_pop = Number(state_data_age
   .getChild("tot_pop")
-  .get(0);
+  .get(0));
 
 const state_name = cc_data_age
   .getChild("State")
@@ -442,17 +442,17 @@ const dc_name = cc_data_age
   .getChild("DC")
   .get(0);
 
-const cc_under18_prop = cc_data_age
+const cc_under18_prop = Number(cc_data_age
   .getChild("age_prop_under18")
-  .get(0);
+  .get(0));
 
-const dc_under18_prop = dc_data_age
+const dc_under18_prop = Number(dc_data_age
   .getChild("age_prop_under18")
-  .get(0);
+  .get(0));
 
-const state_under18_prop = state_data_age
+const state_under18_prop = Number(state_data_age
   .getChild("age_prop_under18")
-  .get(0);
+  .get(0));
 
 const cc_dc_diff =
   cc_under18_prop - dc_under18_prop;
@@ -466,17 +466,17 @@ const cc_state_diff =
 const cc_state_younger =
   cc_state_diff > 0 ? "younger" : "older";
 
-const age_under_18 = cc_data_age
+const age_under_18 = Number(cc_data_age
   .getChild("ageGroup_under18")
-  .get(0);
+  .get(0));
 
-const age_18_65 = cc_data_age
+const age_18_65 = Number(cc_data_age
   .getChild("ageGroup_18_65")
-  .get(0);
+  .get(0));
 
-const age_over65 = cc_data_age
+const age_over65 = Number(cc_data_age
   .getChild("ageGroup_over65")
-  .get(0);
+  .get(0));
 
 const current_ccn_geojson = JSON.parse(
   current_ccn_geo.getChild("geometry").get(0)
@@ -584,11 +584,14 @@ function renderFullWaffle(labels, countsByLabel, type, group_name_list) {
 
   return html`<div class="waffle-section">
     <div class="waffle-title">If your ${title_choice} was <br> 100 <strong>${title}</strong>...<br><br></div>
+    raw counts ${rawCounts}
+    icon counts ${iconCounts}
     ${renderWaffleLegend(labels, labels, group_name_list)}
     ${grid}
   </div>`;
 }
 ```
+
 
 ```js make_plotly_charts.js
 function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
@@ -1437,46 +1440,45 @@ const state_data_housing = isDC
 
 <!-- Cleaning and extracting data-->
 ```js select_housing_vars.js
-const cc_tot_housing = cc_data_housing
+const cc_tot_housing = Number(cc_data_housing
   .getChild("tot_housing")
-  .get(0);
+  .get(0));
 
-const dc_tot_housing = dc_data_housing
+const dc_tot_housing = Number(dc_data_housing
   .getChild("tot_housing")
-  .get(0);
+  .get(0));
 
-const state_tot_housing = state_data_housing
+const state_tot_housing = Number(state_data_housing
   .getChild("tot_housing")
-  .get(0);
+  .get(0));
 
-const cc_tot_hholds = cc_data_housing
+const cc_tot_hholds = Number(cc_data_housing
   .getChild("tot_hholds")
-  .get(0);
+  .get(0));
 
-
-const cc_occupancy_rate = cc_data_housing
+const cc_occupancy_rate = Number(cc_data_housing
   .getChild("housing_occupancy_rate")
-  .get(0);
+  .get(0));
 
-const dc_occupancy_rate = dc_data_housing
+const dc_occupancy_rate = Number(dc_data_housing
   .getChild("housing_occupancy_rate")
-  .get(0);
+  .get(0));
 
-const state_occupancy_rate = state_data_housing
+const state_occupancy_rate = Number(state_data_housing
   .getChild("housing_occupancy_rate")
-  .get(0);
+  .get(0));
 
-const cc_own_rate = cc_data_housing
+const cc_own_rate = Number(cc_data_housing
   .getChild("housing_ownership_rate")
-  .get(0);
+  .get(0));
 
-const dc_own_rate = dc_data_housing
+const dc_own_rate = Number(dc_data_housing
   .getChild("housing_ownership_rate")
-  .get(0);
+  .get(0));
 
-const state_own_rate = state_data_housing
+const state_own_rate = Number(state_data_housing
   .getChild("housing_ownership_rate")
-  .get(0);
+  .get(0));
 
 const cc_dc_diff_own_rate =
   cc_own_rate - dc_own_rate;
@@ -1491,16 +1493,17 @@ const cc_state_ownership =
   cc_state_diff_own_rate > 0 ? "higher" : "lower";
 
 // for waffle
-const cc_vacant_units = cc_data_housing
+const cc_vacant_units = Number(cc_data_housing
   .getChild("tot_vacant")
-  .get(0);
-const cc_owned_units = cc_data_housing
+  .get(0));
+const cc_owned_units = Number(cc_data_housing
   .getChild("hholds_ownership_own")
-  .get(0);
-const cc_rented_units = cc_data_housing
+  .get(0));
+const cc_rented_units = Number(cc_data_housing
   .getChild("tot_rented")
-  .get(0);
+  .get(0));
 ```
+
 
 
 ```sql id=current_ccn_merged_housing 
@@ -1549,6 +1552,7 @@ const countsByLabel_vacancy = {
 const vacancyGroupNames = ["Occupied Units", "Vacant Units"]
 const vacancyKey = [`housing_occupancy_rate`, 'housing_vacancy_rate'];
 ```
+
 
 ```js
 async function buildMapDcHousing() {
@@ -1691,9 +1695,12 @@ Of all occupied <strong>${format_number(cc_tot_hholds)}</strong> housing units, 
   }</div>
 </div>
 
-
+<center>
 Given the current state of the housing market, homeownership rates say a lot about how exposed a community is to rent increases, displacement, and housing-cost burden. Policies like rent stabilization or first-time buyer programs will therefore have varying levels of impact depending on the local environment. Knowing more about housing in your community can help you and your representative understand which policies will actually help you.
 [link blocks to causes — e.g., renters → tenant protections, rent stabilization; owners → property tax relief, homeowner assistance programs]
+</center>
+
+
 
 ## Languages
 
