@@ -24,7 +24,7 @@ head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/au
 
 # Main Page
 
-<span style="color:blue">This page will be dedicated to demographics and the like, there is another page (People and Place) that has the exact same information but with diffent chart options. This one has the three separate graphs as different blocks but with dynamically adjusting domains</span>.
+Please explore your congressional comunity (or district!). Use the search bar to find your communtiy and explore what makes you unique. 
 
 <br>
 <input id="autoComplete">
