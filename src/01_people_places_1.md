@@ -1533,7 +1533,6 @@ const current_ccn_merged_geojson_housing = {
 ```
 
 
-<span style="color:blue">This housing data pull /analysis is in progress!</span>.
 
 ### Housing Units
 
@@ -1695,3 +1694,7 @@ Of all occupied <strong>${format_number(cc_tot_hholds)}</strong> housing units, 
 
 Given the current state of the housing market, homeownership rates say a lot about how exposed a community is to rent increases, displacement, and housing-cost burden. Policies like rent stabilization or first-time buyer programs will therefore have varying levels of impact depending on the local environment. Knowing more about housing in your community can help you and your representative understand which policies will actually help you.
 [link blocks to causes — e.g., renters → tenant protections, rent stabilization; owners → property tax relief, homeowner assistance programs]
+
+## Languages
+
+<span style="color:blue">This language data pull /analysis is in progress!</span>.
