@@ -584,8 +584,6 @@ function renderFullWaffle(labels, countsByLabel, type, group_name_list) {
 
   return html`<div class="waffle-section">
     <div class="waffle-title">If your ${title_choice} was <br> 100 <strong>${title}</strong>...<br><br></div>
-    raw counts ${rawCounts}
-    icon counts ${iconCounts}
     ${renderWaffleLegend(labels, labels, group_name_list)}
     ${grid}
   </div>`;
