@@ -91,7 +91,12 @@ const block_color = "#f2e9e3";
 function highlight(text, index) {
   const highlighted_text = html`<span style="color:${okabeItoColors[index]}">${text}</span>`;
   return highlighted_text;
-}
+};
+
+function format_number(number) {
+  const formatted = Math.abs(number).toLocaleString("en-us", { maximumFractionDigits: 0 });
+  return formatted
+};
 
 const maplibre_style = "https://tiles.versatiles.org/assets/styles/colorful/style.json";
 const page_background_color = "#f9f0ea";
@@ -1167,7 +1172,7 @@ const map_dc_age = buildMapDcAge(title_age)
 
 
 <center>
-Your ${title_choice.toLowerCase()}, <strong>${ccn}</strong>, is a community of <strong>${cc_tot_pop.toLocaleString()}</strong> individuals. ${isDC ? "" : `Compared to your congressional district of <strong>${Math.abs(dc_tot_pop).toLocaleString()}</strong> people, your community skews <strong>${cc_dc_younger}</strong> by <strong>${(Math.abs(cc_dc_diff) * 100).toFixed(1)} percentage points</strong>`}. It is similarly <strong>${cc_state_younger}</strong> than <strong>${states.fullName(state_name)}</strong>, by <strong>${(Math.abs(cc_state_diff) * 100).toFixed(1)} percentage points</strong>.
+Your ${title_choice.toLowerCase()}, <strong>${ccn}</strong>, is a community of <strong>${format_number(cc_tot_pop)}</strong> individuals. ${isDC ? "" : `Compared to your congressional district of <strong>${Math.abs(dc_tot_pop).toLocaleString("en-us")}</strong> people, your community skews <strong>${cc_dc_younger}</strong> by <strong>${(Math.abs(cc_dc_diff) * 100).toFixed(1)} percentage points</strong>`}. It is similarly <strong>${cc_state_younger}</strong> than <strong>${states.fullName(state_name)}</strong>, by <strong>${(Math.abs(cc_state_diff) * 100).toFixed(1)} percentage points</strong>.
 </center>
 <!-- Cards with big numbers -->
 
@@ -1175,15 +1180,15 @@ Your ${title_choice.toLowerCase()}, <strong>${ccn}</strong>, is a community of <
 <div class="grid grid-cols-3">
   <div class="card">
     <h3>${highlight("Under 18 Population", 2)}</h3>
-    <span class="big">${highlight(age_under_18.toLocaleString(), 2)}</span>
+    <span class="big">${highlight(format_number(age_under_18), 2)}</span>
   </div>
   <div class="card">
     <h3>${highlight("18 to 64 Population", 1)}</h3>
-    <span class="big">${highlight(age_18_65.toLocaleString(), 1)}</span>
+    <span class="big">${highlight(format_number(age_18_65), 1)}</span>
   </div>
   <div class="card">
     <h3>${highlight("65 and Over Population", 0)}</h3>
-    <span class="big">${highlight(age_over65.toLocaleString(), 0)}</span>
+    <span class="big">${highlight(format_number(age_over65), 0)}</span>
   </div>
 </div>
 
@@ -1576,11 +1581,11 @@ In general,
 <div class="grid grid-cols-2">
   <div class="card">
     <h3>${highlight("Occupied Units", 0)}</h3>
-    <span class="big">${highlight(cc_tot_hholds.toLocaleString(), 0)}</span>
+    <span class="big">${highlight(format_number(cc_tot_hholds), 0)}</span>
   </div>
   <div class="card">
     <h3>${highlight("Vacant Units", 1)}</h3>
-    <span class="big">${highlight(cc_vacant_units.toLocaleString(), 1)}</span>
+    <span class="big">${highlight(format_number(cc_vacant_units), 1)}</span>
   </div>
 </div>
 
@@ -1648,18 +1653,18 @@ const title_own = makeMapDCTitle("Housing Ownership");
 </div>
 
 <center>
-Of all occupied <strong>${cc_tot_hholds.toLocaleString()}</strong> housing units, <strong>${Math.abs(cc_own_rate * 100).toFixed(1).toLocaleString()}%</strong> are owned. That means that, compared to your congressional district and state, your congressional district's homeownership rate is <strong>${Math.abs(cc_dc_diff_own_rate*100).toFixed(1).toLocaleString()}</strong> percentage points <strong>${cc_dc_ownership}</strong> and your state's homeownerhsip rate is <strong>${Math.abs(cc_state_diff_own_rate*100).toFixed(1).toLocaleString()}</strong> percentage points <strong>${cc_state_ownership}</strong>. 
+Of all occupied <strong>${format_number(cc_tot_hholds)}</strong> housing units, <strong>${Math.abs(cc_own_rate * 100).toFixed(1).toLocaleString()}%</strong> are owned. That means that, compared to your congressional district and state, your congressional district's homeownership rate is <strong>${Math.abs(cc_dc_diff_own_rate*100).toFixed(1).toLocaleString()}</strong> percentage points <strong>${cc_dc_ownership}</strong> and your state's homeownerhsip rate is <strong>${Math.abs(cc_state_diff_own_rate*100).toFixed(1).toLocaleString()}</strong> percentage points <strong>${cc_state_ownership}</strong>. 
 </center>
 <!-- cards with big numbers -->
 
 <div class="grid grid-cols-2">
   <div class="card">
     <h3>${highlight("Homeowner Households", 0)}</h3>
-    <span class="big">${highlight(cc_owned_units.toLocaleString(), 0)}</span>
+    <span class="big">${highlight(format_number(cc_owned_units), 0)}</span>
   </div>
   <div class="card">
     <h3>${highlight("Renter Househoolds", 1)}</h3>
-    <span class="big">${highlight(cc_rented_units.toLocaleString(), 1)}</span>
+    <span class="big">${highlight(format_number(cc_rented_units), 1)}</span>
   </div>
 </div>
 
