@@ -4,6 +4,7 @@ sql:
   cc_data: data/cc_data.parquet
   ccn20_geo: data/ccn20_geo.parquet
   cd119_geos: ./data/cd119_geos.parquet
+  cc_data_updated: ./data/cc_data_updated.parquet
 head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10/dist/css/autoComplete.min.css">'
 ---
 
@@ -25,6 +26,11 @@ head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/au
 # Main Page
 
 Please explore your congressional comunity (or district!). Use the search bar to find your communtiy and explore what makes you unique. 
+
+```sql
+SELECT * FROM cc_data_updated LIMIT 3
+
+```
 
 <br>
 <input id="autoComplete">
