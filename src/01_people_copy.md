@@ -332,7 +332,6 @@ const isDC = ccn.length < 7;
 const debugCheck = `${ccn} | len=${ccn.length} | isDC=${isDC}`;
 ```
 
-What is ${ccn} and its type is ${typeof ccn}
 
 <!-- Blurring the page -->
 
