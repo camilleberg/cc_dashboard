@@ -107,6 +107,10 @@ function format_number(number) {
   return formatted
 };
 
+function extract_var(table_name, var_name) {
+  return Number(table_name.getChild(var_name).get(0));
+}
+
 const maplibre_style = "https://tiles.versatiles.org/assets/styles/colorful/style.json";
 const page_background_color = "#f9f0ea";
 const page_background_color_card = "#f2e9e3";
@@ -118,24 +122,15 @@ const page_background_color_card = "#f2e9e3";
 
 
 ```sql id=create_tables
-
+-- for congressional community level 
 CREATE OR REPLACE TABLE cc_data_age_table AS
-
-WITH base AS (
-    SELECT
-        ccn20,
-        cd119,
-        tot_pop, 
-        ageGroup_under18, 
-        ageGroup_18_65, 
-        ageGroup_over65,
-        State,
-
-    FROM cc_data_updated
-)
-
-SELECT
-    *,
+  SELECT
+    ccn20,
+    cd119,
+    tot_pop, 
+    ageGroup_under18, 
+    ageGroup_18_65, 
+    ageGroup_over65,
     ageGroup_under18
         / NULLIF(tot_pop, 0)::DOUBLE
         AS age_prop_under18,
@@ -148,23 +143,10 @@ SELECT
         / NULLIF(tot_pop, 0)::DOUBLE
         AS age_prop_over65
 
-FROM base;
+FROM cc_data_updated;
 
-
+-- for congressional district level 
 CREATE OR REPLACE TABLE dc_data_age_table AS
-
-WITH base AS (
-    SELECT
-        cd119,
-        tot_pop, 
-        ageGroup_under18, 
-        ageGroup_18_65, 
-        ageGroup_over65,
-        State,
-
-    FROM cc_data_updated
-)
-
 SELECT
     cd119,
 
@@ -185,24 +167,11 @@ SELECT
         / NULLIF(SUM(tot_pop), 0)::DOUBLE
         AS age_prop_over65
 
-FROM base
+FROM cc_data_updated
 GROUP BY cd119;
 
-
+-- for state
 CREATE OR REPLACE TABLE state_data_age_table AS
-
-WITH base AS (
-    SELECT
-        State,
-        tot_pop, 
-        ageGroup_under18, 
-        ageGroup_18_65, 
-        ageGroup_over65,
-        State,
-
-    FROM cc_data_updated
-)
-
 SELECT
     State,
 
@@ -223,7 +192,7 @@ SELECT
         / NULLIF(SUM(tot_pop), 0)::DOUBLE
         AS age_prop_over65
 
-FROM base
+FROM cc_data_updated
 GROUP BY State;
 ```
 
@@ -411,30 +380,21 @@ const current_ccn_geo = isDC
 
 <!-- Cleaning and extracting data-->
 ```js
-const cc_tot_pop = Number(cc_data_age
-  .getChild("tot_pop")
-  .get(0));
-
-const dc_tot_pop = Number(dc_data_age
-  .getChild("tot_pop")
-  .get(0));
-
-const state_tot_pop = Number(state_data_age
-  .getChild("tot_pop")
-  .get(0));
-
+// names 
 const state_name = cc_data_age
   .getChild("State")
   .get(0);
-
-const dc_name = cc_data_age
+const dc_name = dc_data_age
   .getChild("cd119")
   .get(0);
 
-const cc_under18_prop = Number(cc_data_age
-  .getChild("age_prop_under18")
-  .get(0));
+// population totals
+const cc_tot_pop = extract_var(cc_data_age, "tot_pop");
+const dc_tot_pop =extract_var(dc_data_age, "tot_pop");
+const state_tot_pop = extract_var(state_data_age, "tot_pop");
 
+// groups
+const cc_under18_prop = extract_var(cc_data_age, "age_prop_under18");
 const dc_under18_prop = Number(dc_data_age
   .getChild("age_prop_under18")
   .get(0));
@@ -471,6 +431,8 @@ const current_ccn_geojson = JSON.parse(
   current_ccn_geo.getChild("geometry").get(0)
 );
 ```
+
+cgecing ${extract_var(cc_data_age, "tot_pop")} is ${cc_tot_pop}
 
 ```js make_div_bucket.js
 const myDiv = display(document.createElement("div"));
@@ -1230,23 +1192,16 @@ Communities with younger (older) individuals often have different priorities, so
 ```sql id=create_tables_housing 
 
 CREATE OR REPLACE TABLE cc_data_housing_table AS
-
-WITH base AS (
-    SELECT
-        ccn20,
-        cd119,
-        State,
-        tot_housing,
-        tot_hholds,
-        tot_owned_hholds,
-        tot_vacant_units,
-        tot_rented_hholds,
-    
-    FROM cc_data_updated
-)
-
 SELECT
-    *,
+    ccn20,
+    cd119,
+    State,
+    tot_housing,
+    tot_hholds,
+    tot_owned_hholds,
+    tot_vacant_units,
+    tot_rented_hholds,
+  
     tot_hholds 
         / NULLIF(tot_housing, 0)::DOUBLE
         AS housing_occupancy_rate,
@@ -1260,24 +1215,10 @@ SELECT
     1 - housing_ownership_rate AS housing_rental_rate
     
 
-FROM base;
+ FROM cc_data_updated;
 
 
 CREATE OR REPLACE TABLE dc_data_housing_table AS
-
-WITH base AS (
-    SELECT
-        cd119,
-        State,
-        tot_housing,
-        tot_hholds,
-        tot_owned_hholds,
-        tot_vacant_units,
-        tot_rented_hholds,
-    
-    FROM cc_data_updated
-)
-
 SELECT
     cd119,
 
@@ -1298,24 +1239,11 @@ SELECT
     1 - housing_occupancy_rate AS housing_vacancy_rate, 
     1 - housing_ownership_rate AS housing_rental_rate
 
-FROM base
+FROM cc_data_updated
 GROUP BY cd119;
 
 
 CREATE OR REPLACE TABLE state_data_housing_table AS
-
-WITH base AS (
-    SELECT
-        State,
-        tot_housing,
-        tot_hholds,
-        tot_owned_hholds,
-        tot_vacant_units,
-        tot_rented_hholds,
-    
-    FROM cc_data_updated
-)
-
 SELECT
     State,
 
@@ -1336,7 +1264,7 @@ SELECT
     1 - housing_occupancy_rate AS housing_vacancy_rate, 
     1 - housing_ownership_rate AS housing_rental_rate
 
-FROM base
+FROM cc_data_updated
 GROUP BY State;
 ```
 
