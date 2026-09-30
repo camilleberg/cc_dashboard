@@ -35,33 +35,6 @@ SELECT * FROM cc_data_updated LIMIT 3
 
 
 
-
-
-```sql 
-    SELECT
-        State,
-
-        "Total Population" AS tot_pop,
-
-        "Total Population"
-            - "18 years and over - Tot Pop"
-            AS ageGroup_under18,
-
-        "18 years and over - Tot Pop"
-            - "65 years and over  - Tot Pop"
-            AS ageGroup_18_65,
-
-        "65 years and over  - Tot Pop"
-            AS ageGroup_over65
-
-    FROM cc_data
-LIMIT 8
-```
-
-```sql 
-SELECT * FROM cc_data LIMIT 3
-```
-
 <br>
 <input id="autoComplete">
 <div id="page-content">
@@ -1264,20 +1237,13 @@ WITH base AS (
         ccn20,
         cd119,
         State,
-        "Total housing units" AS tot_housing,
-
-        "Occupied housing units - total housing units" AS tot_hholds,
-
-        "Owner-occupied housing units - Housing Tenure"
-            AS hholds_ownership_own,
-        
-        "Total housing units" - 
-          "Occupied housing units - total housing units" AS tot_vacant,
-
-        "Occupied housing units - total housing units" - 
-          "Owner-occupied housing units - Housing Tenure" AS tot_rented,
+        tot_housing,
+        tot_hholds,
+        tot_owned_hholds,
+        tot_vacant_units,
+        tot_rented_hholds,
     
-    FROM cc_data
+    FROM cc_data_updated
 )
 
 SELECT
@@ -1286,7 +1252,7 @@ SELECT
         / NULLIF(tot_housing, 0)::DOUBLE
         AS housing_occupancy_rate,
 
-    hholds_ownership_own
+    tot_owned_hholds
         / NULLIF(tot_hholds, 0)::DOUBLE
         AS housing_ownership_rate,
 
@@ -1295,8 +1261,6 @@ SELECT
     1 - housing_ownership_rate AS housing_rental_rate
     
 
-
-
 FROM base;
 
 
@@ -1304,38 +1268,31 @@ CREATE OR REPLACE TABLE dc_data_housing_table AS
 
 WITH base AS (
     SELECT
-        DC,
-
-        "Total housing units" AS tot_housing,
-
-        "Occupied housing units - total housing units" AS tot_hholds, 
-
-        "Owner-occupied housing units - Housing Tenure"
-            AS hholds_ownership_own,
-        
-         "Total housing units" - 
-          "Occupied housing units - total housing units" AS tot_vacant,
-
-         "Occupied housing units - total housing units" - 
-          "Owner-occupied housing units - Housing Tenure" AS tot_rented,
+        cd119,
+        State,
+        tot_housing,
+        tot_hholds,
+        tot_owned_hholds,
+        tot_vacant_units,
+        tot_rented_hholds,
     
-    FROM cc_data
+    FROM cc_data_updated
 )
 
 SELECT
-    DC,
+    cd119,
 
     SUM(tot_housing) AS tot_housing,
     SUM(tot_hholds) AS tot_hholds,
-    SUM(hholds_ownership_own) AS hholds_ownership_own,
-    SUM(tot_vacant) AS tot_vacant,
-    SUM(tot_rented) AS tot_rented,
+    SUM(tot_owned_hholds) AS tot_owned_hholds,
+    SUM(tot_vacant_units) AS tot_vacant_units,
+    SUM(tot_rented_hholds) AS tot_rented_hholds,
 
     SUM(tot_hholds)
         / NULLIF(SUM(tot_housing), 0)::DOUBLE
         AS housing_occupancy_rate,
 
-    SUM(hholds_ownership_own)
+    SUM(tot_owned_hholds)
         / NULLIF(SUM(tot_hholds), 0)::DOUBLE
         AS housing_ownership_rate,
 
@@ -1343,7 +1300,7 @@ SELECT
     1 - housing_ownership_rate AS housing_rental_rate
 
 FROM base
-GROUP BY DC;
+GROUP BY cd119;
 
 
 CREATE OR REPLACE TABLE state_data_housing_table AS
@@ -1351,21 +1308,13 @@ CREATE OR REPLACE TABLE state_data_housing_table AS
 WITH base AS (
     SELECT
         State,
-
-        "Total housing units" AS tot_housing,
-
-        "Occupied housing units - total housing units" AS tot_hholds, 
-
-        "Owner-occupied housing units - Housing Tenure"
-            AS hholds_ownership_own,
-        
-         "Total housing units" - 
-          "Occupied housing units - total housing units" AS tot_vacant,
-
-         "Occupied housing units - total housing units" - 
-          "Owner-occupied housing units - Housing Tenure" AS tot_rented,
+        tot_housing,
+        tot_hholds,
+        tot_owned_hholds,
+        tot_vacant_units,
+        tot_rented_hholds,
     
-    FROM cc_data
+    FROM cc_data_updated
 )
 
 SELECT
@@ -1373,15 +1322,15 @@ SELECT
 
     SUM(tot_housing) AS tot_housing,
     SUM(tot_hholds) AS tot_hholds,
-    SUM(hholds_ownership_own) AS hholds_ownership_own,
-    SUM(tot_vacant) AS tot_vacant,
-    SUM(tot_rented) AS tot_rented,
+    SUM(tot_owned_hholds) AS tot_owned_hholds,
+    SUM(tot_vacant_units) AS tot_vacant_units,
+    SUM(tot_rented_hholds) AS tot_rented_hholds,
 
     SUM(tot_hholds)
         / NULLIF(SUM(tot_housing), 0)::DOUBLE
         AS housing_occupancy_rate,
 
-    SUM(hholds_ownership_own)
+    SUM(tot_owned_hholds)
         / NULLIF(SUM(tot_hholds), 0)::DOUBLE
         AS housing_ownership_rate,
 
@@ -1391,6 +1340,7 @@ SELECT
 FROM base
 GROUP BY State;
 ```
+
 
 <!-- Filtering the data-->
 
@@ -1403,13 +1353,13 @@ const cc_data_housing = isDC
       c.State
     FROM dc_data_housing_table AS d
     INNER JOIN cc_data_housing_table AS c
-      ON c.DC = d.DC
-    WHERE d.DC = ${ccn}
+      ON c.cd119 = d.cd119
+    WHERE d.cd119 = ${ccn}
     LIMIT 1`
   : await sql`
     SELECT *, 
     FROM cc_data_housing_table
-    WHERE CCN20 = ${ccn}`;
+    WHERE ccn20 = ${ccn}`;
 ```
 
 ```js dc_data_housing_calc.js
@@ -1417,14 +1367,14 @@ const dc_data_housing = isDC
   ? await sql`
     SELECT *, 
     FROM dc_data_housing_table
-    WHERE DC = ${ccn}` 
+    WHERE cd119 = ${ccn}` 
   : await sql`
     SELECT *, 
     FROM dc_data_housing_table
-    WHERE DC = (
-        SELECT DC
+    WHERE cd119 = (
+        SELECT cd119
         FROM cc_data_housing_table
-        WHERE CCN20 = ${ccn}
+        WHERE ccn20 = ${ccn}
     )`;
 ```
 
@@ -1436,7 +1386,7 @@ const state_data_housing = isDC
     WHERE State = (
         SELECT State
         FROM cc_data_housing_table
-        WHERE DC = ${ccn} 
+        WHERE cd119 = ${ccn} 
         LIMIT 1
     )`
   : await sql`
@@ -1445,7 +1395,7 @@ const state_data_housing = isDC
     WHERE State = (
         SELECT State
         FROM cc_data_housing_table
-        WHERE CCN20 = ${ccn}
+        WHERE ccn20 = ${ccn}
     )`;
 ```
 
@@ -1505,29 +1455,28 @@ const cc_state_ownership =
 
 // for waffle
 const cc_vacant_units = Number(cc_data_housing
-  .getChild("tot_vacant")
+  .getChild("tot_vacant_units")
   .get(0));
 const cc_owned_units = Number(cc_data_housing
-  .getChild("hholds_ownership_own")
+  .getChild("tot_owned_hholds")
   .get(0));
 const cc_rented_units = Number(cc_data_housing
-  .getChild("tot_rented")
+  .getChild("tot_rented_hholds")
   .get(0));
 ```
-
 
 
 ```sql id=current_ccn_merged_housing 
 SELECT
   g.CCN20,
-  g.DC,
+  g.cd119,
   g.State,
-  o.* EXCLUDE (DC, STATE, CCN20),
+  o.* EXCLUDE (cd119, STATE, ccn20),
   g.geometry
 FROM ccn20_geo AS g
 JOIN cc_data_housing_table AS o
-  ON g.CCN20 = o.CCN20
-WHERE g.DC = ${dc_name};
+  ON g.ccn20 = o.ccn20
+WHERE g.cd119 = ${dc_name};
 ```
 
 ```js merge_age_data.js 

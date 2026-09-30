@@ -30,13 +30,13 @@ def clean_groups(df):
     
     # housing
     df.rename(columns={'H001': 'tot_housing', 
-                       'H002': 'occupied_housing_units', 
-                       'H003': 'vacant_housing_units'}, inplace=True)
+                       'H002': 'tot_occupied_units', 
+                       'H003': 'tot_vacant_units'}, inplace=True)
 
     # households
     df.rename(columns={'S001': 'tot_hholds',
-                       'H046': 'hholds_ownership_own', 
-                       'H047': 'tot_rented'}, inplace=True)
+                       'H046': 'tot_owned_hholds', 
+                       'H047': 'tot_rented_hholds'}, inplace=True)
     
     return df
 
