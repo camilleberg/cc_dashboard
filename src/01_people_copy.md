@@ -5,6 +5,7 @@ sql:
   ccn20_geo: data/ccn20_geo.parquet
   cd119_geos: ./data/cd119_geos.parquet
   cc_data_updated: ./data/cc_data_updated.parquet
+  ccn20_to_cd119: ./data/ccn20_to_cd119.parquet
 head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10/dist/css/autoComplete.min.css">'
 ---
 
@@ -27,14 +28,39 @@ head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/au
 
 Please explore your congressional comunity (or district!). Use the search bar to find your communtiy and explore what makes you unique. 
 
-```sql id=create_age_table display
-SELECT *, 
 
-FROM cc_data_updated
+```sql
+SELECT * FROM cc_data_updated LIMIT 3
+```
 
+
+
+
+
+```sql 
+    SELECT
+        State,
+
+        "Total Population" AS tot_pop,
+
+        "Total Population"
+            - "18 years and over - Tot Pop"
+            AS ageGroup_under18,
+
+        "18 years and over - Tot Pop"
+            - "65 years and over  - Tot Pop"
+            AS ageGroup_18_65,
+
+        "65 years and over  - Tot Pop"
+            AS ageGroup_over65
+
+    FROM cc_data
 LIMIT 8
 ```
 
+```sql 
+SELECT * FROM cc_data LIMIT 3
+```
 
 <br>
 <input id="autoComplete">
@@ -124,7 +150,8 @@ CREATE OR REPLACE TABLE cc_data_age_table AS
 
 WITH base AS (
     SELECT
-        CCN20,
+        ccn20,
+        cd119,
         tot_pop, 
         ageGroup_under18, 
         ageGroup_18_65, 
@@ -155,26 +182,18 @@ CREATE OR REPLACE TABLE dc_data_age_table AS
 
 WITH base AS (
     SELECT
-        DC,
+        cd119,
+        tot_pop, 
+        ageGroup_under18, 
+        ageGroup_18_65, 
+        ageGroup_over65,
+        State,
 
-        "Total Population" AS tot_pop,
-
-        "Total Population"
-            - "18 years and over - Tot Pop"
-            AS ageGroup_under18,
-
-        "18 years and over - Tot Pop"
-            - "65 years and over  - Tot Pop"
-            AS ageGroup_18_65,
-
-        "65 years and over  - Tot Pop"
-            AS ageGroup_over65
-
-    FROM cc_data
+    FROM cc_data_updated
 )
 
 SELECT
-    DC,
+    cd119,
 
     SUM(tot_pop) AS tot_pop,
     SUM(ageGroup_under18) AS ageGroup_under18,
@@ -194,7 +213,7 @@ SELECT
         AS age_prop_over65
 
 FROM base
-GROUP BY DC;
+GROUP BY cd119;
 
 
 CREATE OR REPLACE TABLE state_data_age_table AS
@@ -202,21 +221,13 @@ CREATE OR REPLACE TABLE state_data_age_table AS
 WITH base AS (
     SELECT
         State,
+        tot_pop, 
+        ageGroup_under18, 
+        ageGroup_18_65, 
+        ageGroup_over65,
+        State,
 
-        "Total Population" AS tot_pop,
-
-        "Total Population"
-            - "18 years and over - Tot Pop"
-            AS ageGroup_under18,
-
-        "18 years and over - Tot Pop"
-            - "65 years and over  - Tot Pop"
-            AS ageGroup_18_65,
-
-        "65 years and over  - Tot Pop"
-            AS ageGroup_over65
-
-    FROM cc_data
+    FROM cc_data_updated
 )
 
 SELECT
@@ -245,20 +256,21 @@ GROUP BY State;
 
 <!-- selecting the community-->
 
+
 ```js
 const ccnList = await sql`
-    SELECT DISTINCT CCN20
-    FROM cc_data
-    ORDER BY CCN20
+    SELECT DISTINCT ccn20
+    FROM cc_data_updated
+    ORDER BY ccn20
 `;
 
 const ccnArray = [...ccnList];
-const all_ccn = ccnArray.map(d => d.CCN20);
+const all_ccn = ccnArray.map(d => d.ccn20);
 
 const dc_list = await sql`
-    SELECT DISTINCT DC
-    FROM cc_data
-    ORDER BY DC
+    SELECT DISTINCT cd119
+    FROM cc_data_updated
+    ORDER BY cd119
 `;
 
 const dc_array = [...dc_list];
@@ -271,6 +283,7 @@ const all_options = [
   ...all_dc.map(d => ({ Community: "", District: d }))
 ];
 ```
+
 
 
 ```js import_autocomplete.js
@@ -346,6 +359,7 @@ const isDC = ccn.length < 7;
 const debugCheck = `${ccn} | len=${ccn.length} | isDC=${isDC}`;
 ```
 
+What is ${ccn} and its type is ${typeof ccn}
 
 <!-- Blurring the page -->
 
@@ -373,16 +387,16 @@ const cc_data_age = isDC
     c.State
   FROM dc_data_age_table AS d
   INNER JOIN cc_data_age_table AS c
-    ON c.DC = d.DC
-  WHERE d.DC = ${ccn}
+    ON c.cd119 = d.cd119
+  WHERE d.cd119 = ${ccn}
   LIMIT 1`
-  : await sql`SELECT * FROM cc_data_age_table WHERE CCN20 = ${ccn}`;
+  : await sql`SELECT * FROM cc_data_age_table WHERE ccn20 = ${ccn}`;
 ```
 
 ```js dc_age_calc.js
 const dc_data_age = isDC
-  ? await sql`SELECT * FROM dc_data_age_table WHERE DC = ${ccn}`
-  : await sql`SELECT * FROM dc_data_age_table WHERE DC = (SELECT DC FROM cc_data_age_table WHERE CCN20 = ${ccn})`;
+  ? await sql`SELECT * FROM dc_data_age_table WHERE cd119 = ${ccn}`
+  : await sql`SELECT * FROM dc_data_age_table WHERE cd119 = (SELECT cd119 FROM cc_data_age_table WHERE ccn20 = ${ccn})`;
 ```
 
 ```js state_age_calc.js
@@ -392,7 +406,7 @@ const state_data_age = isDC
       WHERE State = (
           SELECT State
           FROM cc_data_age_table
-          WHERE DC = ${ccn}
+          WHERE cd119 = ${ccn}
           LIMIT 1
       )`
   : await sql`SELECT *
@@ -400,7 +414,7 @@ const state_data_age = isDC
       WHERE State = (
           SELECT State
           FROM cc_data_age_table
-          WHERE CCN20 = ${ccn}
+          WHERE ccn20 = ${ccn}
       )`;
 ```
 
@@ -413,14 +427,14 @@ const current_ccn_geo = isDC
   State,
   ST_AsGeoJSON(geometry) AS geometry
   FROM cd119_geos
-  WHERE DC = ${ccn}`
+  WHERE cd119 = ${ccn}`
   : await sql`SELECT
-  CCN20,
-  DC,
+  ccn20,
+  cd119,
   State,
   geometry
   FROM ccn20_geo
-  WHERE CCN20 = ${ccn}`;
+  WHERE ccn20 = ${ccn}`;
 ```
 
 <!-- Cleaning and extracting data-->
@@ -442,7 +456,7 @@ const state_name = cc_data_age
   .get(0);
 
 const dc_name = cc_data_age
-  .getChild("DC")
+  .getChild("cd119")
   .get(0);
 
 const cc_under18_prop = Number(cc_data_age
@@ -485,8 +499,6 @@ const current_ccn_geojson = JSON.parse(
   current_ccn_geo.getChild("geometry").get(0)
 );
 ```
-
-
 
 ```js make_div_bucket.js
 const myDiv = display(document.createElement("div"));
@@ -858,22 +870,22 @@ map.on('load', () => {
 <!-- To make CD chart -->
 
 ```sql id=current_cd_geo 
-SELECT DC, 
+SELECT cd119, 
   STATE, 
   ST_AsGeoJSON(geometry) AS geometry
 FROM cd119_geos 
-WHERE DC = ${dc_name}
+WHERE cd119 = ${dc_name}
 ```
 
 ```sql id=current_ccn_within_cd_geo
 -- transforming as geo 
   SELECT
-    CCN20,
-    DC,
+    ccn20,
+    cd119,
     State,
     geometry
     FROM ccn20_geo
-    WHERE DC = ${dc_name}
+    WHERE cd119 = ${dc_name}
 ```
 
 
@@ -882,7 +894,7 @@ const current_ccn_within_cd_geojson = {
   type: "FeatureCollection",
   features: current_ccn_within_cd_geo.toArray().map(row => ({
     type: "Feature",
-    properties: { CCN20: row.CCN20, DC: row.DC, State: row.State },
+    properties: { ccn20: row.CCN20, cd119: row.DC, State: row.State },
     geometry: JSON.parse(row.geometry)
   }))
 };
@@ -894,15 +906,15 @@ const current_ccn_within_cd_geojson = {
 
 ```sql id=current_ccn_merged_age 
 SELECT
-  g.CCN20,
-  g.DC,
+  g.ccn20,
+  g.cd119,
   g.State,
-  o.* EXCLUDE (DC, STATE, CCN20),                          -- all columns from the other table (rename below if there are collisions)
+  o.* EXCLUDE (cd119, STATE, ccn20),                          -- all columns from the other table (rename below if there are collisions)
   g.geometry
 FROM ccn20_geo AS g
 JOIN cc_data_age_table AS o
-  ON g.CCN20 = o.CCN20          
-WHERE g.DC = ${dc_name};
+  ON g.ccn20 = o.ccn20          
+WHERE g.cd119 = ${dc_name};
 ```
 
 
@@ -1249,8 +1261,8 @@ CREATE OR REPLACE TABLE cc_data_housing_table AS
 
 WITH base AS (
     SELECT
-        CCN20,
-        DC,
+        ccn20,
+        cd119,
         State,
         "Total housing units" AS tot_housing,
 
@@ -1436,8 +1448,6 @@ const state_data_housing = isDC
         WHERE CCN20 = ${ccn}
     )`;
 ```
-
-
 
 <!-- Cleaning and extracting data-->
 ```js select_housing_vars.js

@@ -4,6 +4,7 @@
 duckdb :memory: <<EOF
 COPY (
     SELECT *
+    RENAME (DC AS cd119)
     FROM './src/data/input/ccn20_geos/*.parquet') 
     to '/dev/stdout' (format parquet, codec zstd)
 EOF

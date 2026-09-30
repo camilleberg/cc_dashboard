@@ -274,7 +274,7 @@ const all_options = [
   ...all_dc.map(d => ({ Community: "", District: d }))
 ];
 ```
-
+show ${typeof ccn}
 
 ```js import_autocomplete.js
 //https://tarekraafat.github.io/autoComplete.js/#/installation

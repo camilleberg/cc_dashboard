@@ -12,28 +12,32 @@ import pandas as pd
 def load_dbf(path):
     return pd.DataFrame(iter(DBF(str(path.resolve()))))
 
-def clean(df):
-    df.rename(columns={'GEOID': 'ccn20', 'STAB': 'state'}, inplace=True)
+def load_mapping(path):
+    with open(path.resolve(), "r") as file:
+        return json.load(file)
+
+def clean(df, mapping):
+    df.rename(columns={'GEOID': 'ccn20', 'STAB': 'State'}, inplace=True)
+    df['cd119'] = df['ccn20'].map(mapping)
     return df
 
-def clean_age(df):
+def clean_groups(df):
+    # age 
     df.rename(columns={'D001': 'tot_pop', 
                        'D019': 'ageGroup_under18', 
                        'D024': 'ageGroup_over65'}, inplace=True)
     df['ageGroup_18_65'] = df['tot_pop'] - df['ageGroup_under18'] - df['ageGroup_over65']
     
-    return df
-
-def clean_housing(df):
+    # housing
     df.rename(columns={'H001': 'tot_housing', 
                        'H002': 'occupied_housing_units', 
                        'H003': 'vacant_housing_units'}, inplace=True)
-    return df
 
-def clean_households(df):
+    # households
     df.rename(columns={'S001': 'tot_hholds',
                        'H046': 'hholds_ownership_own', 
                        'H047': 'tot_rented'}, inplace=True)
+    
     return df
 
 def write_parquet(df, path):
@@ -47,12 +51,13 @@ def write_metadata(metadata, path):
 
 
 if __name__ == "__main__":
+    MAPPING_PATH = Path(__file__).parent / "../../../src/data/input/ccn20_to_cd119.json"
+    mapping = load_mapping(MAPPING_PATH)
+    
     DBF_PATH = Path(__file__).parent / "../../../src/data/input/ACS5Y2024_501_Itemset1_CD119.dbf"
     df = load_dbf(DBF_PATH)
-    df = clean(df)
-    df = clean_age(df)
-    df = clean_housing(df)
-    df = clean_households(df)
+    df = clean(df, mapping)
+    df = clean_groups(df)
 
     PARQUET_PATH = Path(__file__).parent / "../../../src/data/cc_data_updated.parquet"
     write_parquet(df, PARQUET_PATH)
