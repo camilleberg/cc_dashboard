@@ -1,7 +1,6 @@
 ---
 title: Main Page Copy 
 sql:
-  cc_data: data/cc_data.parquet
   ccn20_geo: data/ccn20_geo.parquet
   cd119_geos: ./data/cd119_geos.parquet
   cc_data_updated: ./data/cc_data_updated.parquet
