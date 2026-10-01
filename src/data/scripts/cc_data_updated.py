@@ -48,7 +48,8 @@ def clean_groups(df):
     df.rename(columns={'E004': 'tot_emp', 
                        'E005': 'tot_unemp', 
                        'E008': 'tot_civilian_lf', 
-                       'E009P': 'unemployment_rate'
+                       'E009P': 'unemployment_rate',
+                       'E001': 'tot_working_age_pop'
                        }, inplace=True)
     return df
 

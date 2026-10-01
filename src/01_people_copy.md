@@ -491,6 +491,8 @@ function renderFullWaffle(labels, countsByLabel, type, group_name_list) {
         ? "fa-solid fa-house" 
         : type === "households"
           ? "fa-solid fa-people-group"
+          : type === "employment"
+          ? "fa-solid fa-briefcase"
           : "fa-solid fa-question"; // Required fallback
 
   // changes title based on type
@@ -501,6 +503,8 @@ function renderFullWaffle(labels, countsByLabel, type, group_name_list) {
         ? "housing units" 
         : type === "households" 
           ? "households" 
+          : type === "employment"
+          ? "persons in the labor force"
           : "other"; // Required fallback
 
   const rawCounts = labels.map((label) => countsByLabel[label]);
@@ -1504,6 +1508,8 @@ const title_own = makeMapDCTitle("Housing Ownership");
 <center>
 Of all occupied <strong>${format_number(cc_tot_hholds)}</strong> housing units, <strong>${Math.abs(cc_own_rate * 100).toFixed(1).toLocaleString()}%</strong> are owned. That means that, compared to your congressional district and state, your congressional district's homeownership rate is <strong>${Math.abs(cc_dc_diff_own_rate*100).toFixed(1).toLocaleString()}</strong> percentage points <strong>${cc_dc_ownership}</strong> and your state's homeownerhsip rate is <strong>${Math.abs(cc_state_diff_own_rate*100).toFixed(1).toLocaleString()}</strong> percentage points <strong>${cc_state_ownership}</strong>. 
 </center>
+
+
 <!-- cards with big numbers -->
 
 <div class="grid grid-cols-2">
@@ -1519,8 +1525,6 @@ Of all occupied <strong>${format_number(cc_tot_hholds)}</strong> housing units, 
 
 
 <!-- plotly graphs -->
-
-
 
 <div class="grid grid-cols-2">
   <div class="card">${
@@ -1564,10 +1568,23 @@ SELECT
     tot_emp, 
     tot_unemp, 
     tot_civilian_lf, 
+    tot_working_age_pop,
   
     tot_unemp 
         / NULLIF(tot_civilian_lf, 0)::DOUBLE
         AS unemp_rate3,
+
+    tot_emp 
+        / NULLIF(tot_civilian_lf, 0)::DOUBLE
+        AS emp_rate3,
+
+    tot_civilian_lf
+        / NULLIF(tot_working_age_pop, 0)::DOUBLE
+        AS lfp_rate,
+
+    tot_emp 
+        / NULLIF(tot_working_age_pop, 0)::DOUBLE
+        AS emp_to_pop,   
 
  FROM cc_data_updated;
 
@@ -1579,10 +1596,23 @@ SELECT
     SUM(tot_emp) AS tot_emp,
     SUM(tot_unemp) AS tot_unemp,
     SUM(tot_civilian_lf) AS tot_civilian_lf,
+    SUM(tot_working_age_pop) AS tot_working_age_pop,
 
     SUM(tot_unemp)
         / NULLIF(SUM(tot_civilian_lf), 0)::DOUBLE
         AS unemp_rate3,
+
+    SUM(tot_emp)
+        / NULLIF(SUM(tot_civilian_lf), 0)::DOUBLE
+        AS emp_rate3,
+
+    SUM(tot_civilian_lf)
+        / NULLIF(SUM(tot_working_age_pop), 0)::DOUBLE
+        AS lfp_rate,
+
+    SUM(tot_emp)
+        / NULLIF(SUM(tot_working_age_pop), 0)::DOUBLE
+        AS emp_to_pop,   
 
 FROM cc_data_updated
 GROUP BY cd119;
@@ -1595,10 +1625,23 @@ SELECT
     SUM(tot_emp) AS tot_emp,
     SUM(tot_unemp) AS tot_unemp,
     SUM(tot_civilian_lf) AS tot_civilian_lf,
+    SUM(tot_working_age_pop) AS tot_working_age_pop,
 
     SUM(tot_unemp)
         / NULLIF(SUM(tot_civilian_lf), 0)::DOUBLE
         AS unemp_rate3,
+
+    SUM(tot_emp)
+        / NULLIF(SUM(tot_civilian_lf), 0)::DOUBLE
+        AS emp_rate3,
+
+    SUM(tot_civilian_lf)
+        / NULLIF(SUM(tot_working_age_pop), 0)::DOUBLE
+        AS lfp_rate,
+
+    SUM(tot_emp)
+        / NULLIF(SUM(tot_working_age_pop), 0)::DOUBLE
+        AS emp_to_pop,   
 
 FROM cc_data_updated
 GROUP BY State;
@@ -1671,7 +1714,7 @@ const dc_tot_emp = extract_var(dc_data_employment, "tot_emp");
 const state_tot_emp = extract_var(state_data_employment, "tot_emp");
 
 // unemployed
-const cc_tot_unemp = extract_var(cc_data_employment, "tot_unempl");
+const cc_tot_unemp = extract_var(cc_data_employment, "tot_unemp");
 const dc_tot_unemp = extract_var(dc_data_employment, "tot_unemp");
 const state_tot_unemp = extract_var(state_data_employment, "tot_unemp");
 
@@ -1679,6 +1722,21 @@ const state_tot_unemp = extract_var(state_data_employment, "tot_unemp");
 const cc_unemp_rate3 = extract_var(cc_data_employment, "unemp_rate3"); 
 const dc_unemp_rate3 = extract_var(dc_data_employment, "unemp_rate3"); 
 const state_unemp_rate3 = extract_var(state_data_employment, "unemp_rate3"); 
+
+// employment rate 
+const cc_emp_rate3 = extract_var(cc_data_employment, "emp_rate3"); 
+const dc_emp_rate3 = extract_var(dc_data_employment, "emp_rate3"); 
+const state_emp_rate3 = extract_var(state_data_employment, "emp_rate3"); 
+
+// lfp 
+const cc_lfp_rate = extract_var(cc_data_employment, "lfp_rate"); 
+const dc_lfp_rate = extract_var(dc_data_employment, "lfp_rate"); 
+const state_lfp_rate = extract_var(state_data_employment, "lfp_rate"); 
+
+// employment to pop
+const cc_emp_to_pop = extract_var(cc_data_employment, "emp_to_pop"); 
+const dc_emp_to_pop = extract_var(dc_data_employment, "emp_to_pop"); 
+const state_emp_to_pop = extract_var(state_data_employment, "emp_to_pop"); 
 
 const cc_dc_diff_unemp_rate =
   cc_unemp_rate3 - dc_unemp_rate3;
@@ -1692,3 +1750,122 @@ const cc_state_diff_unemp_rate =
 const cc_state_unemp =
   cc_state_diff_unemp_rate > 0 ? "higher" : "lower";
 ```
+
+
+
+```sql id=current_ccn_merged_employment
+SELECT
+  g.CCN20,
+  g.cd119,
+  g.State,
+  o.* EXCLUDE (cd119, STATE, ccn20),
+  g.geometry
+FROM ccn20_geo AS g
+JOIN cc_data_employment_table AS o
+  ON g.ccn20 = o.ccn20
+WHERE g.cd119 = ${dc_name};
+```
+
+```js merge_age_data_employment.js 
+const current_ccn_merged_geojson_employment = {
+  type: "FeatureCollection",
+  features: current_ccn_merged_employment.toArray()
+    .filter(row => row.geometry != null)
+    .map(row => {
+      const { geometry, ...properties } = row;   // everything except geometry becomes a property
+      return {
+        type: "Feature",
+        properties,
+        geometry: JSON.parse(geometry)
+      };
+    })
+};
+```
+
+
+
+<!-- Waffle chart -->
+
+
+```js assign_employment_waffle.js
+const empCols = ["employed", "unemployed"];
+const countsByLabel_emp = {
+  employed: cc_tot_emp,
+  unemployed: cc_tot_unemp,
+}
+
+const empGroupNames = ["Employed", "Unemployed"]
+const empKey = ['emp_rate3', 'unemp_rate3'];
+```
+
+
+```js
+async function buildMapDcEmp() {
+  const container_emp = document.createElement("div");
+  container_emp.style = "height: 270px;";
+  const map = await create_dc_map(container_emp, current_ccn_merged_geojson_employment, empKey, empGroupNames, { invalidation });
+  requestAnimationFrame(() => map.resize());
+  return container_emp;
+}
+const map_dc_emp = buildMapDcEmp()
+const title_emp = makeMapDCTitle("Employment Rate");
+```
+
+
+<div class="grid grid-cols-3" >
+  <div class="card">${
+    resize((width) => renderFullWaffle(empCols, countsByLabel_emp, "employment", empGroupNames))
+  }</div>
+  <div class="card grid-colspan-2"><h2>${title_emp}</h2>${
+    resize((width) => map_dc_emp)
+  }
+  </div>
+</div>
+
+
+<!-- cards with big numbers -->
+
+<div class="grid grid-cols-3">
+  <div class="card">
+    <h3>${highlight("Unemployment rate", 0)}</h3>
+    <span class="big">${highlight(Math.abs(cc_unemp_rate3 * 100).toLocaleString("en-us", { maximumFractionDigits: 2 }), 0)}</span>
+  </div>
+  <div class="card">
+    <h3>${highlight("Employment-to-population ratio", 1)}</h3>
+    <span class="big">${highlight(format_number(cc_rented_units), 1)}</span>
+  </div>
+  <div class="card">
+    <h3>${highlight("Labor Force participation rate", 2)}</h3>
+    <span class="big">${highlight(format_number(cc_rented_units), 2)}</span>
+  </div>
+</div>
+
+
+<!-- plotly graphs -->
+
+<div class="grid grid-cols-3">
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("owned", ownershipCols, ownershipKey[0], "housing", isDC);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("rented", ownershipCols, ownershipKey[1], "housing", isDC);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("rented", ownershipCols, ownershipKey[1], "housing", isDC);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+</div>
