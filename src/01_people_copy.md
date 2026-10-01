@@ -541,7 +541,8 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
   // choosing the correct dfs 
   const DF_SETS = {
     age: { cc: cc_data_age, dc: dc_data_age, state: state_data_age },
-    housing: { cc: cc_data_housing, dc: dc_data_housing, state: state_data_housing }
+    housing: { cc: cc_data_housing, dc: dc_data_housing, state: state_data_housing },
+    employment: { cc: cc_data_employment, dc: dc_data_employment, state: state_data_employment },
   };
   const dfSet = DF_SETS[type];
   if (!dfSet) throw new Error(`Unknown type: ${type}`);
@@ -1788,14 +1789,18 @@ const current_ccn_merged_geojson_employment = {
 
 
 ```js assign_employment_waffle.js
+// waffle 
 const empCols = ["employed", "unemployed"];
 const countsByLabel_emp = {
   employed: cc_tot_emp,
   unemployed: cc_tot_unemp,
 }
-
 const empGroupNames = ["Employed", "Unemployed"]
-const empKey = ['emp_rate3', 'unemp_rate3'];
+
+// for plotly and map
+const emp_measureCols = ["e3", "lfp", "etp"]
+const empKey = ['emp_rate3', 'lfp_rate', 'emp_to_pop'];
+const emp_measureGroupNames = ['Employment Rate', 'Labor Force Participation', 'Employment to Working Age Pop']
 ```
 
 
@@ -1803,7 +1808,7 @@ const empKey = ['emp_rate3', 'unemp_rate3'];
 async function buildMapDcEmp() {
   const container_emp = document.createElement("div");
   container_emp.style = "height: 270px;";
-  const map = await create_dc_map(container_emp, current_ccn_merged_geojson_employment, empKey, empGroupNames, { invalidation });
+  const map = await create_dc_map(container_emp, current_ccn_merged_geojson_employment, empKey, emp_measureGroupNames, { invalidation });
   requestAnimationFrame(() => map.resize());
   return container_emp;
 }
@@ -1824,19 +1829,20 @@ const title_emp = makeMapDCTitle("Employment Rate");
 
 
 <!-- cards with big numbers -->
+Looking at different measures of employment...
 
 <div class="grid grid-cols-3">
   <div class="card">
-    <h3>${highlight("Unemployment rate", 0)}</h3>
-    <span class="big">${highlight(Math.abs(cc_unemp_rate3 * 100).toLocaleString("en-us", { maximumFractionDigits: 2 }), 0)}</span>
+    <h3>${highlight("Employment rate", 0)}</h3>
+    <span class="big">${highlight(Math.abs(cc_emp_rate3 * 100).toLocaleString("en-us", { maximumFractionDigits: 2 })+ '%', 0)}</span>
   </div>
   <div class="card">
-    <h3>${highlight("Employment-to-population ratio", 1)}</h3>
-    <span class="big">${highlight(format_number(cc_rented_units), 1)}</span>
+    <h3>${highlight("Labor Force Partipcation rate", 1)}</h3>
+    <span class="big">${highlight(Math.abs(cc_lfp_rate * 100).toLocaleString("en-us", { maximumFractionDigits: 2 }) + '%', 1)}</span>
   </div>
   <div class="card">
-    <h3>${highlight("Labor Force participation rate", 2)}</h3>
-    <span class="big">${highlight(format_number(cc_rented_units), 2)}</span>
+    <h3>${highlight("Employment-to-population ratio", 2)}</h3>
+    <span class="big">${highlight(Math.abs(cc_emp_to_pop * 100).toLocaleString("en-us", { maximumFractionDigits: 2 }) + '%', 2)}</span>
   </div>
 </div>
 
@@ -1847,7 +1853,7 @@ const title_emp = makeMapDCTitle("Employment Rate");
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
-      const { traces, layout, config } = makeLineCompChartPlotly("owned", ownershipCols, ownershipKey[0], "housing", isDC);
+      const { traces, layout, config } = makeLineCompChartPlotly("e3", emp_measureCols, empKey[0], "employment", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
       return div;
     }) 
@@ -1855,7 +1861,7 @@ const title_emp = makeMapDCTitle("Employment Rate");
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
-      const { traces, layout, config } = makeLineCompChartPlotly("rented", ownershipCols, ownershipKey[1], "housing", isDC);
+      const { traces, layout, config } = makeLineCompChartPlotly("lfp", emp_measureCols, empKey[1], "employment", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
       return div;
     }) 
@@ -1863,7 +1869,7 @@ const title_emp = makeMapDCTitle("Employment Rate");
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
-      const { traces, layout, config } = makeLineCompChartPlotly("rented", ownershipCols, ownershipKey[1], "housing", isDC);
+      const { traces, layout, config } = makeLineCompChartPlotly("etp", emp_measureCols, empKey[2], "employment", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
       return div;
     }) 
