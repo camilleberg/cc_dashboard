@@ -29,7 +29,6 @@ head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/au
 Please explore your congressional comunity (or district!). Use the search bar to find your communtiy and explore what makes you unique. 
 
 
-
 <br>
 <input id="autoComplete">
 <div id="page-content">
@@ -688,7 +687,7 @@ function boundsFromGeoJSON(geojson) {
 }
 ```
 
-```js coose_title.js
+```js choose_title.js
 const title_choice = isDC ? "Congressional District" : "Congressional Community";
 ```
 
@@ -1123,7 +1122,7 @@ const ageKey = [`age_prop_under18`, 'age_prop_18_65', 'age_prop_over65'];
 function makeMapDCTitle(type) {
   const container = document.createElement("div");
   container.style = "height: 30px;";
-  container.innerHTML = "Map of your Congressional District by " + type;
+  container.innerHTML = "<strong>Map of your Congressional District by " + type + "</strong><br> Please use the layers tab on the bottom left to visualize how your communtiy compares <br>" ;
   return container;
 }
 
