@@ -1120,8 +1120,8 @@ const ageKey = [`age_prop_under18`, 'age_prop_18_65', 'age_prop_over65'];
 ```js dc_title.js
 function makeMapDCTitle(type) {
   const container = document.createElement("div");
-  container.style = "height: 30px;";
-  container.innerHTML = "<strong>Map of your Congressional District by " + type + "</strong><br> Please use the layers tab on the bottom left to visualize how your communtiy compares <br>" ;
+  container.style = "height: 40px;";
+  container.innerHTML = "<strong>Map of your Congressional District by " + type + "</strong><br> Please use the layers tab on the bottom left to visualize how your communtiy compares <br><br>" ;
   return container;
 }
 
