@@ -217,8 +217,9 @@ const dc_list = await sql`
 `;
 
 const dc_array = [...dc_list];
-const all_dc  = dc_array.map(d => d.DC);
+const all_dc  = dc_array.map(d => d.cd119);
 ```
+
 
 ```js
 const all_options = [
@@ -365,7 +366,7 @@ const state_data_age = isDC
 ```js current_geo_calc.js
 const current_ccn_geo = isDC
   ? await sql`SELECT
-  DC,
+  cd119,
   State,
   ST_AsGeoJSON(geometry) AS geometry
   FROM cd119_geos
@@ -492,7 +493,9 @@ function renderFullWaffle(labels, countsByLabel, type, group_name_list) {
         : type === "households"
           ? "fa-solid fa-people-group"
           : type === "employment"
-          ? "fa-solid fa-briefcase"
+          ? "fa-solid fa-briefcase" 
+          : type === "lang"
+          ? "fa-solid fa-comment"
           : "fa-solid fa-question"; // Required fallback
 
   // changes title based on type
@@ -505,6 +508,8 @@ function renderFullWaffle(labels, countsByLabel, type, group_name_list) {
           ? "households" 
           : type === "employment"
           ? "persons in the labor force"
+          : type === "lang"
+          ? "persons 5 years and older"
           : "other"; // Required fallback
 
   const rawCounts = labels.map((label) => countsByLabel[label]);
@@ -543,6 +548,7 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
     age: { cc: cc_data_age, dc: dc_data_age, state: state_data_age },
     housing: { cc: cc_data_housing, dc: dc_data_housing, state: state_data_housing },
     employment: { cc: cc_data_employment, dc: dc_data_employment, state: state_data_employment },
+    lang : { cc: cc_data_lang, dc: dc_data_lang, state: state_data_lang }
   };
   const dfSet = DF_SETS[type];
   if (!dfSet) throw new Error(`Unknown type: ${type}`);
@@ -656,6 +662,10 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-g
 display(html`<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-gl.css">`);
 ```
 
+```js import_extensions.js
+import * as mlc from "npm:maplibre-gl-components";
+```
+
 ```js find_bounds.js
 function boundsFromGeoJSON(geojson) {
   const bounds = new maplibregl.LngLatBounds();
@@ -683,7 +693,7 @@ function boundsFromGeoJSON(geojson) {
 }
 ```
 
-```js
+```js coose_title.js
 const title_choice = isDC ? "Congressional District" : "Congressional Community";
 ```
 
@@ -696,7 +706,7 @@ const current_ccn_center = turf.centroid(current_ccn_geojson)
 const current_ccn_coords = current_ccn_center.geometry.coordinates
 ```
 
-```js
+```js create_big_map.js
 const mapDiv = display(document.createElement("div"));
 mapDiv.style = "height: 300px;";
 
@@ -824,7 +834,7 @@ const current_ccn_within_cd_geojson = {
   type: "FeatureCollection",
   features: current_ccn_within_cd_geo.toArray().map(row => ({
     type: "Feature",
-    properties: { ccn20: row.CCN20, cd119: row.DC, State: row.State },
+    properties: { ccn20: row.CCN20, cd119: row.cd119, State: row.State },
     geometry: JSON.parse(row.geometry)
   }))
 };
@@ -913,6 +923,7 @@ function create_dc_map(container, ccn_geo_data, array_labels, array_names, { inv
 
   return new Promise((resolve) => {
 
+    // initiializng map
     const map_district = new maplibregl.Map({
         container: container,
         style: maplibre_style,
@@ -920,7 +931,9 @@ function create_dc_map(container, ccn_geo_data, array_labels, array_names, { inv
         zoom: 6,
         interactive: false
     });
+    
 
+    // generating on load 
     map_district.on('load', () => {
       map_district.setPaintProperty('background', 'background-color', page_background_color_card);
 
@@ -986,7 +999,7 @@ function create_dc_map(container, ccn_geo_data, array_labels, array_names, { inv
 
       const bounds = boundsFromGeoJSON(current_cd_geojson);
       map_district.fitBounds(bounds, {
-        padding: { top: 20, bottom: 20, left: 10, right: 130 },
+        padding: { top: 20, bottom: 20, left: 10, right: 160 },
         animate: false
       });
 
@@ -996,7 +1009,7 @@ function create_dc_map(container, ccn_geo_data, array_labels, array_names, { inv
           'current-ccn20-line': {
             visible: true,
             opacity: 1,
-            name: 'My ${title_choice}'
+            name: `My ${title_choice}`
           },
           ...Object.fromEntries(
             array_labels.map((label, i) => [
@@ -1009,43 +1022,77 @@ function create_dc_map(container, ccn_geo_data, array_labels, array_names, { inv
             ])
           )
         }, 
-        panelWidth: 150,
+        panelWidth: 250,
         panelMinWidth: 100,
-        panelMaxWidth: 250,
+        panelMaxWidth: 400,
         showStyleEditor: false,
         showOpacitySlider: false,
       });
-      map_district.addControl(layerControl, 'top-right');
+      map_district.addControl(layerControl, 'bottom-left');
+
+      // ---- colorbar (mlc = maplibre-gl-components, imported earlier) ----
+      // options for the colorbar of layer i, built from the same breaks/ramp as the fill
+      const colorbarOptions = (i) => {
+        const breaks = computeQuantileBreaks(ccn_geo_data.features, array_labels[i], 5);
+        const ramp = [lighterItoColors_80[i], lighterItoColors_60[i], lighterItoColors[i], okabeItoColors_20[i], okabeItoColors[i]];
+        return {
+          colorStops: ramp.map((color, k) => ({ position: k / (ramp.length - 1), color })),
+          vmin: breaks[0],
+          vmax: breaks[breaks.length - 1],
+          label: array_names ? array_names[i] : array_labels[i],
+          ticks: { count: 3, format: (v) => (v * 100).toFixed(0) + '%' }
+        };
+      };
+
+      const colorbar = new mlc.Colorbar({
+        ...colorbarOptions(0),
+        orientation: 'horizontal'
+      });
+      map_district.addControl(colorbar, 'top-right');
+
+      // LayerControl toggles visibility without an event we can hook,
+      // so on 'idle' check which choropleth is showing and update the colorbar
+      let activeIdx = 0;
+      map_district.on('idle', () => {
+        const idx = array_labels.findIndex(
+          (label) => map_district.getLayoutProperty(label + '_chloropleth', 'visibility') === 'visible'
+        );
+        if (idx !== -1 && idx !== activeIdx) {
+          activeIdx = idx;
+          colorbar.update(colorbarOptions(idx));
+        }
+      });
 
       // When a click event occurs on a feature in the states layer, open a popup at the
       // location of the click, with description HTML from its properties.
       // Reuse a single popup instance instead of creating a new one every time
-    const linePopup = new maplibregl.Popup({
-      closeButton: false,
-      closeOnClick: false
-    });
+      const linePopup = new maplibregl.Popup({
+        closeButton: false,
+        closeOnClick: false
+      });
 
-    map_district.on('mouseenter', 'current-ccn20', (e) => {
-      map_district.getCanvas().style.cursor = 'pointer'; // indicate interactivity
+      // this makes it so that the nouse highlights the congresional communtiy
+      map_district.on('mouseenter', 'current-ccn20', (e) => {
+        map_district.getCanvas().style.cursor = 'pointer'; // indicate interactivity
 
-      linePopup
-        .setLngLat(e.lngLat)
-        .setHTML(e.features[0].properties.name)
-        .addTo(map_district);
-    });
+        linePopup
+          .setLngLat(e.lngLat)
+          .setHTML(e.features[0].properties.name)
+          .addTo(map_district);
+      });
+      // Update popup position as the mouse moves along the line
+      map_district.on('mousemove', 'current-ccn20', (e) => {
+        linePopup
+          .setLngLat(e.lngLat)
+        .setHTML(`My ${title_choice}!`);
+      });
+      map_district.on('mouseleave', 'current-ccn20', () => {
+        map_district.getCanvas().style.cursor = '';
+        linePopup.remove(); // actually remove the popup
+      });
 
-    // Update popup position as the mouse moves along the line
-    map_district.on('mousemove', 'current-ccn20', (e) => {
-      linePopup
-        .setLngLat(e.lngLat)
-       .setHTML(`My ${title_choice}!`);
-    });
 
-    map_district.on('mouseleave', 'current-ccn20', () => {
-      map_district.getCanvas().style.cursor = '';
-      linePopup.remove(); // actually remove the popup
-    });
-
+      // here in case of problems 
       resolve(map_district);
     });
 
@@ -1556,6 +1603,302 @@ Given the current state of the housing market, homeownership rates say a lot abo
 ## Languages
 
 <span style="color:blue">This language data pull /analysis is in progress!</span>.
+
+
+
+```sql id=create_tables_lang
+
+CREATE OR REPLACE TABLE cc_data_lang_table AS
+SELECT
+    ccn20,
+    cd119,
+    State,
+    tot_pop_5yrs, 
+    tot_english_only, 
+    tot_non_english, 
+    tot_spanish,
+  
+    tot_english_only 
+        / NULLIF(tot_pop_5yrs, 0)::DOUBLE
+        AS prop_english_only,
+
+    1 - prop_english_only AS prop_non_english,
+
+    tot_spanish
+        / NULLIF(tot_pop_5yrs, 0)::DOUBLE
+        AS prop_span,
+
+    tot_spanish
+        / NULLIF(tot_non_english, 0)::DOUBLE
+        AS prop_span_nonEnglish,
+
+ FROM cc_data_updated;
+
+
+CREATE OR REPLACE TABLE dc_data_lang_table AS
+SELECT
+    cd119,
+
+    SUM(tot_pop_5yrs) AS tot_pop_5yrs,
+    SUM(tot_english_only) AS tot_english_only, 
+    SUM(tot_non_english) AS tot_non_english, 
+    SUM(tot_spanish) AS tot_spanish,
+  
+    SUM(tot_english_only) 
+        / NULLIF(SUM(tot_pop_5yrs), 0)::DOUBLE
+        AS prop_english_only,
+
+    1 - prop_english_only AS prop_non_english,
+
+    SUM(tot_spanish)
+        / NULLIF(SUM(tot_pop_5yrs), 0)::DOUBLE
+        AS prop_span,
+
+    SUM(tot_spanish)
+        / NULLIF(SUM(tot_non_english), 0)::DOUBLE
+        AS prop_span_nonEnglish,
+
+FROM cc_data_updated
+GROUP BY cd119;
+
+
+CREATE OR REPLACE TABLE state_data_lang_table AS
+SELECT
+    State,
+
+    SUM(tot_pop_5yrs) AS tot_pop_5yrs,
+    SUM(tot_english_only) AS tot_english_only, 
+    SUM(tot_non_english) AS tot_non_english, 
+    SUM(tot_spanish) AS tot_spanish,
+  
+    SUM(tot_english_only) 
+        / NULLIF(SUM(tot_pop_5yrs), 0)::DOUBLE
+        AS prop_english_only,
+
+    1 - prop_english_only AS prop_non_english,
+
+    SUM(tot_spanish)
+        / NULLIF(SUM(tot_pop_5yrs), 0)::DOUBLE
+        AS prop_span,
+
+    SUM(tot_spanish)
+        / NULLIF(SUM(tot_non_english), 0)::DOUBLE
+        AS prop_span_nonEnglish,  
+
+FROM cc_data_updated
+GROUP BY State;
+```
+
+
+<!-- Filtering the data-->
+
+
+```js cc_data_lang_calc.js
+const cc_data_lang = isDC
+  ? await sql`
+    SELECT 
+      d.*,
+      c.State
+    FROM dc_data_lang_table AS d
+    INNER JOIN cc_data_lang_table AS c
+      ON c.cd119 = d.cd119
+    WHERE d.cd119 = ${ccn}
+    LIMIT 1`
+  : await sql`
+    SELECT *, 
+    FROM cc_data_lang_table
+    WHERE ccn20 = ${ccn}`;
+```
+
+```js dc_data_lang_calc.js
+const dc_data_lang = isDC
+  ? await sql`
+    SELECT *, 
+    FROM dc_data_lang_table
+    WHERE cd119 = ${ccn}` 
+  : await sql`
+    SELECT *, 
+    FROM dc_data_lang_table
+    WHERE cd119 = (
+        SELECT cd119
+        FROM cc_data_lang_table
+        WHERE ccn20 = ${ccn}
+    )`;
+```
+
+```js state_data_lang_calc.js
+const state_data_lang = isDC
+  ? await sql`
+    SELECT *, 
+    FROM state_data_lang_table
+    WHERE State = (
+        SELECT State
+        FROM cc_data_lang_table
+        WHERE cd119 = ${ccn} 
+        LIMIT 1
+    )`
+  : await sql`
+    SELECT *, 
+    FROM state_data_lang_table
+    WHERE State = (
+        SELECT State
+        FROM cc_data_lang_table
+        WHERE ccn20 = ${ccn}
+    )`;
+```
+
+
+<!-- Cleaning and extracting data-->
+```js select_lang_vars.js
+// english
+const cc_tot_pop_5yrs= extract_var(cc_data_lang, "tot_pop_5yrs");
+const dc_tot_pop_5yrs = extract_var(dc_data_lang, "tot_pop_5yrs");
+const state_ot_pop_5yrs = extract_var(state_data_lang, "tot_pop_5yrs");
+
+// non englihs
+const cc_tot_english_only = extract_var(cc_data_lang, "tot_english_only");
+const dc_tot_english_only = extract_var(dc_data_lang, "tot_english_only");
+const state_tot_english_only = extract_var(state_data_lang, "tot_english_only");
+
+// non english
+const cc_tot_non_english = extract_var(cc_data_lang, "tot_non_english"); 
+const dc_tot_non_english = extract_var(dc_data_lang, "tot_non_english"); 
+const state_tot_non_english = extract_var(state_data_lang, "tot_non_english"); 
+
+// lang rate 
+const cc_tot_spanish = extract_var(cc_data_lang, "tot_spanish"); 
+const dc_tot_spanish = extract_var(dc_data_lang, "tot_spanish"); 
+const state_tot_spanish = extract_var(state_data_lang, "tot_spanish"); 
+
+// lfp 
+const cc_prop_english_only = extract_var(cc_data_lang, "prop_english_only"); 
+const dc_prop_english_only = extract_var(dc_data_lang, "prop_english_only"); 
+const state_prop_english_only = extract_var(state_data_lang, "prop_english_only"); 
+
+// lang to pop
+const cc_prop_span = extract_var(cc_data_lang, "prop_span"); 
+const dc_prop_span = extract_var(dc_data_lang, "prop_span"); 
+const state_prop_span = extract_var(state_data_lang, "prop_span");
+```
+
+
+
+```sql id=current_ccn_merged_lang
+SELECT
+  g.CCN20,
+  g.cd119,
+  g.State,
+  o.* EXCLUDE (cd119, STATE, ccn20),
+  g.geometry
+FROM ccn20_geo AS g
+JOIN cc_data_lang_table AS o
+  ON g.ccn20 = o.ccn20
+WHERE g.cd119 = ${dc_name};
+```
+
+```js merge_age_data_lang.js 
+const current_ccn_merged_geojson_lang = {
+  type: "FeatureCollection",
+  features: current_ccn_merged_lang.toArray()
+    .filter(row => row.geometry != null)
+    .map(row => {
+      const { geometry, ...properties } = row;   // everything except geometry becomes a property
+      return {
+        type: "Feature",
+        properties,
+        geometry: JSON.parse(geometry)
+      };
+    })
+};
+```
+
+
+
+<!-- Waffle chart -->
+
+
+```js assign_lang_waffle.js
+// waffle 
+const langCols = ["english", "not_english"];
+const countsByLabel_lang = {
+  english: cc_tot_english_only,
+  not_english: cc_tot_non_english
+}
+const langGroupNames = ["Only English", "Primarily Not English"]
+const langKey = ['prop_english_only', 'prop_non_english'];
+
+```
+
+
+```js
+async function buildMapDcLang() {
+  const container_lang = document.createElement("div");
+  container_lang.style = "height: 270px;";
+  const map = await create_dc_map(container_lang, current_ccn_merged_geojson_lang, langKey, langGroupNames, { invalidation });
+  requestAnimationFrame(() => map.resize());
+  return container_lang;
+}
+const map_dc_lang = buildMapDcLang()
+const title_lang = makeMapDCTitle("Language Spoken at Home");
+```
+
+
+<div class="grid grid-cols-3" >
+  <div class="card">${
+    resize((width) => renderFullWaffle(langCols, countsByLabel_lang, "lang", langGroupNames))
+  }</div>
+  <div class="card grid-colspan-2"><h2>${title_lang}</h2>${
+    resize((width) => map_dc_lang)
+  }
+  </div>
+</div>
+
+
+
+<!-- cards with big numbers -->
+Looking at different measures of lang...
+
+<div class="grid grid-cols-3">
+  <div class="card">
+    <h3>${highlight("Speaks Only English", 0)}</h3>
+    <span class="big">${highlight(format_number(cc_tot_english_only), 0)}</span>
+  </div>
+  <div class="card grid-colspan-2">
+    <h3>${highlight("Speaks a Language Other Than English", 1)}</h3>
+    <span class="big">${highlight(format_number(cc_tot_non_english), 1)}</span>
+  </div>
+  </div>
+</div>
+
+
+<!-- plotly graphs -->
+
+<div class="grid grid-cols-3">
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("english", langCols, langKey[0], "lang", isDC);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("not_english", langCols, langKey[1], "lang", isDC);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("etp", emp_measureCols, empKey[2], "lang", isDC);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+</div>
 
 ## Employment 
 

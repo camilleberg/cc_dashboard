@@ -51,6 +51,8 @@ def clean_groups(df):
                        'E009P': 'unemployment_rate',
                        'E001': 'tot_working_age_pop'
                        }, inplace=True)
+    
+    
     return df
 
 def write_parquet(df, path):
