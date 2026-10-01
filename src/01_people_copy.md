@@ -29,11 +29,6 @@ head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/au
 Please explore your congressional comunity (or district!). Use the search bar to find your communtiy and explore what makes you unique. 
 
 
-```sql
-SELECT * FROM cc_data_updated LIMIT 3
-```
-
-
 
 <br>
 <input id="autoComplete">
@@ -1900,6 +1895,11 @@ Looking at different measures of lang...
   }</div>
 </div>
 
+There are a total of x languages other than English spoken at home in your community.
+[insert graph with languages sorted]
+This kind of linguistic diversity helps shape the fabric of your community. However, different languages come with different needs, such as knowing which interpreters to hire or which languages official materials should be translated into for the greatest impact.
+
+
 ## Employment 
 
 ```sql id=create_tables_employment
@@ -2180,7 +2180,7 @@ Looking at different measures of employment...
     <span class="big">${highlight(Math.abs(cc_emp_rate3 * 100).toLocaleString("en-us", { maximumFractionDigits: 2 })+ '%', 0)}</span>
   </div>
   <div class="card">
-    <h3>${highlight("Labor Force Partipcation rate", 1)}</h3>
+    <h3>${highlight("Labor Force Participation rate", 1)}</h3>
     <span class="big">${highlight(Math.abs(cc_lfp_rate * 100).toLocaleString("en-us", { maximumFractionDigits: 2 }) + '%', 1)}</span>
   </div>
   <div class="card">
@@ -2218,3 +2218,10 @@ Looking at different measures of employment...
     }) 
   }</div>
 </div>
+
+Local employment within your community is x.x%, with major employment industries of x, y, and z.
+[insert chart about employment]
+[link blocks to causes, e.g. tech, maybe wifi infrastructure or work-from-home stuff; if retail, maybe link to working hours]
+Commute times and patterns are typical (atypical) of your community, with the majority traveling x minutes by [mode].
+[insert chart about commuting times]
+[link to transit, bus, or highway/automobile infrastructure]
