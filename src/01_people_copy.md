@@ -121,12 +121,13 @@ const page_background_color_card = "#f2e9e3";
 
 
 
-```sql id=create_tables
+```sql id=create_tables_age
 -- for congressional community level 
 CREATE OR REPLACE TABLE cc_data_age_table AS
   SELECT
     ccn20,
     cd119,
+    State,
     tot_pop, 
     ageGroup_under18, 
     ageGroup_18_65, 
@@ -388,6 +389,10 @@ const dc_name = dc_data_age
   .getChild("cd119")
   .get(0);
 
+const current_ccn_geojson = JSON.parse(
+  current_ccn_geo.getChild("geometry").get(0)
+);
+
 // population totals
 const cc_tot_pop = extract_var(cc_data_age, "tot_pop");
 const dc_tot_pop =extract_var(dc_data_age, "tot_pop");
@@ -395,13 +400,8 @@ const state_tot_pop = extract_var(state_data_age, "tot_pop");
 
 // groups
 const cc_under18_prop = extract_var(cc_data_age, "age_prop_under18");
-const dc_under18_prop = Number(dc_data_age
-  .getChild("age_prop_under18")
-  .get(0));
-
-const state_under18_prop = Number(state_data_age
-  .getChild("age_prop_under18")
-  .get(0));
+const dc_under18_prop =  extract_var(dc_data_age, "age_prop_under18");
+const state_under18_prop = extract_var(state_data_age, "age_prop_under18");
 
 const cc_dc_diff =
   cc_under18_prop - dc_under18_prop;
@@ -415,26 +415,15 @@ const cc_state_diff =
 const cc_state_younger =
   cc_state_diff > 0 ? "younger" : "older";
 
-const age_under_18 = Number(cc_data_age
-  .getChild("ageGroup_under18")
-  .get(0));
+// for the ccn
+const age_under_18 = extract_var(cc_data_age, "ageGroup_under18");
+const age_18_65 = extract_var(cc_data_age, "ageGroup_18_65");
+const age_over65 =  extract_var(cc_data_age, "ageGroup_over65");
 
-const age_18_65 = Number(cc_data_age
-  .getChild("ageGroup_18_65")
-  .get(0));
-
-const age_over65 = Number(cc_data_age
-  .getChild("ageGroup_over65")
-  .get(0));
-
-const current_ccn_geojson = JSON.parse(
-  current_ccn_geo.getChild("geometry").get(0)
-);
 ```
 
-cgecing ${extract_var(cc_data_age, "tot_pop")} is ${cc_tot_pop}
-
 ```js make_div_bucket.js
+// this is to create the space for waffle
 const myDiv = display(document.createElement("div"));
 ```
 
@@ -475,6 +464,7 @@ function allocateIcons(rawCounts, totalIcons) {
   return result;
 }
 
+// function that creates the legend
 function renderWaffleLegend(labels, group_list, group_name_list) {
   const legend = document.createElement("div");
   legend.className = "waffle-legend";
@@ -493,6 +483,7 @@ function renderWaffleLegend(labels, group_list, group_name_list) {
 
 // to make wafle chart
 function renderFullWaffle(labels, countsByLabel, type, group_name_list) {
+  // changes icon based on type
   const iconClass = 
     type === "people" 
       ? "fa-solid fa-user" 
@@ -502,6 +493,7 @@ function renderFullWaffle(labels, countsByLabel, type, group_name_list) {
           ? "fa-solid fa-people-group"
           : "fa-solid fa-question"; // Required fallback
 
+  // changes title based on type
   const title = 
     type === "people" 
       ? "people" 
@@ -648,7 +640,6 @@ const config = {
   return { traces, layout, config };
 }
 ```
-
 
 
 <!-- Map chart -->
@@ -1328,45 +1319,19 @@ const state_data_housing = isDC
 
 <!-- Cleaning and extracting data-->
 ```js select_housing_vars.js
-const cc_tot_housing = Number(cc_data_housing
-  .getChild("tot_housing")
-  .get(0));
+const cc_tot_housing = extract_var(cc_data_housing, "tot_housing");
+const dc_tot_housing = extract_var(dc_data_housing, "tot_housing");
+const state_tot_housing = extract_var(state_data_housing, "tot_housing");
 
-const dc_tot_housing = Number(dc_data_housing
-  .getChild("tot_housing")
-  .get(0));
+const cc_tot_hholds = extract_var(cc_data_housing, "tot_hholds");
 
-const state_tot_housing = Number(state_data_housing
-  .getChild("tot_housing")
-  .get(0));
+const cc_occupancy_rate = extract_var(cc_data_housing, "housing_occupancy_rate");
+const dc_occupancy_rate = extract_var(dc_data_housing, "housing_occupancy_rate");
+const state_occupancy_rate = extract_var(state_data_housing, "housing_occupancy_rate");
 
-const cc_tot_hholds = Number(cc_data_housing
-  .getChild("tot_hholds")
-  .get(0));
-
-const cc_occupancy_rate = Number(cc_data_housing
-  .getChild("housing_occupancy_rate")
-  .get(0));
-
-const dc_occupancy_rate = Number(dc_data_housing
-  .getChild("housing_occupancy_rate")
-  .get(0));
-
-const state_occupancy_rate = Number(state_data_housing
-  .getChild("housing_occupancy_rate")
-  .get(0));
-
-const cc_own_rate = Number(cc_data_housing
-  .getChild("housing_ownership_rate")
-  .get(0));
-
-const dc_own_rate = Number(dc_data_housing
-  .getChild("housing_ownership_rate")
-  .get(0));
-
-const state_own_rate = Number(state_data_housing
-  .getChild("housing_ownership_rate")
-  .get(0));
+const cc_own_rate =extract_var(cc_data_housing, "housing_ownership_rate"); 
+const dc_own_rate = extract_var(dc_data_housing, "housing_ownership_rate"); 
+const state_own_rate = extract_var(state_data_housing, "housing_ownership_rate"); 
 
 const cc_dc_diff_own_rate =
   cc_own_rate - dc_own_rate;
@@ -1381,15 +1346,9 @@ const cc_state_ownership =
   cc_state_diff_own_rate > 0 ? "higher" : "lower";
 
 // for waffle
-const cc_vacant_units = Number(cc_data_housing
-  .getChild("tot_vacant_units")
-  .get(0));
-const cc_owned_units = Number(cc_data_housing
-  .getChild("tot_owned_hholds")
-  .get(0));
-const cc_rented_units = Number(cc_data_housing
-  .getChild("tot_rented_hholds")
-  .get(0));
+const cc_vacant_units = extract_var(cc_data_housing, "tot_vacant_units");
+const cc_owned_units =  extract_var(cc_data_housing, "tot_owned_hholds");
+const cc_rented_units =  extract_var(cc_data_housing, "tot_rented_hholds");
 ```
 
 
@@ -1592,3 +1551,144 @@ Given the current state of the housing market, homeownership rates say a lot abo
 ## Languages
 
 <span style="color:blue">This language data pull /analysis is in progress!</span>.
+
+## Employment 
+
+```sql id=create_tables_employment
+
+CREATE OR REPLACE TABLE cc_data_employment_table AS
+SELECT
+    ccn20,
+    cd119,
+    State,
+    tot_emp, 
+    tot_unemp, 
+    tot_civilian_lf, 
+  
+    tot_unemp 
+        / NULLIF(tot_civilian_lf, 0)::DOUBLE
+        AS unemp_rate3,
+
+ FROM cc_data_updated;
+
+
+CREATE OR REPLACE TABLE dc_data_employment_table AS
+SELECT
+    cd119,
+
+    SUM(tot_emp) AS tot_emp,
+    SUM(tot_unemp) AS tot_unemp,
+    SUM(tot_civilian_lf) AS tot_civilian_lf,
+
+    SUM(tot_unemp)
+        / NULLIF(SUM(tot_civilian_lf), 0)::DOUBLE
+        AS unemp_rate3,
+
+FROM cc_data_updated
+GROUP BY cd119;
+
+
+CREATE OR REPLACE TABLE state_data_employment_table AS
+SELECT
+    State,
+
+    SUM(tot_emp) AS tot_emp,
+    SUM(tot_unemp) AS tot_unemp,
+    SUM(tot_civilian_lf) AS tot_civilian_lf,
+
+    SUM(tot_unemp)
+        / NULLIF(SUM(tot_civilian_lf), 0)::DOUBLE
+        AS unemp_rate3,
+
+FROM cc_data_updated
+GROUP BY State;
+```
+
+
+<!-- Filtering the data-->
+
+
+```js cc_data_employment_calc.js
+const cc_data_employment = isDC
+  ? await sql`
+    SELECT 
+      d.*,
+      c.State
+    FROM dc_data_employment_table AS d
+    INNER JOIN cc_data_employment_table AS c
+      ON c.cd119 = d.cd119
+    WHERE d.cd119 = ${ccn}
+    LIMIT 1`
+  : await sql`
+    SELECT *, 
+    FROM cc_data_employment_table
+    WHERE ccn20 = ${ccn}`;
+```
+
+```js dc_data_employment_calc.js
+const dc_data_employment = isDC
+  ? await sql`
+    SELECT *, 
+    FROM dc_data_employment_table
+    WHERE cd119 = ${ccn}` 
+  : await sql`
+    SELECT *, 
+    FROM dc_data_employment_table
+    WHERE cd119 = (
+        SELECT cd119
+        FROM cc_data_employment_table
+        WHERE ccn20 = ${ccn}
+    )`;
+```
+
+```js state_data_employment_calc.js
+const state_data_employment = isDC
+  ? await sql`
+    SELECT *, 
+    FROM state_data_employment_table
+    WHERE State = (
+        SELECT State
+        FROM cc_data_employment_table
+        WHERE cd119 = ${ccn} 
+        LIMIT 1
+    )`
+  : await sql`
+    SELECT *, 
+    FROM state_data_employment_table
+    WHERE State = (
+        SELECT State
+        FROM cc_data_employment_table
+        WHERE ccn20 = ${ccn}
+    )`;
+```
+
+
+<!-- Cleaning and extracting data-->
+```js select_housing_vars.js
+// employed
+const cc_tot_emp = extract_var(cc_data_employment, "tot_emp");
+const dc_tot_emp = extract_var(dc_data_employment, "tot_emp");
+const state_tot_emp = extract_var(state_data_employment, "tot_emp");
+
+// unemployed
+const cc_tot_unemp = extract_var(cc_data_employment, "tot_unempl");
+const dc_tot_unemp = extract_var(dc_data_employment, "tot_unemp");
+const state_tot_unemp = extract_var(state_data_employment, "tot_unemp");
+
+// U3
+const cc_unemp_rate3 = extract_var(cc_data_employment, "unemp_rate3"); 
+const dc_unemp_rate3 = extract_var(dc_data_employment, "unemp_rate3"); 
+const state_unemp_rate3 = extract_var(state_data_employment, "unemp_rate3"); 
+
+const cc_dc_diff_unemp_rate =
+  cc_unemp_rate3 - dc_unemp_rate3;
+
+const cc_dc_unemp =
+  cc_dc_diff_unemp_rate > 0 ? "higher" : "lower";
+
+const cc_state_diff_unemp_rate =
+  cc_unemp_rate3 - state_unemp_rate3;
+
+const cc_state_unemp =
+  cc_state_diff_unemp_rate > 0 ? "higher" : "lower";
+```

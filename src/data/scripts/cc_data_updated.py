@@ -38,6 +38,18 @@ def clean_groups(df):
                        'H046': 'tot_owned_hholds', 
                        'H047': 'tot_rented_hholds'}, inplace=True)
     
+    # language
+    df.rename(columns={'S112': 'tot_pop_5yrs', 
+                       'S113': 'tot_english_only', 
+                       'S114': 'tot_non_english', 
+                       'S116': 'tot_spanish', }, inplace=True)
+    
+    # employment 
+    df.rename(columns={'E004': 'tot_emp', 
+                       'E005': 'tot_unemp', 
+                       'E008': 'tot_civilian_lf', 
+                       'E009P': 'unemployment_rate'
+                       }, inplace=True)
     return df
 
 def write_parquet(df, path):
