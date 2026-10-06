@@ -5,8 +5,10 @@ sql:
   cd119_geos: ./data/cd119_geos.parquet
   cc_data_updated: ./data/cc_data_updated.parquet
   ccn20_to_cd119: ./data/ccn20_to_cd119.parquet
+  usa_data_updated: ./data/usa_data_updated.parquet
 head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10/dist/css/autoComplete.min.css">'
 ---
+
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-2M9HMSTWCC"></script>
@@ -109,6 +111,9 @@ const page_background_color = "#f9f0ea";
 const page_background_color_card = "#f2e9e3";
 ```
 
+```js load_country_data.js
+const usa_data_updated = await sql`SELECT * FROM usa_data_updated`;
+```
 
 <!-- creating the tables-->
 
@@ -538,14 +543,14 @@ function renderFullWaffle(labels, countsByLabel, type, group_name_list) {
 function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
   // choosing the correct dfs 
   const DF_SETS = {
-    age: { cc: cc_data_age, dc: dc_data_age, state: state_data_age },
-    housing: { cc: cc_data_housing, dc: dc_data_housing, state: state_data_housing },
-    employment: { cc: cc_data_employment, dc: dc_data_employment, state: state_data_employment },
-    lang : { cc: cc_data_lang, dc: dc_data_lang, state: state_data_lang }
+    age: { cc: cc_data_age, dc: dc_data_age, state: state_data_age, country : usa_data_updated },
+    housing: { cc: cc_data_housing, dc: dc_data_housing, state: state_data_housing, country : usa_data_updated  },
+    employment: { cc: cc_data_employment, dc: dc_data_employment, state: state_data_employment, country : usa_data_updated  },
+    lang : { cc: cc_data_lang, dc: dc_data_lang, state: state_data_lang, country : usa_data_updated  }
   };
   const dfSet = DF_SETS[type];
   if (!dfSet) throw new Error(`Unknown type: ${type}`);
-  const { cc: df_cc, dc: df_dc, state: df_state } = dfSet;
+  const { cc: df_cc, dc: df_dc, state: df_state, country: df_country } = dfSet;
 
   
   // colors
@@ -561,6 +566,7 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
   const xCc = df_cc.getChild(var_list).get(0);
   const xCd = df_dc.getChild(var_list).get(0);
   const xState = df_state.getChild(var_list).get(0);
+  const xCountry = df_country.getChild(var_list).get(0);
 
   const traces = [];
 
@@ -609,7 +615,17 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
         hovertemplate: `Congressional Community: ${(xCc * 100).toFixed(1)}%<extra></extra>`
       };
 
-  if (!isDC) traces.push(cc_trace);
+    const country_trace = {
+      x: [xCountry],
+      y: [1],
+      mode: "markers",
+      marker: { symbol: "star-diamond", size: 20, color: notUsed, line: { color: block_color, width: 2 } },
+      name: "United States",
+      hovertemplate: `United States: ${(xCountry * 100).toFixed(1)}%<extra></extra>`
+    };
+
+    if (!isDC) traces.push(cc_trace);
+    if (isDC) traces.push(country_trace);
 
   // dynamically adjust x range
   const xMin = floorToDecimals(Math.min(xCc, xCd, xState), 1) - 0.01;
