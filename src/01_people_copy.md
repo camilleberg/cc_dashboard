@@ -1132,6 +1132,13 @@ function create_dc_map(container, ccn_geo_data, array_labels, array_names, { inv
 
 ## People and Places
 
+```js
+const btn = Inputs.button("Return to top", {
+  reduce: () => window.scrollTo({ top: 0, behavior: "smooth" })
+});
+
+```
+
 
 <!-- Waffle chart -->
 
@@ -1188,9 +1195,28 @@ const map_dc_age = buildMapDcAge(title_age)
 [add note about zooming in and UI for plotly]
 
 
-<center>
-Your ${title_choice.toLowerCase()}, <strong>${ccn}</strong>, is a community of <strong>${format_number(cc_tot_pop)}</strong> individuals. ${isDC ? "" : `Compared to your congressional district of <strong>${Math.abs(dc_tot_pop).toLocaleString("en-us")}</strong> people, your community skews <strong>${cc_dc_younger}</strong> by <strong>${(Math.abs(cc_dc_diff) * 100).toFixed(1)} percentage points</strong>`}. It is similarly <strong>${cc_state_younger}</strong> than <strong>${states.fullName(state_name)}</strong>, by <strong>${(Math.abs(cc_state_diff) * 100).toFixed(1)} percentage points</strong>.
-</center>
+```js age_text.js
+const pct_pts = (x) => (Math.abs(x) * 100).toFixed(1);
+
+const age_summary = isDC
+  ? html`Your congressional district, <strong>${ccn}</strong>, has
+      <strong>${format_number(cc_tot_pop)}</strong> residents. Compared to
+      <strong>${states.fullName(state_name)}</strong>, it skews
+      <strong>${cc_state_younger}</strong> by
+      <strong>${pct_pts(cc_state_diff)} percentage points</strong>.`
+  : html`Your congressional community, <strong>${ccn}</strong>, has
+      <strong>${format_number(cc_tot_pop)}</strong> residents. Compared to your
+      congressional district of <strong>${format_number(dc_tot_pop)}</strong> people,
+      your community skews <strong>${cc_dc_younger}</strong> by
+      <strong>${pct_pts(cc_dc_diff)} percentage points</strong>.
+      ${cc_dc_younger === cc_state_younger ? "It is similarly" : "By contrast, it is"}
+      <strong>${cc_state_younger}</strong> than
+      <strong>${states.fullName(state_name)}</strong>, by
+      <strong>${pct_pts(cc_state_diff)} percentage points</strong>.`;
+```
+
+<center>${age_summary}</center>
+
 <!-- Cards with big numbers -->
 
 
@@ -1250,7 +1276,11 @@ Communities with younger (older) individuals often have different priorities, so
 
 [link blocks to causes, e.g. youth – childcare, education, loans – can tag interest groups and integrate with fuzzy matching]
 
+<div class="return-top-container">${btn}</div>
+
 <hr>
+
+
 
 ## Housing
 
