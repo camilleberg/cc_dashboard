@@ -2206,15 +2206,15 @@ Looking at different measures of employment...
 <div class="grid grid-cols-3">
   <div class="card">
     <h3>${highlight("Employment rate", 0)}</h3>
-    <span class="big">${highlight(Math.abs(cc_emp_rate3 * 100).toLocaleString("en-us", { maximumFractionDigits: 2 })+ '%', 0)}</span>
+    <span class="big">${highlight(Math.abs(cc_emp_rate3 * 100).toLocaleString("en-us", { maximumFractionDigits: 1 })+ '%', 0)}</span>
   </div>
   <div class="card">
     <h3>${highlight("Labor Force Participation rate", 1)}</h3>
-    <span class="big">${highlight(Math.abs(cc_lfp_rate * 100).toLocaleString("en-us", { maximumFractionDigits: 2 }) + '%', 1)}</span>
+    <span class="big">${highlight(Math.abs(cc_lfp_rate * 100).toLocaleString("en-us", { maximumFractionDigits: 1 }) + '%', 1)}</span>
   </div>
   <div class="card">
     <h3>${highlight("Employment-to-population ratio", 2)}</h3>
-    <span class="big">${highlight(Math.abs(cc_emp_to_pop * 100).toLocaleString("en-us", { maximumFractionDigits: 2 }) + '%', 2)}</span>
+    <span class="big">${highlight(Math.abs(cc_emp_to_pop * 100).toLocaleString("en-us", { maximumFractionDigits: 1 }) + '%', 2)}</span>
   </div>
 </div>
 
