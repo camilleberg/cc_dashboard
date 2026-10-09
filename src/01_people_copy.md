@@ -570,21 +570,21 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
 
   const traces = [];
 
-  // baseline number line (tick marks along y=1)
-  traces.push({
-    x: intervals,
-    y: intervals.map(() => 1),
-    mode: "lines+markers",
-    marker: { symbol: "line-ns", size: 10, color: "darkgrey", line: { width: 1 } },
-    opacity: 0.5,
-    hoverinfo: "skip",
-    showlegend: false
-  });
+  // baseline number line (tick marks along y=0)
+  // traces.push({
+  //   x: intervals,
+  //   y: intervals.map(() => 0),
+  //   mode: "lines+markers",
+  //   marker: { symbol: "line-ns", size: 10, color: "darkgrey", line: { width: 1 } },
+  //   opacity: 0.5,
+  //   hoverinfo: "skip",
+  //   showlegend: false
+  // });
 
   // State
   traces.push({
     x: [xState],
-    y: [1],
+    y: [0],
     mode: "markers",
     marker: { symbol: "diamond-x", size: 20, color: notUsed, line: { color: block_color, width: 2 } },
     name: "State",
@@ -594,7 +594,7 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
   // Congressional District
   traces.push({
     x: [xCd],
-    y: [1],
+    y: [0],
     mode: "markers",
     marker: { symbol: "circle", size: 20, color: notUsed, line: { color: block_color, width: 2 } },
     name: "Congressional District",
@@ -608,7 +608,7 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
     ? null
     : {
         x: [xCc],
-        y: [1],
+        y: [0],
         mode: "markers",
         marker: { symbol: "circle", size: 20, color: colorUsed, line: { color: block_color, width: 2 } },
         name: "Congressional Community",
@@ -617,7 +617,7 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
 
     const country_trace = {
       x: [xCountry],
-      y: [1],
+      y: [0],
       mode: "markers",
       marker: { symbol: "star-diamond", size: 20, color: notUsed, line: { color: block_color, width: 2 } },
       name: "United States",
@@ -634,19 +634,34 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
   const layout = {
     xaxis: {
       range: [xMin, xMax],
-      tickmode: "array",
-      tickvals: intervals,
-      ticktext: intervals.map((v) => `${Math.round(v * 100)}%`),
-      showgrid: false,
-      zeroline: false,
+      tickmode: "auto",          // let Plotly choose spacing as the user zooms
+      nticks: 3,
+      tickformatstops: [
+        { enabled: true, dtickrange: [null, 0.001], value: ".2%" },  // zoomed far in: 12.34%
+        { enabled: true, dtickrange: [0.001, 0.01], value: ".1%" },  // moderate zoom: 12.3%
+        { enabled: true, dtickrange: [0.01, null], value: ".0%" }   // zoomed out: 12%
+      ],
+      showgrid: true, // for lines
+      gridcolor: 'darkgrey', 
+      gridwidth: 1,
+      //griddash: 'dash',
+      zeroline: false, 
       color: "darkgrey"
     },
-    yaxis: { visible: false, range: [0.9, 1.1] },
+    yaxis: { 
+      range: [-0.1, 0.1],    
+      visible: true, 
+      showgrid: false, // for lines
+      showticklabels: false,   
+      zeroline: true,      // Set to false if you want to hide the vertical line at x=0
+      zerolinecolor: 'darkgrey', // Change the color of the zero line 
+      zerolinewidth: 1,     // Change the thickness of the line in pixels
+     },
     legend: { orientation: "h", yanchor: "bottom", y: 1.02, xanchor: "center", x: 0.5, 
       "itemsizing": "constant", "itemwidth": 10
      },
-    height: 200,
-    margin: { l: 20, r: 20, t: 40, b: 40 },
+    height: 160,
+    margin: { l: 20, r: 20, t: 80, b: 40 },
     paper_bgcolor: 'rgba(0,0,0,0)', // Makes the outer container transparent
     plot_bgcolor: 'rgba(0,0,0,0)' , 
     hovermode: 'x'
