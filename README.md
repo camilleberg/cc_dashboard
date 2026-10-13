@@ -26,7 +26,10 @@ A typical Framework project looks like this:
 │  ├─ components
 │  │  └─ timeline.js           # an importable module
 │  ├─ data
-│  │  ├─ launches.csv.js       # a data loader
+│  │  ├─ inputs
+│  │  │  ├─ ccn20_geos         # a folder containging the congresisonal community geos
+│  │  │  ├─ cd119_geographies  # a folder containging the congresisonal district geos
+│  │  │  ├─ ACS5Y2024_501_Itemset1_CD119 # downlaoded data file for the ccn20 data 
 │  │  └─ events.json           # a static data file
 │  ├─ example-dashboard.md     # a page
 │  ├─ example-report.md        # another page
@@ -57,3 +60,5 @@ A typical Framework project looks like this:
 | `npm run deploy`     | Deploy your app to Observable                            |
 | `npm run clean`      | Clear the local data loader cache                        |
 | `npm run observable` | Run commands like `observable help`                      |
+
+# 

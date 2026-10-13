@@ -27,7 +27,9 @@ head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/au
 
 # Main Page
 
-Please explore your congressional comunity (or district!). Use the search bar to find your communtiy and explore what makes you unique. 
+Please explore your congressional comunity (or district!). Use the search bar to find your communtiy and explore what makes you unique*. 
+
+<p>*Data provided by the United States Census Bureau 5 Year American Community Service 2019-2024. For more infomation about how we calculate and catgorize congressional communitues please visit </a href= "">our site</a> </p>
 
 
 <br>
@@ -676,6 +678,19 @@ const config = {
 }
 ```
 
+```js addDirections.js
+// this is to make directions for the plot graph 
+function addDirections(title_choice) {
+  const container = document.createElement("div");
+  container.style = "height: 40px;";
+  container.innerHTML = "Click to explore how your " + title_choice + " compares! <br> To reset axes press 🏠 <br><br>" ;
+  return container;
+}
+
+const plotly_directions = addDirections(title_choice);
+```
+
+
 
 <!-- Map chart -->
 
@@ -1156,6 +1171,7 @@ const ageKey = [`age_prop_under18`, 'age_prop_18_65', 'age_prop_over65'];
 
 
 ```js dc_title.js
+// this  is to make title for congressional district map 
 function makeMapDCTitle(type) {
   const container = document.createElement("div");
   container.style = "height: 40px;";
@@ -1167,17 +1183,17 @@ const title_age = makeMapDCTitle("Age");
 ```
 
 
+
 ```js
-async function buildMapDcAge(title) {
+async function buildMapDcAge() {
   const container = document.createElement("div");
   container.style = "height: 270px;";
   const map = await create_dc_map(container, current_ccn_merged_geojson_age, ageKey.toReversed(), ageGroupNames, { invalidation });
   requestAnimationFrame(() => map.resize());
   return container;
 }
-const map_dc_age = buildMapDcAge(title_age)
+const map_dc_age = buildMapDcAge()
 ```
-
 
 
 <div class="grid grid-cols-3">
@@ -1237,8 +1253,6 @@ const age_summary = isDC
 
 <!-- plotly graphs -->
 
-
-
 <div class="grid grid-cols-3" >
   <div class="card">${
     resize((width) => {
@@ -1265,6 +1279,7 @@ const age_summary = isDC
     }) 
   }</div>
 </div>
+<p>${addDirections(title_choice)}</p>
 
 
 <!-- plot attributes -->
@@ -1283,6 +1298,8 @@ Communities with younger (older) individuals often have different priorities, so
 
 
 ## Housing
+
+
 
 <!-- creating the tables for housing-->
 
@@ -1653,8 +1670,12 @@ Given the current state of the housing market, homeownership rates say a lot abo
 </center>
 
 
+<div class="return-top-container">${btn}</div>
+<hr>
+
 
 ## Languages
+
 
 <span style="color:blue">This language data pull /analysis is in progress!</span>.
 
@@ -1954,12 +1975,15 @@ Looking at different measures of lang...
   }</div>
 </div>
 
-There are a total of x languages other than English spoken at home in your community.
-[insert graph with languages sorted]
 This kind of linguistic diversity helps shape the fabric of your community. However, different languages come with different needs, such as knowing which interpreters to hire or which languages official materials should be translated into for the greatest impact.
 
 
+<div class="return-top-container">${btn}</div>
+
+<hr>
+
 ## Employment 
+
 
 ```sql id=create_tables_employment
 
