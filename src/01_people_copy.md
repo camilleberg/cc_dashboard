@@ -29,7 +29,7 @@ head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/au
 
 Please explore your congressional comunity (or district!). Use the search bar to find your communtiy and explore what makes you unique*. 
 
-<p>*Data provided by the United States Census Bureau 5 Year American Community Service 2019-2024. For more infomation about how we calculate and catgorize congressional communitues please visit </a href= "">our site</a> </p>
+<p  style="color: #CC79A7;font-size: 10px;">*Data provided by the United States Census Bureau 5 Year American Community Service 2019-2024. For more infomation about how we calculate and catgorize congressional communitues please visit <a href= "">our site</a>.</p>
 
 
 <br>
@@ -111,6 +111,10 @@ function extract_var(table_name, var_name) {
 const maplibre_style = "https://tiles.versatiles.org/assets/styles/colorful/style.json";
 const page_background_color = "#f9f0ea";
 const page_background_color_card = "#f2e9e3";
+
+const homeIcon = { 
+  svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36"><path fill="#A0041E" d="M9.344 14.702h-2c-.276 0-.5-.224-.5-.5v-7c0-.276.224-.5.5-.5h2c.276 0 .5.224.5.5v7c0 .276-.224.5-.5.5z"/><path fill="#FFE8B6" d="M5 16L18 3l13 13v17H5z"/><path fill="#FFCC4D" d="M18 16h1v16h-1z"/><path fill="#66757F" d="M31 17c-.256 0-.512-.098-.707-.293L18 4.414 5.707 16.707c-.391.391-1.023.391-1.414 0s-.391-1.023 0-1.414l13-13c.391-.391 1.023-.391 1.414 0l13 13c.391.391.391 1.023 0 1.414-.195.195-.451.293-.707.293z"/><path fill="#66757F" d="M18 17c-.256 0-.512-.098-.707-.293-.391-.391-.391-1.023 0-1.414l6.5-6.5c.391-.391 1.023-.391 1.414 0s.391 1.023 0 1.414l-6.5 6.5c-.195.195-.451.293-.707.293z"/><path fill="#C1694F" d="M10 26h4v6h-4z"/><path fill="#55ACEE" d="M10 17h4v4h-4zm12.5 0h4v4h-4zm0 9h4v4h-4z"/><path fill="#5C913B" d="M33.5 33.5c0 .828-.672 1.5-1.5 1.5H4c-.828 0-1.5-.672-1.5-1.5S3.172 32 4 32h28c.828 0 1.5.672 1.5 1.5z"/></svg>`
+}; // this is the home emoji icon
 ```
 
 ```js load_country_data.js
@@ -533,7 +537,7 @@ function renderFullWaffle(labels, countsByLabel, type, group_name_list) {
   });
 
   return html`<div class="waffle-section">
-    <div class="waffle-title">If your ${title_choice} was <br> 100 <strong>${title}</strong>...<br><br></div>
+    <div class="waffle-title"> <span style = "color: #5b534a;font-weight: bold;">If your ${title_choice} was 100 ${title}</span>...<br><span style="color: #5b534a; font-size: 11px">Share of your ${title_choice} by type</span><br><br></div>
     ${renderWaffleLegend(labels, labels, group_name_list)}
     ${grid}
   </div>`;
@@ -669,26 +673,29 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
     hovermode: 'x'
   };
 
-const config = {
-  modeBarButtons: [[ 'toImage', 'resetScale2d' ]], 
-  displaylogo: false
-};
+
+  const config = {
+    modeBarButtons: [[
+      {
+        name: "resetHome",
+        title: "Reset view",
+        icon: homeIcon,
+        click: (gd) => {
+          Plotly.relayout(gd, {
+            "xaxis.range": layout.xaxis.range,
+            "yaxis.range": layout.yaxis.range
+          });
+        }
+      },
+      "toImage"
+    ]],
+    displaylogo: false
+  };
 
   return { traces, layout, config };
 }
 ```
 
-```js addDirections.js
-// this is to make directions for the plot graph 
-function addDirections(title_choice) {
-  const container = document.createElement("div");
-  container.style = "height: 40px;";
-  container.innerHTML = "Click to explore how your " + title_choice + " compares! <br> To reset axes press 🏠 <br><br>" ;
-  return container;
-}
-
-const plotly_directions = addDirections(title_choice);
-```
 
 
 
@@ -738,6 +745,8 @@ const title_choice = isDC ? "Congressional District" : "Congressional Community"
 
 
 ## Snapshot of your ${title_choice}
+
+<span style="color: #5b534a; font-size: 11px;">Click to explore your ${title_choice}! To reset the map press 🏠. </span>
 
 ```js calc_ccn_coords.js
 // calculating the lat long
@@ -1174,8 +1183,11 @@ const ageKey = [`age_prop_under18`, 'age_prop_18_65', 'age_prop_over65'];
 // this  is to make title for congressional district map 
 function makeMapDCTitle(type) {
   const container = document.createElement("div");
-  container.style = "height: 40px;";
-  container.innerHTML = "<strong>Map of your Congressional District by " + type + "</strong><br> Please use the layers tab on the bottom left to visualize how your communtiy compares <br><br>" ;
+  container.style.height = "40px";
+  container.innerHTML = `
+    <span style="color: #5b534a; font-weight: bold;">Map of your Congressional District by ${type}</span><br>
+    <span style="color: #5b534a; font-size: 11px;">Please use the layers tab on the bottom left to visualize how your community compares</span>
+  `;
   return container;
 }
 
@@ -1208,7 +1220,6 @@ const map_dc_age = buildMapDcAge()
 
 <!-- Text -->
 
-[add note about zooming in and UI for plotly]
 
 
 ```js age_text.js
@@ -1237,6 +1248,17 @@ const age_summary = isDC
 
 
 <div class="grid grid-cols-3">
+  <div class="card grid-colspan-3">
+  <center>
+  <span style="color: #5b534a; font-weight: bold;">Your ${title_choice} In Comparison</span>
+  <br>
+  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the fraph to zoom in and to reset axes press 🏠 </span>
+  </center>
+  </div>
+</div>
+
+
+<div class="grid grid-cols-3">
   <div class="card">
     <h3>${highlight("Under 18 Population", 2)}</h3>
     <span class="big">${highlight(format_number(age_under_18), 2)}</span>
@@ -1250,6 +1272,7 @@ const age_summary = isDC
     <span class="big">${highlight(format_number(age_over65), 0)}</span>
   </div>
 </div>
+
 
 <!-- plotly graphs -->
 
@@ -1279,7 +1302,8 @@ const age_summary = isDC
     }) 
   }</div>
 </div>
-<p>${addDirections(title_choice)}</p>
+
+
 
 
 <!-- plot attributes -->
@@ -1546,9 +1570,19 @@ const title_vac = makeMapDCTitle("Housing Vacancy");
   </div>
 </div>
 
+Text here 
 
 
-In general, 
+<div class="grid grid-cols-3">
+  <div class="card grid-colspan-3">
+  <center>
+  <span style="color: #5b534a; font-weight: bold;">Your ${title_choice} In Comparison</span>
+  <br>
+  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the fraph to zoom in and to reset axes press 🏠 </span>
+  </center>
+  </div>
+</div>
+
 
 <div class="grid grid-cols-2">
   <div class="card">
@@ -1627,6 +1661,18 @@ const title_own = makeMapDCTitle("Housing Ownership");
 <center>
 Of all occupied <strong>${format_number(cc_tot_hholds)}</strong> housing units, <strong>${Math.abs(cc_own_rate * 100).toFixed(1).toLocaleString()}%</strong> are owned. That means that, compared to your congressional district and state, your congressional district's homeownership rate is <strong>${Math.abs(cc_dc_diff_own_rate*100).toFixed(1).toLocaleString()}</strong> percentage points <strong>${cc_dc_ownership}</strong> and your state's homeownerhsip rate is <strong>${Math.abs(cc_state_diff_own_rate*100).toFixed(1).toLocaleString()}</strong> percentage points <strong>${cc_state_ownership}</strong>. 
 </center>
+
+<!-- title -->
+
+<div class="grid grid-cols-3">
+  <div class="card grid-colspan-3">
+  <center>
+  <span style="color: #5b534a; font-weight: bold;">Your ${title_choice} In Comparison</span>
+  <br>
+  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the fraph to zoom in and to reset axes press 🏠 </span>
+  </center>
+  </div>
+</div>
 
 
 <!-- cards with big numbers -->
@@ -1917,6 +1963,7 @@ const map_dc_lang = buildMapDcLang()
 const title_lang = makeMapDCTitle("Language Spoken at Home");
 ```
 
+<!-- rendering waffle -->
 
 <div class="grid grid-cols-3" >
   <div class="card">${
@@ -1928,10 +1975,25 @@ const title_lang = makeMapDCTitle("Language Spoken at Home");
   </div>
 </div>
 
+<!-- text-->
+
+Looking at different measures of lang...
+
+<!-- title -->
+
+<div class="grid grid-cols-3">
+  <div class="card grid-colspan-3">
+  <center>
+  <span style="color: #5b534a; font-weight: bold;">Your ${title_choice} In Comparison</span>
+  <br>
+  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the fraph to zoom in and to reset axes press 🏠 </span>
+  </center>
+  </div>
+</div>
+
 
 
 <!-- cards with big numbers -->
-Looking at different measures of lang...
 
 <div class="grid grid-cols-3">
   <div class="card">
@@ -2253,9 +2315,21 @@ const title_emp = makeMapDCTitle("Employment Rate");
   </div>
 </div>
 
+Looking at different measures of employment...
+
+<!-- title -->
+
+<div class="grid grid-cols-3">
+  <div class="card grid-colspan-3">
+  <center>
+  <span style="color: #5b534a; font-weight: bold;">Your ${title_choice} In Comparison</span>
+  <br>
+  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the fraph to zoom in and to reset axes press 🏠 </span>
+  </center>
+  </div>
+</div>
 
 <!-- cards with big numbers -->
-Looking at different measures of employment...
 
 <div class="grid grid-cols-3">
   <div class="card">
