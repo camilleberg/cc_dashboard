@@ -634,8 +634,9 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
     if (isDC) traces.push(country_trace);
 
   // dynamically adjust x range
-  const xMin = floorToDecimals(Math.min(xCc, xCd, xState), 1) - 0.01;
-  const xMax = ceilToDecimals(Math.max(xCc, xCd, xState), 2) + 0.07;
+  const xs = [xCc, xCd, xState, xCountry].filter(Number.isFinite);
+  const xMin = floorToDecimals(Math.min(...xs), 1) - 0.01;
+  const xMax = ceilToDecimals(Math.max(...xs), 2) + 0.07;
 
   const layout = {
     xaxis: {
@@ -1309,11 +1310,10 @@ const age_summary = isDC
 <!-- plot attributes -->
 
 <center>
-Communities with younger (older) individuals often have different priorities, so understanding where your community sits on this spectrum helps explain which policy fights actually matter locally, even when they don't dominate the district-wide conversation.
+Communities with different age cohorts individuals often have different priorities, so understanding where your community sits on this spectrum helps explain which policy fights actually matter locally, even when they don't dominate the district-wide conversation.
 
 </center>
 
-[link blocks to causes, e.g. youth – childcare, education, loans – can tag interest groups and integrate with fuzzy matching]
 
 <div class="return-top-container">${btn}</div>
 
@@ -1479,6 +1479,7 @@ const state_occupancy_rate = extract_var(state_data_housing, "housing_occupancy_
 const cc_own_rate =extract_var(cc_data_housing, "housing_ownership_rate"); 
 const dc_own_rate = extract_var(dc_data_housing, "housing_ownership_rate"); 
 const state_own_rate = extract_var(state_data_housing, "housing_ownership_rate"); 
+const usa_own_rate = extract_var(usa_data_updated, "housing_ownership_rate"); 
 
 const cc_dc_diff_own_rate =
   cc_own_rate - dc_own_rate;
@@ -1658,9 +1659,28 @@ const title_own = makeMapDCTitle("Housing Ownership");
   </div>
 </div>
 
-<center>
-Of all occupied <strong>${format_number(cc_tot_hholds)}</strong> housing units, <strong>${Math.abs(cc_own_rate * 100).toFixed(1).toLocaleString()}%</strong> are owned. That means that, compared to your congressional district and state, your congressional district's homeownership rate is <strong>${Math.abs(cc_dc_diff_own_rate*100).toFixed(1).toLocaleString()}</strong> percentage points <strong>${cc_dc_ownership}</strong> and your state's homeownerhsip rate is <strong>${Math.abs(cc_state_diff_own_rate*100).toFixed(1).toLocaleString()}</strong> percentage points <strong>${cc_state_ownership}</strong>. 
-</center>
+```js hhold_text.js
+const hhold_summary = isDC
+  ? html`Of all occupied 
+      <strong>${format_number(cc_tot_hholds)}</strong> housing units,  
+      <strong>${pct_pts(cc_own_rate)} percent</strong> are owned. That means that, compared to your state and the United State as a whole, your ${title_choice}'s homeownership rate is 
+      <strong>${pct_pts(cc_state_diff_own_rate)}</strong>, percentage points
+      <strong>${cc_state_ownership}</strong> and
+      FIx
+
+      <strong>${cc_state_ownership} </strong> by your state's homeownerhsip rate by 
+      <strong>${pct_pts(cc_state_diff_own_rate)} percentage points</strong>`
+  : html`Of all occupied 
+      <strong>${format_number(cc_tot_hholds)}</strong> housing units,  
+      <strong>${pct_pts(cc_own_rate)} percent</strong> are owned. That means that, compared to your congressional district and state, your ${title_choice}'s homeownership rate is 
+      <strong>${pct_pts(cc_dc_diff_own_rate)}</strong>, percentage points
+      <strong>${cc_dc_ownership}</strong> and
+      <strong>${cc_state_ownership} </strong> by your state's homeownerhsip rate by 
+      <strong>${pct_pts(cc_state_diff_own_rate)} percentage points</strong>`;
+```
+
+<center>${hhold_summary}</center>
+
 
 <!-- title -->
 
