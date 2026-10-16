@@ -1311,7 +1311,6 @@ const age_summary = isDC
 
 <center>
 Communities with different age cohorts individuals often have different priorities, so understanding where your community sits on this spectrum helps explain which policy fights actually matter locally, even when they don't dominate the district-wide conversation.
-
 </center>
 
 
@@ -1732,7 +1731,6 @@ const hhold_summary = isDC
 
 <center>
 Given the current state of the housing market, homeownership rates say a lot about how exposed a community is to rent increases, displacement, and housing-cost burden. Policies like rent stabilization or first-time buyer programs will therefore have varying levels of impact depending on the local environment. Knowing more about housing in your community can help you and your representative understand which policies will actually help you.
-[link blocks to causes — e.g., renters → tenant protections, rent stabilization; owners → property tax relief, homeowner assistance programs]
 </center>
 
 
@@ -1741,10 +1739,6 @@ Given the current state of the housing market, homeownership rates say a lot abo
 
 
 ## Languages
-
-
-<span style="color:blue">This language data pull /analysis is in progress!</span>.
-
 
 
 ```sql id=create_tables_lang
@@ -2057,7 +2051,23 @@ Looking at different measures of lang...
   }</div>
 </div>
 
-This kind of linguistic diversity helps shape the fabric of your community. However, different languages come with different needs, such as knowing which interpreters to hire or which languages official materials should be translated into for the greatest impact.
+```js lang_text.js
+const lang_summary = isDC
+  ? html`Of all occupied 
+      <strong>${format_number(cc_tot_hholds)}</strong> housing units,  
+      <strong>${pct_pts(cc_own_rate)} percent</strong> are owned. That means that, compared to your state and the United State as a whole, your ${title_choice}'s homeownership rate is 
+      <strong>${pct_pts(cc_state_diff_own_rate)}</strong>, percentage points
+      <strong>${cc_state_ownership}</strong> and T his kind of linguistic diversity helps shape the fabric of your community. However, different languages come with different needs, such as knowing which interpreters to hire or which languages official materials should be translated into for the greatest impact.`
+  : html`Of all occupied 
+      <strong>${format_number(cc_tot_hholds)}</strong> housing units,  
+      <strong>${pct_pts(cc_own_rate)} percent</strong> are owned. That means that, compared to your congressional district and state, your ${title_choice}'s homeownership rate is 
+      <strong>${pct_pts(cc_dc_diff_own_rate)}</strong>, percentage points
+      <strong>${cc_dc_ownership}</strong> and
+      <strong>${cc_state_ownership} </strong> by your state's homeownerhsip rate by 
+      <strong>${pct_pts(cc_state_diff_own_rate)} percentage points</strong>This kind of linguistic diversity helps shape the fabric of your community. However, different languages come with different needs, such as knowing which interpreters to hire or which languages official materials should be translated into for the greatest impact.`;
+```
+
+<center>${lang_summary}</center>
 
 
 <div class="return-top-container">${btn}</div>
