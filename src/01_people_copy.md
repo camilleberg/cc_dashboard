@@ -697,12 +697,11 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
 }
 ```
 
-```js
-display(html`<link rel="stylesheet" href="${import.meta.resolve("npm:maplibre-gl/dist/maplibre-gl.css")}">`);
-import * as maplibregl from "npm:maplibre-gl";
+```js import_maplibre.js
+import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-gl.mjs';
+// bright basemap
+display(html`<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-gl.css">`);
 ```
-
-
 
 ```js import_extensions.js
 import * as mlc from "npm:maplibre-gl-components";
