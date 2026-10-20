@@ -105,7 +105,8 @@ function format_number(number) {
 };
 
 function extract_var(table_name, var_name) {
-  return Number(table_name.getChild(var_name).get(0));
+  const value = table_name.getChild(var_name).get(0);
+  return value == null ? Number(value) : Number.parseFloat(value.toString());
 }
 
 const maplibre_style = "https://tiles.versatiles.org/assets/styles/colorful/style.json";
@@ -698,7 +699,7 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
 ```
 
 ```js import_maplibre.js
-import * as maplibregl from "npm:maplibre-gl@6.11.2";
+import * as maplibregl from "https://unpkg.com/maplibre-gl@6.11.2/dist/maplibre-gl.mjs";
 // bright basemap
 ```
 
@@ -706,9 +707,7 @@ import * as maplibregl from "npm:maplibre-gl@6.11.2";
 display(html`<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.11.2/dist/maplibre-gl.css">`);
 ```
 
-```js
-const { Marker } = maplibregl;
-```
+
 
 ```js import_extensions.js
 import * as mlc from "npm:maplibre-gl-components";
