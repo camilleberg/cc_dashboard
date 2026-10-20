@@ -19,7 +19,7 @@ export default {
   // Content to add to the head of the page, e.g. for a favicon:
     head: `
      <link rel="icon" href="observable.png" type="image/png" sizes="32x32">
-     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.6.0/dist/maplibre-gl.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.11.2/dist/maplibre-gl.css">
    `,
 
   // The path to the source root.

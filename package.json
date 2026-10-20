@@ -15,7 +15,7 @@
     "@turf/turf": "^7.4.0",
     "d3-dsv": "^3.0.1",
     "d3-time-format": "^4.1.0",
-    "maplibre-gl": "5.24.0",
+    "maplibre-gl": "6.11.2",
     "maplibre-gl-components": "^0.16.3",
     "maplibre-gl-layer-control": "^0.17.4",
     "us-state-converter": "^1.0.8"
