@@ -1921,6 +1921,13 @@ const state_prop_span = extract_var(state_data_lang, "prop_span");
 const cc_prop_span_nonEnglishn = extract_var(cc_data_lang, "prop_span_nonEnglish"); 
 const dc_prop_span_nonEnglish = extract_var(dc_data_lang, "prop_span_nonEnglish"); 
 const state_prop_span_nonEnglish = extract_var(state_data_lang, "prop_span_nonEnglish");
+
+// text vars
+const usa_prop_span = usa_tot_spanish / usa_tot_pop_5yrs;
+
+const span_diff_state = cc_prop_span - state_prop_span;
+const span_diff_ref = isDC ? cc_prop_span - usa_prop_span : cc_prop_span - dc_prop_span;
+const span_ref_name = isDC ? "the United States" : "your congressional district";
 ```
 
 
@@ -2176,19 +2183,20 @@ Looking at how what language your community speaks in ...
 </div>
 
 ```js lang_text.js
-const lang_summary = isDC
-  ? html`Of all occupied 
-      <strong>${format_number(cc_tot_hholds)}</strong> housing units,  
-      <strong>${pct_pts(cc_own_rate)} percent</strong> are owned. That means that, compared to your state and the United State as a whole, your ${title_choice}'s homeownership rate is 
-      <strong>${pct_pts(cc_state_diff_own_rate)}</strong>, percentage points
-      <strong>${cc_state_ownership}</strong> and T his kind of linguistic diversity helps shape the fabric of your community. However, different languages come with different needs, such as knowing which interpreters to hire or which languages official materials should be translated into for the greatest impact.`
-  : html`Of all occupied 
-      <strong>${format_number(cc_tot_hholds)}</strong> housing units,  
-      <strong>${pct_pts(cc_own_rate)} percent</strong> are owned. That means that, compared to your congressional district and state, your ${title_choice}'s homeownership rate is 
-      <strong>${pct_pts(cc_dc_diff_own_rate)}</strong>, percentage points
-      <strong>${cc_dc_ownership}</strong> and
-      <strong>${cc_state_ownership} </strong> by your state's homeownerhsip rate by 
-      <strong>${pct_pts(cc_state_diff_own_rate)} percentage points</strong>This kind of linguistic diversity helps shape the fabric of your community. However, different languages come with different needs, such as knowing which interpreters to hire or which languages official materials should be translated into for the greatest impact.`;
+const lang_closing = html`This kind of linguistic diversity helps shape the fabric of your community.
+  However, different languages come with different needs, such as knowing which interpreters to hire or
+  which languages official materials should be translated into for the greatest impact.`;
+  
+const lang_summary = html`In your ${title_choice.toLowerCase()}, <strong>${pct_pts(cc_prop_english_only)}%</strong>
+    of the <strong>${format_number(cc_tot_pop_5yrs)}</strong> residents age 5 and older speak only English, while
+    <strong>${format_number(cc_tot_non_english)}</strong> speak another language at home.
+    <strong>${pct_pts(cc_prop_span)}%</strong> of residents speak Spanish, which is
+    <strong>${pct_pts(span_diff_state)} percentage points ${span_diff_state > 0 ? "higher" : "lower"}</strong>
+    than <strong>${states.fullName(state_name)}</strong> and
+    <strong>${pct_pts(span_diff_ref)} percentage points ${span_diff_ref > 0 ? "higher" : "lower"}</strong>
+    than ${span_ref_name}. Among those who speak a language other than English,
+    <strong>${pct_pts(cc_prop_span_nonEnglishn)}%</strong> speak Spanish. ${lang_closing}`;
+
 ```
 
 <center>${lang_summary}</center>
@@ -2530,9 +2538,22 @@ Looking at different measures of employment...
   }</div>
 </div>
 
-Local employment within your community is x.x%, with major employment industries of x, y, and z.
-[insert chart about employment]
-[link blocks to causes, e.g. tech, maybe wifi infrastructure or work-from-home stuff; if retail, maybe link to working hours]
-Commute times and patterns are typical (atypical) of your community, with the majority traveling x minutes by [mode].
-[insert chart about commuting times]
-[link to transit, bus, or highway/automobile infrastructure]
+```js
+const emp_summary = isDC
+  ? html`The unemployment rate in your ${title_choice.toLowerCase()} is
+      <strong>${pct_pts(cc_unemp_rate3)}%</strong>, which is
+      <strong>${pct_pts(cc_state_diff_unemp_rate)} percentage points ${cc_state_unemp}</strong> than
+      <strong>${states.fullName(state_name)}</strong>.
+      <strong>${pct_pts(cc_lfp_rate)}%</strong> of working-age residents are in the labor force, and
+      <strong>${pct_pts(cc_emp_to_pop)}%</strong> are employed.`
+  : html`The unemployment rate in your ${title_choice.toLowerCase()} is
+      <strong>${pct_pts(cc_unemp_rate3)}%</strong>, which is
+      <strong>${pct_pts(cc_dc_diff_unemp_rate)} percentage points ${cc_dc_unemp}</strong> than your
+      congressional district and
+      <strong>${pct_pts(cc_state_diff_unemp_rate)} percentage points ${cc_state_unemp}</strong> than
+      <strong>${states.fullName(state_name)}</strong>.
+      <strong>${pct_pts(cc_lfp_rate)}%</strong> of working-age residents are in the labor force, and
+      <strong>${pct_pts(cc_emp_to_pop)}%</strong> are employed.`;
+```
+
+<center>${emp_summary}</center>
