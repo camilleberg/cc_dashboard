@@ -703,6 +703,10 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-g
 display(html`<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-gl.css">`);
 ```
 
+```js
+const { Marker } = maplibregl;
+```
+
 ```js import_extensions.js
 import * as mlc from "npm:maplibre-gl-components";
 ```
