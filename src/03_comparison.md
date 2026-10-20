@@ -1,5 +1,5 @@
 ---
-title: Comparisons between 
+title: Comparisons
 sql:
   ccn20_geo: data/ccn20_geo.parquet
   cd119_geos: ./data/cd119_geos.parquet
