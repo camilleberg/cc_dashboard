@@ -82,7 +82,7 @@ display(html`<style>
 ```js assigning_colors.js
 const okabeItoColors = ['#E69F00', '#56B4E9', '#009E73', '#F0E442', '#0072B2', '#D55E00', '#CC79A7', '#000000'];
 // at 20% lighter
-const okabeItoColors_20 = ['#EBB233', '#77C3ED', '#33B18F', '#F3E967', '#338EC1', '#DD7E33', '#D693B8', '#333333'];
+const lighterItoColors_20 = ['#EBB233', '#77C3ED', '#33B18F', '#F3E967', '#338EC1', '#DD7E33', '#D693B8', '#333333'];
 // # at 40 % lighter
 const lighterItoColors = ['#F0C566', '#99D2F1', '#66C4AB', '#F6EE8D', '#66AAD0', '#E59E66', '#E0AECA', '#666666'];
 // at 60% lighter
@@ -316,7 +316,7 @@ const setBlurState = (ccn) => {
   const content = document.getElementById("page-content");
   if (!content) return; // defensive, though this shouldn't happen anymore
   const hasSelection = !(ccn === undefined || ccn === "");
-  content.style.filter = hasSelection ? "none" : "blur(5px)";
+  content.style.filter = hasSelection ? "none" : "blur(30px)";
 };
 
 setBlurState(ccn); // runs on load AND re-runs automatically whenever ccn changes
@@ -998,7 +998,7 @@ function create_dc_map(container, ccn_geo_data, array_labels, array_names, { inv
         const breaks = computeQuantileBreaks(ccn_geo_data.features, label, 5);
 
         // build interpolate stops: [val0, color0, val1, color1, ...]
-        const colorRamp = [lighterItoColors_80[i], lighterItoColors_60[i], lighterItoColors[i], okabeItoColors_20[i], okabeItoColors[i]]; // 
+        const colorRamp = [lighterItoColors_80[i], lighterItoColors_60[i], lighterItoColors[i], lighterItoColors_20[i], okabeItoColors[i]]; // 
         const stops = breaks.flatMap((val, idx) => [val, colorRamp[idx % colorRamp.length]]);
 
         map_district.addLayer({
@@ -1083,7 +1083,7 @@ function create_dc_map(container, ccn_geo_data, array_labels, array_names, { inv
       // options for the colorbar of layer i, built from the same breaks/ramp as the fill
       const colorbarOptions = (i) => {
         const breaks = computeQuantileBreaks(ccn_geo_data.features, array_labels[i], 5);
-        const ramp = [lighterItoColors_80[i], lighterItoColors_60[i], lighterItoColors[i], okabeItoColors_20[i], okabeItoColors[i]];
+        const ramp = [lighterItoColors_80[i], lighterItoColors_60[i], lighterItoColors[i], lighterItoColors_20[i], okabeItoColors[i]];
         return {
           colorStops: ramp.map((color, k) => ({ position: k / (ramp.length - 1), color })),
           vmin: breaks[0],
@@ -1253,7 +1253,7 @@ const age_summary = isDC
   <center>
   <span style="color: #5b534a; font-weight: bold;">Your ${title_choice} In Comparison</span>
   <br>
-  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the fraph to zoom in and to reset axes press 🏠 </span>
+  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the graph to zoom in and to reset axes press 🏠 </span>
   </center>
   </div>
 </div>
@@ -1578,7 +1578,7 @@ Text here
   <center>
   <span style="color: #5b534a; font-weight: bold;">Your ${title_choice} In Comparison</span>
   <br>
-  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the fraph to zoom in and to reset axes press 🏠 </span>
+  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the graph to zoom in and to reset axes press 🏠 </span>
   </center>
   </div>
 </div>
@@ -1688,7 +1688,7 @@ const hhold_summary = isDC
   <center>
   <span style="color: #5b534a; font-weight: bold;">Your ${title_choice} In Comparison</span>
   <br>
-  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the fraph to zoom in and to reset axes press 🏠 </span>
+  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the graph to zoom in and to reset axes press 🏠 </span>
   </center>
   </div>
 </div>
@@ -1883,12 +1883,14 @@ const state_data_lang = isDC
 ```
 
 
+
 <!-- Cleaning and extracting data-->
 ```js select_lang_vars.js
 // english
 const cc_tot_pop_5yrs= extract_var(cc_data_lang, "tot_pop_5yrs");
 const dc_tot_pop_5yrs = extract_var(dc_data_lang, "tot_pop_5yrs");
-const state_ot_pop_5yrs = extract_var(state_data_lang, "tot_pop_5yrs");
+const state_tot_pop_5yrs = extract_var(state_data_lang, "tot_pop_5yrs");
+const usa_tot_pop_5yrs = extract_var(usa_data_updated, "tot_pop_5yrs"); 
 
 // non englihs
 const cc_tot_english_only = extract_var(cc_data_lang, "tot_english_only");
@@ -1899,11 +1901,13 @@ const state_tot_english_only = extract_var(state_data_lang, "tot_english_only");
 const cc_tot_non_english = extract_var(cc_data_lang, "tot_non_english"); 
 const dc_tot_non_english = extract_var(dc_data_lang, "tot_non_english"); 
 const state_tot_non_english = extract_var(state_data_lang, "tot_non_english"); 
+const usa_tot_non_english = extract_var(usa_data_updated, "tot_non_english"); 
 
 // lang rate 
 const cc_tot_spanish = extract_var(cc_data_lang, "tot_spanish"); 
 const dc_tot_spanish = extract_var(dc_data_lang, "tot_spanish"); 
 const state_tot_spanish = extract_var(state_data_lang, "tot_spanish"); 
+const usa_tot_spanish = extract_var(usa_data_updated, "tot_spanish"); 
 
 // lfp 
 const cc_prop_english_only = extract_var(cc_data_lang, "prop_english_only"); 
@@ -1914,8 +1918,12 @@ const state_prop_english_only = extract_var(state_data_lang, "prop_english_only"
 const cc_prop_span = extract_var(cc_data_lang, "prop_span"); 
 const dc_prop_span = extract_var(dc_data_lang, "prop_span"); 
 const state_prop_span = extract_var(state_data_lang, "prop_span");
-```
 
+// lang to non english 
+const cc_prop_span_nonEnglishn = extract_var(cc_data_lang, "prop_span_nonEnglish"); 
+const dc_prop_span_nonEnglish = extract_var(dc_data_lang, "prop_span_nonEnglish"); 
+const state_prop_span_nonEnglish = extract_var(state_data_lang, "prop_span_nonEnglish");
+```
 
 
 ```sql id=current_ccn_merged_lang
@@ -1947,6 +1955,119 @@ const current_ccn_merged_geojson_lang = {
 };
 ```
 
+
+```js
+// this is the outer ring 
+function makeSpanishDonutsPlotly(isDC) {
+  const traces = [];
+  const colors = [okabeItoColors[4], lighterItoColors[1]];
+  const colors_inner = [okabeItoColors[4], lighterItoColors[4]];
+
+  // `inner: true` nests that donut inside the previous entry's ring
+  const entries = isDC
+    ? [
+        { name: "Congressional District", short: "District",
+          spanish: dc_tot_spanish, total: dc_tot_pop_5yrs, colors },
+        { name: "District (non-English speakers)", short: "Non-English",
+          spanish: dc_tot_spanish, total: dc_tot_non_english, colors: colors_inner, inner: true },
+        { name: "State", short: "State",
+          spanish: state_tot_spanish, total: state_tot_pop_5yrs, colors },
+        { name: "State (non-English speakers)", short: "Non-English",
+          spanish: state_tot_spanish, total: state_tot_non_english, colors: colors_inner, inner: true },
+        { name: "Nation", short: "Country",
+          spanish: usa_tot_spanish, total: usa_tot_pop_5yrs, colors },
+        { name: "Nation (non-English speakers)", short: "Non-English",
+          spanish: usa_tot_spanish, total: usa_tot_non_english, colors: colors_inner, inner: true },
+      ]
+    : [
+        { name: "Congressional Community", short: "Community",
+          spanish: cc_tot_spanish, total: cc_tot_pop_5yrs, colors },
+        { name: "Congressional Community (non-English speakers)", short: "Non-English",
+          spanish: cc_tot_spanish, total: cc_tot_non_english, colors: colors_inner, inner: true },
+        { name: "Congressional District", short: "District",
+          spanish: dc_tot_spanish, total: dc_tot_pop_5yrs, colors },
+        { name: "District (non-English speakers)", short: "Non-English",
+          spanish: dc_tot_spanish, total: dc_tot_non_english, colors: colors_inner, inner: true },
+        { name: "State", short: "State",
+          spanish: state_tot_spanish, total: state_tot_pop_5yrs, colors },
+        { name: "State (non-English speakers)", short: "Non-English",
+          spanish: state_tot_spanish, total: state_tot_non_english, colors: colors_inner, inner: true },
+      ];
+
+  // group entries into cells; an inner entry attaches to the previous cell
+  const cells = [];
+  entries.forEach(e => {
+    if (e.inner) cells[cells.length - 1].inner = e;
+    else cells.push({ outer: e });
+  });
+
+  const n = cells.length;
+  const gap = 0.04;                    // fraction of total width
+  const w = (1 - gap * (n - 1)) / n;   // width of each cell
+  const scale = 0.6;                   // inner ring size relative to outer
+
+  const makePie = (d, domain, hole) => ({
+    type: "pie",
+    name: d.name,
+    values: [d.spanish, d.total - d.spanish],
+    labels: ["Spanish", "Other than Spanish"],
+    domain,
+    marker: { colors: d.colors },
+    hole,
+    hoverinfo: "label+percent+name",
+    textinfo: "none",
+    sort: false,
+  });
+
+  const pct = d => ((d.spanish / d.total) * 100).toFixed(1) + "%";
+  const annotations = [];
+
+  cells.forEach((c, i) => {
+    const x0 = i * (w + gap);
+    const cx = x0 + w / 2;
+
+    // outer ring
+    traces.push(makePie(c.outer, { x: [x0, x0 + w], y: [0, 1] }, 0.7));
+
+    // inner ring, centered in the same cell
+    if (c.inner) {
+      const half = (w * scale) / 2;
+      traces.push(makePie(
+        c.inner,
+        { x: [cx - half, cx + half], y: [(1 - scale) / 2, (1 + scale) / 2] },
+        0.6
+      ));
+    }
+
+    annotations.push({
+    x: cx,
+    y: 0.05,
+    xref: "paper",
+    yref: "paper",
+    xanchor: "center",
+    yanchor: "middle",
+    showarrow: false,
+    align: "center",
+    font: { size: c.inner ? 10 : 12, color: "#5b534a" },
+    text: c.inner
+      ? `${c.outer.short}`
+      : `${c.outer.short}`,
+    });
+  });
+
+  const layout = {
+    annotations,
+    height: 150,
+    margin: { l: 0, r: 0, t: 0, b: 0 },
+    paper_bgcolor: "rgba(0,0,0,0)",
+    plot_bgcolor: "rgba(0,0,0,0)",
+    showlegend: false,
+  };
+
+  const config = { displaylogo: false, displayModeBar: false };
+  return { traces, layout, config };
+}
+```
 
 
 <!-- Waffle chart -->
@@ -1991,7 +2112,7 @@ const title_lang = makeMapDCTitle("Language Spoken at Home");
 
 <!-- text-->
 
-Looking at different measures of lang...
+Looking at how what language your community speaks in ... 
 
 <!-- title -->
 
@@ -2000,7 +2121,8 @@ Looking at different measures of lang...
   <center>
   <span style="color: #5b534a; font-weight: bold;">Your ${title_choice} In Comparison</span>
   <br>
-  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the fraph to zoom in and to reset axes press 🏠 </span>
+  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the graph to zoom in and to reset axes press 🏠 </span>
+  <span style="color: #5b534a; font-size: 11px;"> <br> ---<br> For the <strong>Spanish Speakers</strong> block, the outer ring represents the proportion of spanish speakers <em>relative to the poopulation older than 5</em> while the inner ring represents the proportion of spanish speakers <em>relative to those who speak a langauge other than english at home</em></span>
   </center>
   </div>
 </div>
@@ -2022,6 +2144,8 @@ Looking at different measures of lang...
 </div>
 
 
+
+
 <!-- plotly graphs -->
 
 <div class="grid grid-cols-3">
@@ -2041,13 +2165,15 @@ Looking at different measures of lang...
       return div;
     }) 
   }</div>
-  <div class="card">${
+  <div class="card">
+    <center><h3>Spanish Speakers</h3></center>
+    ${
     resize((width) => {
       const div = document.createElement("div");
-      const { traces, layout, config } = makeLineCompChartPlotly("etp", emp_measureCols, empKey[2], "lang", isDC);
+      const { traces, layout, config } = makeSpanishDonutsPlotly(isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
       return div;
-    }) 
+    })
   }</div>
 </div>
 
@@ -2354,7 +2480,7 @@ Looking at different measures of employment...
   <center>
   <span style="color: #5b534a; font-weight: bold;">Your ${title_choice} In Comparison</span>
   <br>
-  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the fraph to zoom in and to reset axes press 🏠 </span>
+  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the graph to zoom in and to reset axes press 🏠 </span>
   </center>
   </div>
 </div>
