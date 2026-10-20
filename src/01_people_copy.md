@@ -700,6 +700,9 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
 ```js import_maplibre.js
 import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-gl.mjs';
 // bright basemap
+```
+
+```js
 display(html`<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-gl.css">`);
 ```
 
@@ -709,6 +712,10 @@ const { Marker } = maplibregl;
 
 ```js import_extensions.js
 import * as mlc from "npm:maplibre-gl-components";
+```
+
+```js
+const { Marker } = mlc;
 ```
 
 ```js find_bounds.js
@@ -2186,7 +2193,7 @@ Looking at how what language your community speaks in ...
 const lang_closing = html`This kind of linguistic diversity helps shape the fabric of your community.
   However, different languages come with different needs, such as knowing which interpreters to hire or
   which languages official materials should be translated into for the greatest impact.`;
-  
+
 const lang_summary = html`In your ${title_choice.toLowerCase()}, <strong>${pct_pts(cc_prop_english_only)}%</strong>
     of the <strong>${format_number(cc_tot_pop_5yrs)}</strong> residents age 5 and older speak only English, while
     <strong>${format_number(cc_tot_non_english)}</strong> speak another language at home.
