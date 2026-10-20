@@ -29,7 +29,7 @@ head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/au
 
 Please explore your congressional comunity (or district!). Use the search bar to find your communtiy and explore what makes you unique*. 
 
-<p  style="color: #CC79A7;font-size: 10px;">*Data provided by the United States Census Bureau 5 Year American Community Service 2019-2024. For more infomation about how we calculate and catgorize congressional communitues please visit <a href= "">our site</a>.</p>
+<p  style="color: #CC79A7;font-size: 10px;">*Data provided by the United States Census Bureau 5 Year American Community Service 2019-2024. For more infomation about how we calculate and catgorize congressional communities please visit <a href= "https://congressionalcommunities.org/">our site</a>.</p>
 
 
 <br>
@@ -678,17 +678,7 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
 
   const config = {
     modeBarButtons: [[
-      {
-        name: "resetHome",
-        title: "Reset view",
-        icon: homeIcon,
-        click: (gd) => {
-          Plotly.relayout(gd, {
-            "xaxis.range": layout.xaxis.range,
-            "yaxis.range": layout.yaxis.range
-          });
-        }
-      },
+      "resetScale2d", // changed becasue emoji was weird 
       "toImage"
     ]],
     displaylogo: false
