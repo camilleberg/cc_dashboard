@@ -31,8 +31,8 @@ jobs:
           pip install -r requirements.txt
       - name: Install DuckDB CLI
         run: |
-          curl -L https://github.com/duckdb/duckdb/releases/latest/download/duckdb_cli-linux-amd64.zip -o duckdb.zip
-          unzip duckdb.zip
+          curl -fsSL https://github.com/duckdb/duckdb/releases/download/v2.0.0/duckdb-cli-linux-amd64.tar.gz -o duckdb.tar.gz
+          tar -xzf duckdb.tar.gz
           sudo mv duckdb /usr/local/bin/
           duckdb --version
       - id: date
