@@ -225,6 +225,9 @@ const dc_array = [...dc_list];
 const all_dc  = dc_array.map(d => d.cd119);
 ```
 
+```js
+
+```
 
 ```js
 const all_options = [
@@ -232,7 +235,6 @@ const all_options = [
   ...all_dc.map(d => ({ Community: "", District: d }))
 ];
 ```
-
 
 
 ```js import_autocomplete.js
@@ -302,6 +304,7 @@ events: {
 ```js assining_output.js
 const ccn = Generators.input(autoCompleteJS.input);
 ```
+
 
 ```js check_dc.js
 const isDC = ccn.length < 7;

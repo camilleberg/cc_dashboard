@@ -1,0 +1,8 @@
+# proxy/wrangler.toml
+name = "cc-proxy"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+[[kv_namespaces]]
+binding = "CC_CACHE"
+id = "<paste id from the command below>"
