@@ -24,7 +24,7 @@ SELECT
 
     --adding in extra  rates
     1 - housing_occupancy_rate AS housing_vacancy_rate, 
-    1 - housing_ownership_rate AS housing_rental_rate
+    1 - housing_ownership_rate AS housing_rental_rate,
 
     FROM './src/data/cc_data_updated.parquet'
 ) TO '/dev/stdout' (format parquet, codec zstd)
