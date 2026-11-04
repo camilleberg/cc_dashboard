@@ -27,17 +27,22 @@ The histograms above provide a useful first-look at the data. However, to discov
 Below we use hexagonal bins to visualize the density (number of flights) by both time of day and arrival delay. Interactive histograms along the edges show marginal distributions for both.
 
 ```sql
-SELECT * FROM cc_data_updated
+SELECT * FROM cc_data_updated LIMIT 2
 ```
 
 ```sql
-SELECT * FROM flights
+SELECT * FROM flights LIMIT 2
 ```
 
 ```js
 const $scale = vg.Param.value("log");    // color scale type
 const $query = vg.Selection.intersect(); // interval ranges
 ```
+
+```js 
+const $var1 =  vg.Param.value("");
+```
+
 # flights
 
 ```js
