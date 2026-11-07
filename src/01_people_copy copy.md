@@ -1,0 +1,2709 @@
+---
+title: Main Page to check api 
+sql:
+  ccn20_geo: data/ccn20_geo.parquet
+  cd119_geos: ./data/cd119_geos.parquet
+  cc_data_updated: ./data/cc_data_updated.parquet
+  ccn20_to_cd119: ./data/ccn20_to_cd119.parquet
+  usa_data_updated: ./data/usa_data_updated.parquet
+head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10/dist/css/autoComplete.min.css">'
+---
+
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2M9HMSTWCC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-2M9HMSTWCC');
+</script>
+
+<!-- Style tags-->
+<style>
+</style>
+
+
+# Main Page
+
+Please explore your congressional comunity (or district!). Use the search bar to find your communtiy and explore what makes you unique*. 
+
+<p  style="color: #CC79A7;font-size: 10px;">*Data provided by the United States Census Bureau 5 Year American Community Service 2019-2024. For more infomation about how we calculate and catgorize congressional communities please visit <a href= "https://congressionalcommunities.org/">our site</a>.</p>
+
+
+<br>
+<input id="autoComplete">
+<div id="page-content">
+
+<hr>
+
+
+
+```sql id=load_extensions
+-- loading spatial extension
+INSTALL spatial;
+LOAD spatial;
+```
+
+```js import_plotly.js
+// defining colors
+import Plotly from "npm:plotly.js-dist-min";
+```
+
+```js import_centroid.js
+import * as turf from "@turf/turf";
+```
+
+```js import_us_states.js
+import states from 'us-state-converter'
+```
+
+
+
+```js
+// Font Awesome is only a stylesheet, so a <link> tag is safe here
+// (unlike a <script> tag, which won't execute when inserted this way).
+display(html`<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">`);
+```
+
+```js
+display(html`<style>
+  .waffle-section { margin: 10px  30px 0; text-align: center; }
+  .waffle-legend { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin: 0 auto 14px auto; width: fit-content; font-size: 12px; color: #333; }
+  .waffle-legend-item { display: flex; align-items: ; gap: 6px; }
+  .waffle-legend-swatch { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+  .waffle-grid-full { display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(10, 1fr); gap: 2px; width: 200px; margin: 0 auto; }
+  .waffle-grid-full i { font-size: 16px; line-height: 1; }
+</style>`);
+```
+<!-- color block-->
+
+```js assigning_colors.js
+const okabeItoColors = ['#E69F00', '#56B4E9', '#009E73', '#F0E442', '#0072B2', '#D55E00', '#CC79A7', '#000000'];
+// at 20% lighter
+const lighterItoColors_20 = ['#EBB233', '#77C3ED', '#33B18F', '#F3E967', '#338EC1', '#DD7E33', '#D693B8', '#333333'];
+// # at 40 % lighter
+const lighterItoColors = ['#F0C566', '#99D2F1', '#66C4AB', '#F6EE8D', '#66AAD0', '#E59E66', '#E0AECA', '#666666'];
+// at 60% lighter
+const lighterItoColors_60 = ['#F5D899', '#BBE1F6', '#99D8C7', '#F9F4B3', '#99C6E0', '#EEBE99', '#EAC9DB', '#999999'];
+// at 80% lighter
+const lighterItoColors_80 = ['#FAEBCC', '#DDF0FA', '#CCEBE3', '#FCF9D9', '#CCE2EF', '#F6DECC', '#F4E4ED', '#CCCCCC'];
+
+// waffle colors
+const waffleNotUsedColor = "#D8D8D8";
+const block_color = "#f2e9e3";
+
+function highlight(text, index) {
+  const highlighted_text = html`<span style="color:${okabeItoColors[index]}">${text}</span>`;
+  return highlighted_text;
+};
+
+function format_number(number) {
+  const formatted = Math.abs(number).toLocaleString("en-us", { maximumFractionDigits: 0 });
+  return formatted
+};
+
+function extract_var(table_name, var_name) {
+  const value = table_name.getChild(var_name).get(0);
+  return value == null ? Number(value) : Number.parseFloat(value.toString());
+}
+
+const maplibre_style = "https://tiles.versatiles.org/assets/styles/colorful/style.json";
+const page_background_color = "#f9f0ea";
+const page_background_color_card = "#f2e9e3";
+
+const homeIcon = { 
+  svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36"><path fill="#A0041E" d="M9.344 14.702h-2c-.276 0-.5-.224-.5-.5v-7c0-.276.224-.5.5-.5h2c.276 0 .5.224.5.5v7c0 .276-.224.5-.5.5z"/><path fill="#FFE8B6" d="M5 16L18 3l13 13v17H5z"/><path fill="#FFCC4D" d="M18 16h1v16h-1z"/><path fill="#66757F" d="M31 17c-.256 0-.512-.098-.707-.293L18 4.414 5.707 16.707c-.391.391-1.023.391-1.414 0s-.391-1.023 0-1.414l13-13c.391-.391 1.023-.391 1.414 0l13 13c.391.391.391 1.023 0 1.414-.195.195-.451.293-.707.293z"/><path fill="#66757F" d="M18 17c-.256 0-.512-.098-.707-.293-.391-.391-.391-1.023 0-1.414l6.5-6.5c.391-.391 1.023-.391 1.414 0s.391 1.023 0 1.414l-6.5 6.5c-.195.195-.451.293-.707.293z"/><path fill="#C1694F" d="M10 26h4v6h-4z"/><path fill="#55ACEE" d="M10 17h4v4h-4zm12.5 0h4v4h-4zm0 9h4v4h-4z"/><path fill="#5C913B" d="M33.5 33.5c0 .828-.672 1.5-1.5 1.5H4c-.828 0-1.5-.672-1.5-1.5S3.172 32 4 32h28c.828 0 1.5.672 1.5 1.5z"/></svg>`
+}; // this is the home emoji icon
+```
+
+```js load_country_data.js
+const usa_data_updated = await sql`SELECT * FROM usa_data_updated`;
+```
+
+<!-- creating the tables-->
+
+
+
+```sql id=create_tables_age
+-- for congressional community level 
+CREATE OR REPLACE TABLE cc_data_age_table AS
+  SELECT
+    ccn20,
+    cd119,
+    State,
+    tot_pop, 
+    ageGroup_under18, 
+    ageGroup_18_65, 
+    ageGroup_over65,
+    ageGroup_under18
+        / NULLIF(tot_pop, 0)::DOUBLE
+        AS age_prop_under18,
+
+    ageGroup_18_65
+        / NULLIF(tot_pop, 0)::DOUBLE
+        AS age_prop_18_65,
+
+    ageGroup_over65
+        / NULLIF(tot_pop, 0)::DOUBLE
+        AS age_prop_over65
+
+FROM cc_data_updated;
+
+-- for congressional district level 
+CREATE OR REPLACE TABLE dc_data_age_table AS
+SELECT
+    cd119,
+
+    SUM(tot_pop) AS tot_pop,
+    SUM(ageGroup_under18) AS ageGroup_under18,
+    SUM(ageGroup_18_65) AS ageGroup_18_65,
+    SUM(ageGroup_over65) AS ageGroup_over65,
+
+    SUM(ageGroup_under18)
+        / NULLIF(SUM(tot_pop), 0)::DOUBLE
+        AS age_prop_under18,
+
+    SUM(ageGroup_18_65)
+        / NULLIF(SUM(tot_pop), 0)::DOUBLE
+        AS age_prop_18_65,
+
+    SUM(ageGroup_over65)
+        / NULLIF(SUM(tot_pop), 0)::DOUBLE
+        AS age_prop_over65
+
+FROM cc_data_updated
+GROUP BY cd119;
+
+-- for state
+CREATE OR REPLACE TABLE state_data_age_table AS
+SELECT
+    State,
+
+    SUM(tot_pop) AS tot_pop,
+    SUM(ageGroup_under18) AS ageGroup_under18,
+    SUM(ageGroup_18_65) AS ageGroup_18_65,
+    SUM(ageGroup_over65) AS ageGroup_over65,
+
+    SUM(ageGroup_under18)
+        / NULLIF(SUM(tot_pop), 0)::DOUBLE
+        AS age_prop_under18,
+
+    SUM(ageGroup_18_65)
+        / NULLIF(SUM(tot_pop), 0)::DOUBLE
+        AS age_prop_18_65,
+
+    SUM(ageGroup_over65)
+        / NULLIF(SUM(tot_pop), 0)::DOUBLE
+        AS age_prop_over65
+
+FROM cc_data_updated
+GROUP BY State;
+```
+
+<!-- selecting the community-->
+
+
+```js
+const ccnList = await sql`
+    SELECT DISTINCT ccn20
+    FROM cc_data_updated
+    ORDER BY ccn20
+`;
+
+const ccnArray = [...ccnList];
+const all_ccn = ccnArray.map(d => d.ccn20);
+
+const dc_list = await sql`
+    SELECT DISTINCT cd119
+    FROM cc_data_updated
+    ORDER BY cd119
+`;
+
+const dc_array = [...dc_list];
+const all_dc  = dc_array.map(d => d.cd119);
+```
+
+```js
+
+```
+
+```js
+const all_options = [
+  ...all_ccn.map(d => ({ Community: d, District: "" })),
+  ...all_dc.map(d => ({ Community: "", District: d }))
+];
+```
+
+
+```js import_autocomplete.js
+//https://tarekraafat.github.io/autoComplete.js/#/installation
+import autoComplete from "npm:@tarekraafat/autocomplete.js";
+```
+
+```js import_api.js
+import {suggestTowns, findCommunities, membersFor, toStabcd} from "./components/cc-api.js";
+```
+
+```js
+const KIND_TAG = {ZIP: "ZIP code", Town: "Town", Community: "Community", District: "District"};
+
+const norm = (s) => String(s ?? "")
+  .normalize("NFD").replace(/[\u0300-\u036f]/g, "")        // accents
+  .replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ")  // punctuation
+  .trim().toLowerCase();
+
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) =>
+  ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+
+function mark(label, query) {
+  const q = query.trim().toLowerCase();
+  const i = q ? label.toLowerCase().indexOf(q) : -1;
+  if (i < 0) return esc(label);
+  return `${esc(label.slice(0, i))}<mark>${esc(label.slice(i, i + q.length))}</mark>${esc(label.slice(i + q.length))}`;
+}
+
+// Local search over your all_options (assumes rows like {Community, District}). Max 5 per group.
+function searchLocal(q, key, limit = 5) {
+  const seen = new Set(), starts = [], contains = [];
+  for (const row of all_options) {
+    const label = row[key];
+    if (!label) continue;
+    const n = norm(label);
+    // Districts repeat across many communities, so de-dupe by label.
+    // Communities de-dupe by name+district so same-named ones in different districts survive.
+    const id = key === "District" ? n : `${n}|${norm(row.District)}`;
+    if (seen.has(id)) continue;
+    const i = q ? n.indexOf(q) : 0;                // empty query (click) -> first 5 of each
+    if (i < 0) continue;
+    seen.add(id);
+    (i === 0 ? starts : contains).push({kind: key, label: String(label), record: row});
+  }
+  return [...starts, ...contains].slice(0, limit);
+}
+
+let inFlight, lastResults = [];
+
+async function source(query) {
+  inFlight?.abort();
+  inFlight = new AbortController();
+  const {signal} = inFlight;
+  const raw = query.trim(), q = norm(raw), out = [];
+
+  // 1) ZIP: exactly 5 digits
+  if (/^\d{5}$/.test(raw)) out.push({kind: "ZIP", label: raw, zip: raw});
+
+  // 2) Towns (API, unlimited): >= 2 chars, not digits-only
+  if (raw.length >= 2 && !/^\d+$/.test(raw)) {
+    try {
+      const places = await suggestTowns(raw, {signal});
+      for (const p of places.slice(0, 5))
+        out.push({kind: "Town", label: p.label, geoid: p.geoid, place: p});
+    } catch (error) {
+      if (error.name === "AbortError") return lastResults;   // a newer keystroke superseded this
+      console.warn("Town suggestions failed:", error.message); // degrade to local results only
+    }
+  }
+
+  // 3) Local Community + District
+  out.push(...searchLocal(q, "Community"), ...searchLocal(q, "District"));
+  return (lastResults = out);
+}
+
+const autoCompleteJS = new autoComplete({
+  selector: "#autoComplete",
+  placeHolder: "Search by ZIP code, town, community or district...",
+  submit: true,
+  debounce: 200,
+  threshold: 0,                                   // still shows results on click
+  data: {
+    src: source,
+    keys: ["label"],
+    cache: false                                  // dynamic source: must not be cached
+  },
+  searchEngine: (query, record) => record,        // source() already filtered
+  resultsList: {maxResults: 20},
+  resultItem: {
+    highlight: false,                             // done manually in element()
+    element: (item, data) => {
+      const {kind, label} = data.value;
+      item.style = "display:flex;justify-content:space-between;gap:.75rem;";
+      item.innerHTML = `
+        <span style="text-overflow:ellipsis;white-space:nowrap;overflow:hidden;">
+          ${mark(label, autoCompleteJS.input.value)}
+        </span>
+        <span style="display:flex;align-items:center;font-size:12px;font-weight:100;text-transform:uppercase;color:rgba(0,0,0,.3);">
+          ${esc(KIND_TAG[kind] ?? kind)}
+        </span>`;
+    }
+  },
+  events: {
+    input: {
+      selection: (event) => {
+        const item = event.detail.selection.value;            // the object returned by source()
+        autoCompleteJS.input.value = item.label;
+        autoCompleteJS.close();
+        autoCompleteJS.input.dispatchEvent(new CustomEvent("cc-select", {detail: item}));
+      }
+    }
+  }
+});
+
+// Enter on a bare 5-digit ZIP with nothing highlighted
+function onEnter(e) {
+  if (e.key !== "Enter") return;
+  const raw = autoCompleteJS.input.value.trim();
+  if (/^\d{5}$/.test(raw) && (autoCompleteJS.cursor ?? -1) < 0) {
+    e.preventDefault();
+    autoCompleteJS.close();
+    autoCompleteJS.input.dispatchEvent(new CustomEvent("cc-select", {detail: {kind: "ZIP", label: raw, zip: raw}}));
+  }
+}
+autoCompleteJS.input.addEventListener("keydown", onEnter);
+
+invalidation.then(() => {
+  autoCompleteJS.input.removeEventListener("keydown", onEnter);
+  autoCompleteJS.unInit?.();
+});
+```
+
+```js
+const ccn = Generators.observe((notify) => {
+  const input = autoCompleteJS.input;
+  const emit = () => notify(input.value);
+  input.addEventListener("input", emit);
+  input.addEventListener("cc-select", emit);
+  emit();
+  return () => {
+    input.removeEventListener("input", emit);
+    input.removeEventListener("cc-select", emit);
+  };
+});
+```
+
+```js
+// {kind: "ZIP"|"Town"|"Community"|"District", label, ...} or null
+const selected = Generators.observe((notify) => {
+  const input = autoCompleteJS.input;
+  const onSelect = (e) => notify(e.detail);
+  const onInput = () => { if (!input.value.trim()) notify(null); };   // clearing the box clears results
+  input.addEventListener("cc-select", onSelect);
+  input.addEventListener("input", onInput);
+  notify(null);
+  return () => {
+    input.removeEventListener("cc-select", onSelect);
+    input.removeEventListener("input", onInput);
+  };
+});
+```
+
+```js
+const lookupState = await (async () => {
+  if (!selected || !["ZIP", "Town"].includes(selected.kind)) return null;
+  const controller = new AbortController();
+  invalidation.then(() => controller.abort());
+  try {
+    return {data: await findCommunities(selected, {signal: controller.signal})};
+  } catch (error) {
+    if (error.name === "AbortError") return null;
+    return {error};
+  }
+})();
+```
+
+```js
+if (lookupState?.error) {
+  display(html`<div class="warning">${lookupState.error.message}</div>`);
+} else if (lookupState?.data && lookupState.data.communities.length === 0) {
+  display(html`<div class="note">No communities found for ${selected.label}. This can happen for ZIP codes that only cover water or a federal facility.</div>`);
+} else if (lookupState?.data?.searches_remaining <= 1) {
+  // from_cache responses omit this field, so it only appears after a real upstream search
+  display(html`<div class="note">Heads up: ${lookupState.data.searches_remaining} new ZIP/town search(es) left today.</div>`);
+}
+```
+
+```js
+const candidates = (() => {
+  if (!selected) return [];
+  if (lookupState?.data) return lookupState.data.communities;
+  if (selected.kind === "District" || selected.kind === "Community") {
+    const parsed = toStabcd(selected.kind === "District" ? selected.label : selected.record?.District);
+    return parsed ? [{...parsed, custom_id: null}] : [];
+  }
+  return [];
+})();
+```
+
+```js
+const formatCommunity = (c) =>
+  [c.district, c.custom_id, c.zip && `ZIP ${c.zip}`].filter(Boolean).join(" · ");
+
+// One candidate: auto-selected. Several: starts unselected so the user must choose.
+const community = view(Inputs.radio(candidates, {
+  label: candidates.length > 1 ? "Your ZIP or town spans several communities. Which is yours?"
+       : candidates.length === 1 ? "Your community" : "",
+  format: formatCommunity,
+  value: candidates.length === 1 ? candidates[0] : null
+}));
+```
+
+```js
+// Remember the choice, as the docs suggest (store custom_id + stabcd, not a re-search)
+if (community) {
+  try { localStorage.setItem("cc:community", JSON.stringify({custom_id: community.custom_id, stabcd: community.stabcd})); }
+  catch {}
+}
+```
+
+
+```js check_dc.js
+const isDC = ccn.length < 7;
+const debugCheck = `${ccn} | len=${ccn.length} | isDC=${isDC}`;
+```
+
+
+<!-- Blurring the page -->
+
+
+```js blur_page.js
+const setBlurState = (ccn) => {
+  const content = document.getElementById("page-content");
+  if (!content) return; // defensive, though this shouldn't happen anymore
+  const hasSelection = !(ccn === undefined || ccn === "");
+  content.style.filter = hasSelection ? "none" : "blur(30px)";
+};
+
+setBlurState(ccn); // runs on load AND re-runs automatically whenever ccn changes
+```
+
+
+<!-- Filtering the data-->
+
+
+```js cc_data_age_calc.js
+const cc_data_age = isDC
+  ? await sql`
+  SELECT 
+    d.*,
+    c.State
+  FROM dc_data_age_table AS d
+  INNER JOIN cc_data_age_table AS c
+    ON c.cd119 = d.cd119
+  WHERE d.cd119 = ${ccn}
+  LIMIT 1`
+  : await sql`SELECT * FROM cc_data_age_table WHERE ccn20 = ${ccn}`;
+```
+
+```js dc_age_calc.js
+const dc_data_age = isDC
+  ? await sql`SELECT * FROM dc_data_age_table WHERE cd119 = ${ccn}`
+  : await sql`SELECT * FROM dc_data_age_table WHERE cd119 = (SELECT cd119 FROM cc_data_age_table WHERE ccn20 = ${ccn})`;
+```
+
+```js state_age_calc.js
+const state_data_age = isDC
+  ? await sql`SELECT *
+      FROM state_data_age_table
+      WHERE State = (
+          SELECT State
+          FROM cc_data_age_table
+          WHERE cd119 = ${ccn}
+          LIMIT 1
+      )`
+  : await sql`SELECT *
+      FROM state_data_age_table
+      WHERE State = (
+          SELECT State
+          FROM cc_data_age_table
+          WHERE ccn20 = ${ccn}
+      )`;
+```
+
+
+
+```js current_geo_calc.js
+const current_ccn_geo = isDC
+  ? await sql`SELECT
+  cd119,
+  State,
+  ST_AsGeoJSON(geometry) AS geometry
+  FROM cd119_geos
+  WHERE cd119 = ${ccn}`
+  : await sql`SELECT
+  ccn20,
+  cd119,
+  State,
+  geometry
+  FROM ccn20_geo
+  WHERE ccn20 = ${ccn}`;
+```
+
+<!-- Cleaning and extracting data-->
+```js
+// names 
+const state_name = cc_data_age
+  .getChild("State")
+  .get(0);
+const dc_name = dc_data_age
+  .getChild("cd119")
+  .get(0);
+
+const current_ccn_geojson = JSON.parse(
+  current_ccn_geo.getChild("geometry").get(0)
+);
+
+// population totals
+const cc_tot_pop = extract_var(cc_data_age, "tot_pop");
+const dc_tot_pop =extract_var(dc_data_age, "tot_pop");
+const state_tot_pop = extract_var(state_data_age, "tot_pop");
+
+// groups
+const cc_under18_prop = extract_var(cc_data_age, "age_prop_under18");
+const dc_under18_prop =  extract_var(dc_data_age, "age_prop_under18");
+const state_under18_prop = extract_var(state_data_age, "age_prop_under18");
+
+const cc_dc_diff =
+  cc_under18_prop - dc_under18_prop;
+
+const cc_dc_younger =
+  cc_dc_diff > 0 ? "younger" : "older";
+
+const cc_state_diff =
+  cc_under18_prop - state_under18_prop;
+
+const cc_state_younger =
+  cc_state_diff > 0 ? "younger" : "older";
+
+// for the ccn
+const age_under_18 = extract_var(cc_data_age, "ageGroup_under18");
+const age_18_65 = extract_var(cc_data_age, "ageGroup_18_65");
+const age_over65 =  extract_var(cc_data_age, "ageGroup_over65");
+
+```
+
+```js make_div_bucket.js
+// this is to create the space for waffle
+const myDiv = display(document.createElement("div"));
+```
+
+
+```js helper_functions.js
+// Supporting arrays/helpers — define once, before the chart function.
+// Fill in real hex values / ordering to match your Python palette.
+function floorToDecimals(x, decimals) {
+  const factor = 10 ** decimals;
+  return Math.floor(x * factor) / factor;
+}
+
+function ceilToDecimals(x, decimals) {
+  const factor = 10 ** decimals;
+  return Math.ceil(x * factor) / factor;
+}
+```
+
+```js make_waffle.js
+// Largest-remainder rounding: turns a list of raw counts into
+// integer icon counts (out of totalIcons) that sum exactly to totalIcons.
+function allocateIcons(rawCounts, totalIcons) {
+  const total = rawCounts.reduce((a, b) => a + b, 0);
+  if (total === 0) return rawCounts.map(() => 0);
+
+  const exact = rawCounts.map(c => (c / total) * totalIcons);
+  const floored = exact.map(Math.floor);
+  let remainder = totalIcons - floored.reduce((a, b) => a + b, 0);
+
+  const order = exact
+    .map((v, i) => ({i, frac: v - Math.floor(v)}))
+    .sort((a, b) => b.frac - a.frac);
+
+  const result = [...floored];
+  for (let k = 0; k < remainder; k++) {
+    result[order[k % order.length].i] += 1;
+  }
+  return result;
+}
+
+// function that creates the legend
+function renderWaffleLegend(labels, group_list, group_name_list) {
+  const legend = document.createElement("div");
+  legend.className = "waffle-legend";
+  labels.forEach((label) => {
+    const colorIdx = group_list.indexOf(label);
+    const item = document.createElement("div");
+    item.className = "waffle-legend-item";
+    item.innerHTML = `
+      <span class="waffle-legend-swatch" style="background:${okabeItoColors[colorIdx]}"></span>
+      ${group_name_list[colorIdx]}
+    `;
+    legend.appendChild(item);
+  });
+  return legend;
+}
+
+// to make wafle chart
+function renderFullWaffle(labels, countsByLabel, type, group_name_list) {
+  // changes icon based on type
+  const iconClass = 
+    type === "people" 
+      ? "fa-solid fa-user" 
+      : type === "housing" 
+        ? "fa-solid fa-house" 
+        : type === "households"
+          ? "fa-solid fa-people-group"
+          : type === "employment"
+          ? "fa-solid fa-briefcase" 
+          : type === "lang"
+          ? "fa-solid fa-comment"
+          : "fa-solid fa-question"; // Required fallback
+
+  // changes title based on type
+  const title = 
+    type === "people" 
+      ? "people" 
+      : type === "housing" 
+        ? "housing units" 
+        : type === "households" 
+          ? "households" 
+          : type === "employment"
+          ? "persons in the labor force"
+          : type === "lang"
+          ? "persons 5 years and older"
+          : "other"; // Required fallback
+
+  const rawCounts = labels.map((label) => countsByLabel[label]);
+  const iconCounts = allocateIcons(rawCounts, 100);
+
+  const cellColors = [];
+  labels.forEach((label, idx) => {
+    const colorIdx = labels.indexOf(label);
+    const color = okabeItoColors[colorIdx];
+    for (let c = 0; c < iconCounts[idx]; c++) cellColors.push(color);
+  });
+  while (cellColors.length < 100) cellColors.push(waffleNotUsedColor);
+
+  const grid = document.createElement("div");
+  grid.className = "waffle-grid-full";
+  cellColors.forEach((color) => {
+    const cellIcon = document.createElement("i");
+    cellIcon.className = iconClass;
+    cellIcon.style.color = color;
+    grid.appendChild(cellIcon);
+  });
+
+  return html`<div class="waffle-section">
+    <div class="waffle-title"> <span style = "color: #5b534a;font-weight: bold;">If your ${title_choice} was 100 ${title}</span>...<br><span style="color: #5b534a; font-size: 11px">Share of your ${title_choice} by type</span><br><br></div>
+    ${renderWaffleLegend(labels, labels, group_name_list)}
+    ${grid}
+  </div>`;
+}
+```
+
+
+```js make_plotly_charts.js
+function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
+  // choosing the correct dfs 
+  const DF_SETS = {
+    age: { cc: cc_data_age, dc: dc_data_age, state: state_data_age, country : usa_data_updated },
+    housing: { cc: cc_data_housing, dc: dc_data_housing, state: state_data_housing, country : usa_data_updated  },
+    employment: { cc: cc_data_employment, dc: dc_data_employment, state: state_data_employment, country : usa_data_updated  },
+    lang : { cc: cc_data_lang, dc: dc_data_lang, state: state_data_lang, country : usa_data_updated  }
+  };
+  const dfSet = DF_SETS[type];
+  if (!dfSet) throw new Error(`Unknown type: ${type}`);
+  const { cc: df_cc, dc: df_dc, state: df_state, country: df_country } = dfSet;
+
+  
+  // colors
+  const idx = group_list.indexOf(label_list);
+  const notUsed = lighterItoColors[idx];
+  const colorUsed = okabeItoColors[idx];
+
+
+  // number line ticks
+  const intervals = Array.from({ length: 11 }, (_, i) => Math.round((i / 10) * 100) / 100);
+
+  // pull proportions straight from the already-computed age_prop_* columns
+  const xCc = df_cc.getChild(var_list).get(0);
+  const xCd = df_dc.getChild(var_list).get(0);
+  const xState = df_state.getChild(var_list).get(0);
+  const xCountry = df_country.getChild(var_list).get(0);
+
+  const traces = [];
+
+  // baseline number line (tick marks along y=0)
+  // traces.push({
+  //   x: intervals,
+  //   y: intervals.map(() => 0),
+  //   mode: "lines+markers",
+  //   marker: { symbol: "line-ns", size: 10, color: "darkgrey", line: { width: 1 } },
+  //   opacity: 0.5,
+  //   hoverinfo: "skip",
+  //   showlegend: false
+  // });
+
+  // State
+  traces.push({
+    x: [xState],
+    y: [0],
+    mode: "markers",
+    marker: { symbol: "diamond-x", size: 20, color: notUsed, line: { color: block_color, width: 2 } },
+    name: "State",
+    hovertemplate: `State: ${(xState * 100).toFixed(1)}%<extra></extra>`
+  });
+
+  // Congressional District
+  traces.push({
+    x: [xCd],
+    y: [0],
+    mode: "markers",
+    marker: { symbol: "circle", size: 20, color: notUsed, line: { color: block_color, width: 2 } },
+    name: "Congressional District",
+    hovertemplate: `Congressional District: ${(xCd * 100).toFixed(1)}%<extra></extra>`
+  });
+
+  // Congressional Community (highlighted color)
+
+  // if it is CD, then dropping cc trace i.e data point
+  const cc_trace = isDC
+    ? null
+    : {
+        x: [xCc],
+        y: [0],
+        mode: "markers",
+        marker: { symbol: "circle", size: 20, color: colorUsed, line: { color: block_color, width: 2 } },
+        name: "Congressional Community",
+        hovertemplate: `Congressional Community: ${(xCc * 100).toFixed(1)}%<extra></extra>`
+      };
+
+    const country_trace = {
+      x: [xCountry],
+      y: [0],
+      mode: "markers",
+      marker: { symbol: "star-diamond", size: 20, color: notUsed, line: { color: block_color, width: 2 } },
+      name: "United States",
+      hovertemplate: `United States: ${(xCountry * 100).toFixed(1)}%<extra></extra>`
+    };
+
+    if (!isDC) traces.push(cc_trace);
+    if (isDC) traces.push(country_trace);
+
+  // dynamically adjust x range
+  const xs = [xCc, xCd, xState, xCountry].filter(Number.isFinite);
+  const xMin = floorToDecimals(Math.min(...xs), 1) - 0.01;
+  const xMax = ceilToDecimals(Math.max(...xs), 2) + 0.07;
+
+  const layout = {
+    xaxis: {
+      range: [xMin, xMax],
+      tickmode: "auto",          // let Plotly choose spacing as the user zooms
+      nticks: 3,
+      tickformatstops: [
+        { enabled: true, dtickrange: [null, 0.001], value: ".2%" },  // zoomed far in: 12.34%
+        { enabled: true, dtickrange: [0.001, 0.01], value: ".1%" },  // moderate zoom: 12.3%
+        { enabled: true, dtickrange: [0.01, null], value: ".0%" }   // zoomed out: 12%
+      ],
+      showgrid: true, // for lines
+      gridcolor: 'darkgrey', 
+      gridwidth: 1,
+      //griddash: 'dash',
+      zeroline: false, 
+      color: "darkgrey"
+    },
+    yaxis: { 
+      range: [-0.1, 0.1],    
+      visible: true, 
+      showgrid: false, // for lines
+      showticklabels: false,   
+      zeroline: true,      // Set to false if you want to hide the vertical line at x=0
+      zerolinecolor: 'darkgrey', // Change the color of the zero line 
+      zerolinewidth: 1,     // Change the thickness of the line in pixels
+     },
+    legend: { orientation: "h", yanchor: "bottom", y: 1.02, xanchor: "center", x: 0.5, 
+      "itemsizing": "constant", "itemwidth": 10
+     },
+    height: 160,
+    margin: { l: 20, r: 20, t: 80, b: 40 },
+    paper_bgcolor: 'rgba(0,0,0,0)', // Makes the outer container transparent
+    plot_bgcolor: 'rgba(0,0,0,0)' , 
+    hovermode: 'x'
+  };
+
+
+  const config = {
+    modeBarButtons: [[
+      "resetScale2d", // changed becasue emoji was weird 
+      "toImage"
+    ]],
+    displaylogo: false
+  };
+
+  return { traces, layout, config };
+}
+```
+
+```js import_maplibre.js
+import * as maplibregl from "https://unpkg.com/maplibre-gl@6.11.2/dist/maplibre-gl.mjs";
+// bright basemap
+```
+
+```js
+display(html`<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.11.2/dist/maplibre-gl.css">`);
+```
+
+
+
+```js import_extensions.js
+import * as mlc from "npm:maplibre-gl-components";
+```
+
+```js
+const { Marker } = mlc;
+```
+
+```js find_bounds.js
+function boundsFromGeoJSON(geojson) {
+  const bounds = new maplibregl.LngLatBounds();
+
+  function extendWithCoords(coords) {
+    if (typeof coords[0] === "number") {
+      bounds.extend(coords);
+    } else {
+      coords.forEach(extendWithCoords);
+    }
+  }
+
+  // handle Feature, bare Geometry, or FeatureCollection
+  const geometry = geojson.type === "Feature" ? geojson.geometry
+                  : geojson.type === "FeatureCollection" ? null
+                  : geojson;
+
+  if (geojson.type === "FeatureCollection") {
+    geojson.features.forEach(f => extendWithCoords(f.geometry.coordinates));
+  } else {
+    extendWithCoords(geometry.coordinates);
+  }
+
+  return bounds;
+}
+```
+
+```js choose_title.js
+const title_choice = isDC ? "Congressional District" : "Congressional Community";
+```
+
+
+## Snapshot of your ${title_choice}
+
+<span style="color: #5b534a; font-size: 11px;">Click to explore your ${title_choice}! To reset the map press 🏠. </span>
+
+```js calc_ccn_coords.js
+// calculating the lat long
+const current_ccn_center = turf.centroid(current_ccn_geojson)
+const current_ccn_coords = current_ccn_center.geometry.coordinates
+```
+
+```js create_big_map.js
+const mapDiv = display(document.createElement("div"));
+mapDiv.style = "height: 300px;";
+
+const map = new maplibregl.Map({
+    container: mapDiv,
+    style: maplibre_style,
+    // close to center of us, but not wuite 
+    center: [ -90.137451890638886, 39.13734351262877],
+    zoom: 5
+});
+
+map.on('load', () => {
+    map.setPaintProperty('background', 'background-color', page_background_color);
+    map.addSource('current_ccn_geo', {
+        'type': 'geojson',
+        'data': current_ccn_geojson
+    });
+    map.addLayer({
+        'id': 'ccn20-fill',
+        'type': 'fill',
+        'source': 'current_ccn_geo',
+        'layout': {},
+        'paint': {
+            'fill-color': lighterItoColors[6],
+            'fill-opacity': 0.6, 
+        }
+    });
+    map.addLayer({
+        'id': 'ccn20-line',
+        'type': 'line',
+        'source': 'current_ccn_geo',
+        'layout': {},
+        'paint': {
+            "line-color": okabeItoColors[6],
+            "line-width": 3
+        }
+    });
+    // adding popup 
+    // https://maplibre.org/maplibre-gl-js/docs/examples/display-a-popup-on-hover/
+    // setting map bounds
+    const bounds = boundsFromGeoJSON(current_ccn_geojson);
+    map.fitBounds(bounds, { padding: 40 });
+
+
+    // adding control panels, zoom and everything
+    map.addControl(new maplibregl.NavigationControl({
+    visualizePitch: true,
+    visualizeRoll: true,
+    showZoom: true,
+    showCompass: true
+  }));
+
+   // capture zoom (and center) once the fitBounds animation completes
+    let fittedZoom;
+    map.once('moveend', () => {
+        fittedZoom = map.getZoom();
+        console.log('zoom after fitBounds:', fittedZoom);
+    });
+
+
+  // the actual function
+  class ResetControl {
+    onAdd(map) {
+      this._map = map;
+      this._container = document.createElement('div');
+      this._container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
+      
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.innerHTML = '🏠'; // Or use an SVG icon
+      button.title = 'Reset Map';
+      button.onclick = () => {
+        this._map.flyTo({
+          center: current_ccn_coords, // Your initial longitude, latitude
+          zoom: fittedZoom,
+          bearing: 0,
+          pitch: 0
+        });
+      };
+
+      // adding the widget
+      this._container.appendChild(button);
+      return this._container;
+    }
+
+    onRemove() {
+      this._container.parentNode.removeChild(this._container);
+      this._map = undefined;
+    }
+  }
+
+  // Add it to your map
+  const resetControl = new ResetControl();
+  map.addControl(resetControl, 'top-right');
+
+});
+
+```
+
+
+<!-- To make CD chart -->
+
+```sql id=current_cd_geo 
+SELECT cd119, 
+  STATE, 
+  ST_AsGeoJSON(geometry) AS geometry
+FROM cd119_geos 
+WHERE cd119 = ${dc_name}
+```
+
+```sql id=current_ccn_within_cd_geo
+-- transforming as geo 
+  SELECT
+    ccn20,
+    cd119,
+    State,
+    geometry
+    FROM ccn20_geo
+    WHERE cd119 = ${dc_name}
+```
+
+
+```js grab_geo_data_dc.js
+const current_ccn_within_cd_geojson = {
+  type: "FeatureCollection",
+  features: current_ccn_within_cd_geo.toArray().map(row => ({
+    type: "Feature",
+    properties: { ccn20: row.CCN20, cd119: row.cd119, State: row.State },
+    geometry: JSON.parse(row.geometry)
+  }))
+};
+
+```
+
+
+<!-- Merging to add data -->
+
+```sql id=current_ccn_merged_age 
+SELECT
+  g.ccn20,
+  g.cd119,
+  g.State,
+  o.* EXCLUDE (cd119, STATE, ccn20),                          -- all columns from the other table (rename below if there are collisions)
+  g.geometry
+FROM ccn20_geo AS g
+JOIN cc_data_age_table AS o
+  ON g.ccn20 = o.ccn20          
+WHERE g.cd119 = ${dc_name};
+```
+
+
+```js merge_age_data.js 
+const current_ccn_merged_geojson_age = {
+  type: "FeatureCollection",
+  features: current_ccn_merged_age.toArray()
+    .filter(row => row.geometry != null)
+    .map(row => {
+      const { geometry, ...properties } = row;   // everything except geometry becomes a property
+      return {
+        type: "Feature",
+        properties,
+        geometry: JSON.parse(geometry)
+      };
+    })
+};
+```
+
+
+```js calc_ccn_coords.js
+// transfomring to geo
+const current_cd_geojson = JSON.parse(
+  current_cd_geo.getChild("geometry").get(0)
+  );
+  
+
+// calculating the lat long
+const current_cd_center = turf.centroid(current_cd_geojson);
+const current_cd_coords = current_cd_center.geometry.coordinates;
+```
+
+```js import layers_control.js
+//https://opengeos.org/maplibre-gl-layer-control/examples/full-demo/index.html
+//https://github.com/opengeos/maplibre-gl-layer-control
+import { LayerControl } from 'npm:maplibre-gl-layer-control';
+display(html`<link rel="stylesheet" href="https://unpkg.com/maplibre-gl-layer-control@0.17.4/dist/maplibre-gl-layer-control.css">`);
+```
+
+
+
+```js quatile_breaks.js
+function computeQuantileBreaks(features, property, numClasses = 5) {
+  const values = features
+    .map(f => f.properties[property])
+    .filter(v => typeof v === "number" && !Number.isNaN(v))
+    .sort((a, b) => a - b);
+
+  if (values.length === 0) return [0, 1]; // fallback for empty/missing data
+
+  const breaks = [];
+  for (let i = 0; i <= numClasses; i++) {
+    const idx = Math.min(
+      values.length - 1,
+      Math.floor((i / numClasses) * (values.length - 1))
+    );
+    breaks.push(values[idx]);
+  }
+  // de-duplicate in case of many repeated values (e.g. lots of zeros)
+  return [...new Set(breaks)];
+}
+```
+
+```js make_dc_map.js
+function create_dc_map(container, ccn_geo_data, array_labels, array_names, { invalidation } = {}) {
+
+  return new Promise((resolve) => {
+
+    // initiializng map
+    const map_district = new maplibregl.Map({
+        container: container,
+        style: maplibre_style,
+        center: current_ccn_coords,
+        zoom: 6,
+        interactive: false
+    });
+    
+
+    // generating on load 
+    map_district.on('load', () => {
+      map_district.setPaintProperty('background', 'background-color', page_background_color_card);
+
+      // ccn fill data
+      map_district.addSource('ccn_geo_data', {
+          'type': 'geojson',
+          'data': ccn_geo_data
+      });
+
+      // one fill layer per age group — loop body ONLY builds layers
+      array_labels.forEach((label, i) => {
+        const layer_name = label + '_chloropleth';
+        const breaks = computeQuantileBreaks(ccn_geo_data.features, label, 5);
+
+        // build interpolate stops: [val0, color0, val1, color1, ...]
+        const colorRamp = [lighterItoColors_80[i], lighterItoColors_60[i], lighterItoColors[i], lighterItoColors_20[i], okabeItoColors[i]]; // 
+        const stops = breaks.flatMap((val, idx) => [val, colorRamp[idx % colorRamp.length]]);
+
+        map_district.addLayer({
+        'id': layer_name,
+        'type': 'fill',
+        'source': 'ccn_geo_data',
+        'layout': { 'visibility': i === 0 ? 'visible' : 'none' },
+        'paint': {
+            'fill-outline-color': '#000000',
+            'fill-color': [
+                'interpolate', ['linear'],
+                ['get', label],
+                ...stops
+            ],
+            'fill-opacity': 0.75
+          }
+        });
+      }); 
+
+            // outline for current ccn
+      map_district.addSource('current_ccn_geo', {
+            'type': 'geojson',
+            'data': current_ccn_geojson
+        });
+      // FILL for tooltip
+      map_district.addLayer({
+          'id': 'current-ccn20',
+          'type': 'fill',
+          'source': 'current_ccn_geo',
+          'layout': {},
+          'paint': {
+              'fill-outline-color': 'rgba(0, 0 ,0, 1)',
+              'fill-color': 'rgba(0, 0 ,0, 0)'
+          }
+      });
+      // actual line
+      map_district.addLayer({
+          'id': 'current-ccn20-line',
+          'type': 'line',
+          'source': 'current_ccn_geo',
+          'layout': {},
+          'paint': {
+              'line-color': okabeItoColors[6],
+              'line-width': 2
+          }
+      });
+
+      const bounds = boundsFromGeoJSON(current_cd_geojson);
+      map_district.fitBounds(bounds, {
+        padding: { top: 20, bottom: 20, left: 10, right: 160 },
+        animate: false
+      });
+
+      const layerControl = new LayerControl({
+        collapsed: false,
+        layerStates: {
+          'current-ccn20-line': {
+            visible: true,
+            opacity: 1,
+            name: `My ${title_choice}`
+          },
+          ...Object.fromEntries(
+            array_labels.map((label, i) => [
+              label + '_chloropleth',
+              {
+                visible: i === 0,
+                opacity: 0.5,
+                name: array_names ? array_names[i] : label
+              }
+            ])
+          )
+        }, 
+        panelWidth: 250,
+        panelMinWidth: 100,
+        panelMaxWidth: 400,
+        showStyleEditor: false,
+        showOpacitySlider: false,
+      });
+      map_district.addControl(layerControl, 'bottom-left');
+
+      // ---- colorbar (mlc = maplibre-gl-components, imported earlier) ----
+      // options for the colorbar of layer i, built from the same breaks/ramp as the fill
+      const colorbarOptions = (i) => {
+        const breaks = computeQuantileBreaks(ccn_geo_data.features, array_labels[i], 5);
+        const ramp = [lighterItoColors_80[i], lighterItoColors_60[i], lighterItoColors[i], lighterItoColors_20[i], okabeItoColors[i]];
+        return {
+          colorStops: ramp.map((color, k) => ({ position: k / (ramp.length - 1), color })),
+          vmin: breaks[0],
+          vmax: breaks[breaks.length - 1],
+          label: array_names ? array_names[i] : array_labels[i],
+          ticks: { count: 3, format: (v) => (v * 100).toFixed(0) + '%' }
+        };
+      };
+
+      const colorbar = new mlc.Colorbar({
+        ...colorbarOptions(0),
+        orientation: 'horizontal'
+      });
+      map_district.addControl(colorbar, 'top-right');
+
+      // LayerControl toggles visibility without an event we can hook,
+      // so on 'idle' check which choropleth is showing and update the colorbar
+      let activeIdx = 0;
+      map_district.on('idle', () => {
+        const idx = array_labels.findIndex(
+          (label) => map_district.getLayoutProperty(label + '_chloropleth', 'visibility') === 'visible'
+        );
+        if (idx !== -1 && idx !== activeIdx) {
+          activeIdx = idx;
+          colorbar.update(colorbarOptions(idx));
+        }
+      });
+
+      // When a click event occurs on a feature in the states layer, open a popup at the
+      // location of the click, with description HTML from its properties.
+      // Reuse a single popup instance instead of creating a new one every time
+      const linePopup = new maplibregl.Popup({
+        closeButton: false,
+        closeOnClick: false
+      });
+
+      // this makes it so that the nouse highlights the congresional communtiy
+      map_district.on('mouseenter', 'current-ccn20', (e) => {
+        map_district.getCanvas().style.cursor = 'pointer'; // indicate interactivity
+
+        linePopup
+          .setLngLat(e.lngLat)
+          .setHTML(e.features[0].properties.name)
+          .addTo(map_district);
+      });
+      // Update popup position as the mouse moves along the line
+      map_district.on('mousemove', 'current-ccn20', (e) => {
+        linePopup
+          .setLngLat(e.lngLat)
+        .setHTML(`My ${title_choice}!`);
+      });
+      map_district.on('mouseleave', 'current-ccn20', () => {
+        map_district.getCanvas().style.cursor = '';
+        linePopup.remove(); // actually remove the popup
+      });
+
+
+      // here in case of problems 
+      resolve(map_district);
+    });
+
+    if (invalidation) {
+      invalidation.then(() => map_district.remove());
+    }
+  });
+}
+```
+
+
+<hr>
+
+## People and Places
+
+```js
+const btn = Inputs.button("Return to top", {
+  reduce: () => window.scrollTo({ top: 0, behavior: "smooth" })
+});
+
+```
+
+
+<!-- Waffle chart -->
+
+```js display_waffle.js
+const countsByLabel_age = {
+  under18: age_under_18,
+  "18_65": age_18_65,
+  over65: age_over65
+};
+const ageBracketCols = ["over65", "18_65", "under18"];
+const ageGroupNames = ["65 and Older", "Between 18 and 64", "18 and Younger"]
+const ageKey = [`age_prop_under18`, 'age_prop_18_65', 'age_prop_over65'];
+```
+
+
+
+```js dc_title.js
+// this  is to make title for congressional district map 
+function makeMapDCTitle(type) {
+  const container = document.createElement("div");
+  container.style.height = "40px";
+  container.innerHTML = `
+    <span style="color: #5b534a; font-weight: bold;">Map of your Congressional District by ${type}</span><br>
+    <span style="color: #5b534a; font-size: 11px;">Please use the layers tab on the bottom left to visualize how your community compares</span>
+  `;
+  return container;
+}
+
+const title_age = makeMapDCTitle("Age");
+```
+
+
+
+```js
+async function buildMapDcAge() {
+  const container = document.createElement("div");
+  container.style = "height: 270px;";
+  const map = await create_dc_map(container, current_ccn_merged_geojson_age, ageKey.toReversed(), ageGroupNames, { invalidation });
+  requestAnimationFrame(() => map.resize());
+  return container;
+}
+const map_dc_age = buildMapDcAge()
+```
+
+
+<div class="grid grid-cols-3">
+  <div class="card">${
+    resize((width) => renderFullWaffle(ageBracketCols, countsByLabel_age, "people", ageGroupNames))
+  }</div>
+  <div class="card grid-colspan-2"><h2>${title_age}</h2>${
+    resize((width) => map_dc_age)
+  }
+  </div>
+</div>
+
+<!-- Text -->
+
+
+
+```js age_text.js
+const pct_pts = (x) => (Math.abs(x) * 100).toFixed(1);
+
+const age_summary = isDC
+  ? html`Your congressional district, <strong>${ccn}</strong>, has
+      <strong>${format_number(cc_tot_pop)}</strong> residents. Compared to
+      <strong>${states.fullName(state_name)}</strong>, it skews
+      <strong>${cc_state_younger}</strong> by
+      <strong>${pct_pts(cc_state_diff)} percentage points</strong>.`
+  : html`Your congressional community, <strong>${ccn}</strong>, has
+      <strong>${format_number(cc_tot_pop)}</strong> residents. Compared to your
+      congressional district of <strong>${format_number(dc_tot_pop)}</strong> people,
+      your community skews <strong>${cc_dc_younger}</strong> by
+      <strong>${pct_pts(cc_dc_diff)} percentage points</strong>.
+      ${cc_dc_younger === cc_state_younger ? "It is similarly" : "By contrast, it is"}
+      <strong>${cc_state_younger}</strong> than
+      <strong>${states.fullName(state_name)}</strong>, by
+      <strong>${pct_pts(cc_state_diff)} percentage points</strong>.`;
+```
+
+<center>${age_summary}</center>
+
+<!-- Cards with big numbers -->
+
+
+<div class="grid grid-cols-3">
+  <div class="card grid-colspan-3">
+  <center>
+  <span style="color: #5b534a; font-weight: bold;">Your ${title_choice} In Comparison</span>
+  <br>
+  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the graph to zoom in and to reset axes press 🏠 </span>
+  </center>
+  </div>
+</div>
+
+
+<div class="grid grid-cols-3">
+  <div class="card">
+    <h3>${highlight("Under 18 Population", 2)}</h3>
+    <span class="big">${highlight(format_number(age_under_18), 2)}</span>
+  </div>
+  <div class="card">
+    <h3>${highlight("18 to 64 Population", 1)}</h3>
+    <span class="big">${highlight(format_number(age_18_65), 1)}</span>
+  </div>
+  <div class="card">
+    <h3>${highlight("65 and Over Population", 0)}</h3>
+    <span class="big">${highlight(format_number(age_over65), 0)}</span>
+  </div>
+</div>
+
+
+<!-- plotly graphs -->
+
+<div class="grid grid-cols-3" >
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("under18", ageBracketCols, ageKey[0], "age", isDC);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("18_65", ageBracketCols, ageKey[1], "age", isDC);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("over65", ageBracketCols, ageKey[2], "age", isDC);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+</div>
+
+
+
+
+<!-- plot attributes -->
+
+<center>
+Communities with different age cohorts individuals often have different priorities, so understanding where your community sits on this spectrum helps explain which policy fights actually matter locally, even when they don't dominate the district-wide conversation.
+</center>
+
+
+<div class="return-top-container">${btn}</div>
+
+<hr>
+
+
+
+## Housing
+
+
+
+<!-- creating the tables for housing-->
+
+```sql id=create_tables_housing 
+
+CREATE OR REPLACE TABLE cc_data_housing_table AS
+SELECT
+    ccn20,
+    cd119,
+    State,
+    tot_housing,
+    tot_hholds,
+    tot_owned_hholds,
+    tot_vacant_units,
+    tot_rented_hholds,
+  
+    tot_hholds 
+        / NULLIF(tot_housing, 0)::DOUBLE
+        AS housing_occupancy_rate,
+
+    tot_owned_hholds
+        / NULLIF(tot_hholds, 0)::DOUBLE
+        AS housing_ownership_rate,
+
+    --adding in extra  rates
+    1 - housing_occupancy_rate AS housing_vacancy_rate, 
+    1 - housing_ownership_rate AS housing_rental_rate
+    
+
+ FROM cc_data_updated;
+
+
+CREATE OR REPLACE TABLE dc_data_housing_table AS
+SELECT
+    cd119,
+
+    SUM(tot_housing) AS tot_housing,
+    SUM(tot_hholds) AS tot_hholds,
+    SUM(tot_owned_hholds) AS tot_owned_hholds,
+    SUM(tot_vacant_units) AS tot_vacant_units,
+    SUM(tot_rented_hholds) AS tot_rented_hholds,
+
+    SUM(tot_hholds)
+        / NULLIF(SUM(tot_housing), 0)::DOUBLE
+        AS housing_occupancy_rate,
+
+    SUM(tot_owned_hholds)
+        / NULLIF(SUM(tot_hholds), 0)::DOUBLE
+        AS housing_ownership_rate,
+
+    1 - housing_occupancy_rate AS housing_vacancy_rate, 
+    1 - housing_ownership_rate AS housing_rental_rate
+
+FROM cc_data_updated
+GROUP BY cd119;
+
+
+CREATE OR REPLACE TABLE state_data_housing_table AS
+SELECT
+    State,
+
+    SUM(tot_housing) AS tot_housing,
+    SUM(tot_hholds) AS tot_hholds,
+    SUM(tot_owned_hholds) AS tot_owned_hholds,
+    SUM(tot_vacant_units) AS tot_vacant_units,
+    SUM(tot_rented_hholds) AS tot_rented_hholds,
+
+    SUM(tot_hholds)
+        / NULLIF(SUM(tot_housing), 0)::DOUBLE
+        AS housing_occupancy_rate,
+
+    SUM(tot_owned_hholds)
+        / NULLIF(SUM(tot_hholds), 0)::DOUBLE
+        AS housing_ownership_rate,
+
+    1 - housing_occupancy_rate AS housing_vacancy_rate, 
+    1 - housing_ownership_rate AS housing_rental_rate
+
+FROM cc_data_updated
+GROUP BY State;
+```
+
+
+<!-- Filtering the data-->
+
+
+```js cc_data_housing_calc.js
+const cc_data_housing = isDC
+  ? await sql`
+    SELECT 
+      d.*,
+      c.State
+    FROM dc_data_housing_table AS d
+    INNER JOIN cc_data_housing_table AS c
+      ON c.cd119 = d.cd119
+    WHERE d.cd119 = ${ccn}
+    LIMIT 1`
+  : await sql`
+    SELECT *, 
+    FROM cc_data_housing_table
+    WHERE ccn20 = ${ccn}`;
+```
+
+```js dc_data_housing_calc.js
+const dc_data_housing = isDC
+  ? await sql`
+    SELECT *, 
+    FROM dc_data_housing_table
+    WHERE cd119 = ${ccn}` 
+  : await sql`
+    SELECT *, 
+    FROM dc_data_housing_table
+    WHERE cd119 = (
+        SELECT cd119
+        FROM cc_data_housing_table
+        WHERE ccn20 = ${ccn}
+    )`;
+```
+
+```js state_data_housing_calc.js
+const state_data_housing = isDC
+  ? await sql`
+    SELECT *, 
+    FROM state_data_housing_table
+    WHERE State = (
+        SELECT State
+        FROM cc_data_housing_table
+        WHERE cd119 = ${ccn} 
+        LIMIT 1
+    )`
+  : await sql`
+    SELECT *, 
+    FROM state_data_housing_table
+    WHERE State = (
+        SELECT State
+        FROM cc_data_housing_table
+        WHERE ccn20 = ${ccn}
+    )`;
+```
+
+<!-- Cleaning and extracting data-->
+```js select_housing_vars.js
+const cc_tot_housing = extract_var(cc_data_housing, "tot_housing");
+const dc_tot_housing = extract_var(dc_data_housing, "tot_housing");
+const state_tot_housing = extract_var(state_data_housing, "tot_housing");
+
+const cc_tot_hholds = extract_var(cc_data_housing, "tot_hholds");
+
+const cc_occupancy_rate = extract_var(cc_data_housing, "housing_occupancy_rate");
+const dc_occupancy_rate = extract_var(dc_data_housing, "housing_occupancy_rate");
+const state_occupancy_rate = extract_var(state_data_housing, "housing_occupancy_rate");
+
+const cc_own_rate =extract_var(cc_data_housing, "housing_ownership_rate"); 
+const dc_own_rate = extract_var(dc_data_housing, "housing_ownership_rate"); 
+const state_own_rate = extract_var(state_data_housing, "housing_ownership_rate"); 
+const usa_own_rate = extract_var(usa_data_updated, "housing_ownership_rate"); 
+
+const cc_dc_diff_own_rate =
+  cc_own_rate - dc_own_rate;
+
+const cc_dc_ownership =
+  cc_dc_diff_own_rate > 0 ? "higher" : "lower";
+
+const cc_state_diff_own_rate =
+  cc_own_rate - state_own_rate;
+
+const cc_state_ownership =
+  cc_state_diff_own_rate > 0 ? "higher" : "lower";
+
+// for waffle
+const cc_vacant_units = extract_var(cc_data_housing, "tot_vacant_units");
+const cc_owned_units =  extract_var(cc_data_housing, "tot_owned_hholds");
+const cc_rented_units =  extract_var(cc_data_housing, "tot_rented_hholds");
+```
+
+
+```sql id=current_ccn_merged_housing 
+SELECT
+  g.CCN20,
+  g.cd119,
+  g.State,
+  o.* EXCLUDE (cd119, STATE, ccn20),
+  g.geometry
+FROM ccn20_geo AS g
+JOIN cc_data_housing_table AS o
+  ON g.ccn20 = o.ccn20
+WHERE g.cd119 = ${dc_name};
+```
+
+```js merge_age_data.js 
+const current_ccn_merged_geojson_housing = {
+  type: "FeatureCollection",
+  features: current_ccn_merged_housing.toArray()
+    .filter(row => row.geometry != null)
+    .map(row => {
+      const { geometry, ...properties } = row;   // everything except geometry becomes a property
+      return {
+        type: "Feature",
+        properties,
+        geometry: JSON.parse(geometry)
+      };
+    })
+};
+```
+
+
+
+### Housing Units
+
+<!-- Waffle chart -->
+
+
+```js assign_housing_waffle.js
+const vacancyCols = ["occupied", "vacant"];
+const countsByLabel_vacancy = {
+  occupied: cc_tot_hholds,
+  vacant: cc_vacant_units,
+}
+
+const vacancyGroupNames = ["Occupied Units", "Vacant Units"]
+const vacancyKey = [`housing_occupancy_rate`, 'housing_vacancy_rate'];
+```
+
+
+```js
+async function buildMapDcHousing() {
+  const container_vac = document.createElement("div");
+  container_vac.style = "height: 270px;";
+  const map = await create_dc_map(container_vac, current_ccn_merged_geojson_housing, vacancyKey, vacancyGroupNames, { invalidation });
+  requestAnimationFrame(() => map.resize());
+  return container_vac;
+}
+const map_dc_vacancy = buildMapDcHousing()
+const title_vac = makeMapDCTitle("Housing Vacancy");
+```
+
+
+<div class="grid grid-cols-3" >
+  <div class="card">${
+    resize((width) => renderFullWaffle(vacancyCols, countsByLabel_vacancy, "housing", vacancyGroupNames))
+  }</div>
+  <div class="card grid-colspan-2"><h2>${title_vac}</h2>${
+    resize((width) => map_dc_vacancy)
+  }
+  </div>
+</div>
+
+Text here 
+
+
+<div class="grid grid-cols-3">
+  <div class="card grid-colspan-3">
+  <center>
+  <span style="color: #5b534a; font-weight: bold;">Your ${title_choice} In Comparison</span>
+  <br>
+  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the graph to zoom in and to reset axes press 🏠 </span>
+  </center>
+  </div>
+</div>
+
+
+<div class="grid grid-cols-2">
+  <div class="card">
+    <h3>${highlight("Occupied Units", 0)}</h3>
+    <span class="big">${highlight(format_number(cc_tot_hholds), 0)}</span>
+  </div>
+  <div class="card">
+    <h3>${highlight("Vacant Units", 1)}</h3>
+    <span class="big">${highlight(format_number(cc_vacant_units), 1)}</span>
+  </div>
+</div>
+
+
+<!-- plotly graphs -->
+
+
+
+<div class="grid grid-cols-2" >
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("occupied", vacancyCols, vacancyKey[0], "housing", isDC);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("vacant", vacancyCols, vacancyKey[1], "housing", isDC);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+</div>
+
+
+### Households
+
+```js assign_hhold_waffle.js
+const ownershipCols = ["owned", "rented"]
+const countsByLabel_ownership = {
+  owned: cc_owned_units,
+  rented: cc_rented_units
+}
+const ownershipGroupNames = ["Owned Households", "Rented Households"]
+const ownershipKey = [`housing_ownership_rate`, 'housing_rental_rate'];
+```
+
+
+```js
+async function buildMapDcOwnership() {
+  const container_own = document.createElement("div");
+  container_own.style = "height: 270px;";
+  const map = await create_dc_map(container_own, current_ccn_merged_geojson_housing, ownershipKey, ownershipGroupNames, { invalidation });
+  requestAnimationFrame(() => map.resize());
+  return container_own;
+}
+const map_dc_ownership = buildMapDcOwnership()
+const title_own = makeMapDCTitle("Housing Ownership");
+```
+
+
+<!-- waffle chart!-->
+
+<div class="grid grid-cols-3">
+  <div class="card">${
+    resize((width) => renderFullWaffle(ownershipCols, countsByLabel_ownership, "households", ownershipGroupNames))
+  }</div>
+  <div class="card grid-colspan-2"><h3>${title_own}</h3>${
+   resize((width) => map_dc_ownership)
+  }
+  </div>
+</div>
+
+```js hhold_text.js
+const hhold_summary = isDC
+  ? html`Of all occupied 
+      <strong>${format_number(cc_tot_hholds)}</strong> housing units,  
+      <strong>${pct_pts(cc_own_rate)} percent</strong> are owned. That means that, compared to your state and the United State as a whole, your ${title_choice}'s homeownership rate is 
+      <strong>${pct_pts(cc_state_diff_own_rate)}</strong>, percentage points
+      <strong>${cc_state_ownership}</strong> and
+      FIx
+
+      <strong>${cc_state_ownership} </strong> by your state's homeownerhsip rate by 
+      <strong>${pct_pts(cc_state_diff_own_rate)} percentage points</strong>`
+  : html`Of all occupied 
+      <strong>${format_number(cc_tot_hholds)}</strong> housing units,  
+      <strong>${pct_pts(cc_own_rate)} percent</strong> are owned. That means that, compared to your congressional district and state, your ${title_choice}'s homeownership rate is 
+      <strong>${pct_pts(cc_dc_diff_own_rate)}</strong>, percentage points
+      <strong>${cc_dc_ownership}</strong> and
+      <strong>${cc_state_ownership} </strong> by your state's homeownerhsip rate by 
+      <strong>${pct_pts(cc_state_diff_own_rate)} percentage points</strong>`;
+```
+
+<center>${hhold_summary}</center>
+
+
+<!-- title -->
+
+<div class="grid grid-cols-3">
+  <div class="card grid-colspan-3">
+  <center>
+  <span style="color: #5b534a; font-weight: bold;">Your ${title_choice} In Comparison</span>
+  <br>
+  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the graph to zoom in and to reset axes press 🏠 </span>
+  </center>
+  </div>
+</div>
+
+
+<!-- cards with big numbers -->
+
+<div class="grid grid-cols-2">
+  <div class="card">
+    <h3>${highlight("Homeowner Households", 0)}</h3>
+    <span class="big">${highlight(format_number(cc_owned_units), 0)}</span>
+  </div>
+  <div class="card">
+    <h3>${highlight("Renter Househoolds", 1)}</h3>
+    <span class="big">${highlight(format_number(cc_rented_units), 1)}</span>
+  </div>
+</div>
+
+
+<!-- plotly graphs -->
+
+<div class="grid grid-cols-2">
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("owned", ownershipCols, ownershipKey[0], "housing", isDC);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("rented", ownershipCols, ownershipKey[1], "housing", isDC);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+</div>
+
+<center>
+Given the current state of the housing market, homeownership rates say a lot about how exposed a community is to rent increases, displacement, and housing-cost burden. Policies like rent stabilization or first-time buyer programs will therefore have varying levels of impact depending on the local environment. Knowing more about housing in your community can help you and your representative understand which policies will actually help you.
+</center>
+
+
+<div class="return-top-container">${btn}</div>
+<hr>
+
+
+## Languages
+
+
+```sql id=create_tables_lang
+
+CREATE OR REPLACE TABLE cc_data_lang_table AS
+SELECT
+    ccn20,
+    cd119,
+    State,
+    tot_pop_5yrs, 
+    tot_english_only, 
+    tot_non_english, 
+    tot_spanish,
+  
+    tot_english_only 
+        / NULLIF(tot_pop_5yrs, 0)::DOUBLE
+        AS prop_english_only,
+
+    1 - prop_english_only AS prop_non_english,
+
+    tot_spanish
+        / NULLIF(tot_pop_5yrs, 0)::DOUBLE
+        AS prop_span,
+
+    tot_spanish
+        / NULLIF(tot_non_english, 0)::DOUBLE
+        AS prop_span_nonEnglish,
+
+ FROM cc_data_updated;
+
+
+CREATE OR REPLACE TABLE dc_data_lang_table AS
+SELECT
+    cd119,
+
+    SUM(tot_pop_5yrs) AS tot_pop_5yrs,
+    SUM(tot_english_only) AS tot_english_only, 
+    SUM(tot_non_english) AS tot_non_english, 
+    SUM(tot_spanish) AS tot_spanish,
+  
+    SUM(tot_english_only) 
+        / NULLIF(SUM(tot_pop_5yrs), 0)::DOUBLE
+        AS prop_english_only,
+
+    1 - prop_english_only AS prop_non_english,
+
+    SUM(tot_spanish)
+        / NULLIF(SUM(tot_pop_5yrs), 0)::DOUBLE
+        AS prop_span,
+
+    SUM(tot_spanish)
+        / NULLIF(SUM(tot_non_english), 0)::DOUBLE
+        AS prop_span_nonEnglish,
+
+FROM cc_data_updated
+GROUP BY cd119;
+
+
+CREATE OR REPLACE TABLE state_data_lang_table AS
+SELECT
+    State,
+
+    SUM(tot_pop_5yrs) AS tot_pop_5yrs,
+    SUM(tot_english_only) AS tot_english_only, 
+    SUM(tot_non_english) AS tot_non_english, 
+    SUM(tot_spanish) AS tot_spanish,
+  
+    SUM(tot_english_only) 
+        / NULLIF(SUM(tot_pop_5yrs), 0)::DOUBLE
+        AS prop_english_only,
+
+    1 - prop_english_only AS prop_non_english,
+
+    SUM(tot_spanish)
+        / NULLIF(SUM(tot_pop_5yrs), 0)::DOUBLE
+        AS prop_span,
+
+    SUM(tot_spanish)
+        / NULLIF(SUM(tot_non_english), 0)::DOUBLE
+        AS prop_span_nonEnglish,  
+
+FROM cc_data_updated
+GROUP BY State;
+```
+
+
+<!-- Filtering the data-->
+
+
+```js cc_data_lang_calc.js
+const cc_data_lang = isDC
+  ? await sql`
+    SELECT 
+      d.*,
+      c.State
+    FROM dc_data_lang_table AS d
+    INNER JOIN cc_data_lang_table AS c
+      ON c.cd119 = d.cd119
+    WHERE d.cd119 = ${ccn}
+    LIMIT 1`
+  : await sql`
+    SELECT *, 
+    FROM cc_data_lang_table
+    WHERE ccn20 = ${ccn}`;
+```
+
+```js dc_data_lang_calc.js
+const dc_data_lang = isDC
+  ? await sql`
+    SELECT *, 
+    FROM dc_data_lang_table
+    WHERE cd119 = ${ccn}` 
+  : await sql`
+    SELECT *, 
+    FROM dc_data_lang_table
+    WHERE cd119 = (
+        SELECT cd119
+        FROM cc_data_lang_table
+        WHERE ccn20 = ${ccn}
+    )`;
+```
+
+```js state_data_lang_calc.js
+const state_data_lang = isDC
+  ? await sql`
+    SELECT *, 
+    FROM state_data_lang_table
+    WHERE State = (
+        SELECT State
+        FROM cc_data_lang_table
+        WHERE cd119 = ${ccn} 
+        LIMIT 1
+    )`
+  : await sql`
+    SELECT *, 
+    FROM state_data_lang_table
+    WHERE State = (
+        SELECT State
+        FROM cc_data_lang_table
+        WHERE ccn20 = ${ccn}
+    )`;
+```
+
+
+
+<!-- Cleaning and extracting data-->
+```js select_lang_vars.js
+// english
+const cc_tot_pop_5yrs= extract_var(cc_data_lang, "tot_pop_5yrs");
+const dc_tot_pop_5yrs = extract_var(dc_data_lang, "tot_pop_5yrs");
+const state_tot_pop_5yrs = extract_var(state_data_lang, "tot_pop_5yrs");
+const usa_tot_pop_5yrs = extract_var(usa_data_updated, "tot_pop_5yrs"); 
+
+// non englihs
+const cc_tot_english_only = extract_var(cc_data_lang, "tot_english_only");
+const dc_tot_english_only = extract_var(dc_data_lang, "tot_english_only");
+const state_tot_english_only = extract_var(state_data_lang, "tot_english_only");
+
+// non english
+const cc_tot_non_english = extract_var(cc_data_lang, "tot_non_english"); 
+const dc_tot_non_english = extract_var(dc_data_lang, "tot_non_english"); 
+const state_tot_non_english = extract_var(state_data_lang, "tot_non_english"); 
+const usa_tot_non_english = extract_var(usa_data_updated, "tot_non_english"); 
+
+// lang rate 
+const cc_tot_spanish = extract_var(cc_data_lang, "tot_spanish"); 
+const dc_tot_spanish = extract_var(dc_data_lang, "tot_spanish"); 
+const state_tot_spanish = extract_var(state_data_lang, "tot_spanish"); 
+const usa_tot_spanish = extract_var(usa_data_updated, "tot_spanish"); 
+
+// lfp 
+const cc_prop_english_only = extract_var(cc_data_lang, "prop_english_only"); 
+const dc_prop_english_only = extract_var(dc_data_lang, "prop_english_only"); 
+const state_prop_english_only = extract_var(state_data_lang, "prop_english_only"); 
+
+// lang to pop
+const cc_prop_span = extract_var(cc_data_lang, "prop_span"); 
+const dc_prop_span = extract_var(dc_data_lang, "prop_span"); 
+const state_prop_span = extract_var(state_data_lang, "prop_span");
+
+// lang to non english 
+const cc_prop_span_nonEnglishn = extract_var(cc_data_lang, "prop_span_nonEnglish"); 
+const dc_prop_span_nonEnglish = extract_var(dc_data_lang, "prop_span_nonEnglish"); 
+const state_prop_span_nonEnglish = extract_var(state_data_lang, "prop_span_nonEnglish");
+
+// text vars
+const usa_prop_span = usa_tot_spanish / usa_tot_pop_5yrs;
+
+const span_diff_state = cc_prop_span - state_prop_span;
+const span_diff_ref = isDC ? cc_prop_span - usa_prop_span : cc_prop_span - dc_prop_span;
+const span_ref_name = isDC ? "the United States" : "your congressional district";
+```
+
+
+```sql id=current_ccn_merged_lang
+SELECT
+  g.CCN20,
+  g.cd119,
+  g.State,
+  o.* EXCLUDE (cd119, STATE, ccn20),
+  g.geometry
+FROM ccn20_geo AS g
+JOIN cc_data_lang_table AS o
+  ON g.ccn20 = o.ccn20
+WHERE g.cd119 = ${dc_name};
+```
+
+```js merge_age_data_lang.js 
+const current_ccn_merged_geojson_lang = {
+  type: "FeatureCollection",
+  features: current_ccn_merged_lang.toArray()
+    .filter(row => row.geometry != null)
+    .map(row => {
+      const { geometry, ...properties } = row;   // everything except geometry becomes a property
+      return {
+        type: "Feature",
+        properties,
+        geometry: JSON.parse(geometry)
+      };
+    })
+};
+```
+
+
+```js
+// this is the outer ring 
+function makeSpanishDonutsPlotly(isDC) {
+  const traces = [];
+  const colors = [okabeItoColors[4], lighterItoColors[1]];
+  const colors_inner = [okabeItoColors[4], lighterItoColors[4]];
+
+  // `inner: true` nests that donut inside the previous entry's ring
+  const entries = isDC
+    ? [
+        { name: "Congressional District", short: "District",
+          spanish: dc_tot_spanish, total: dc_tot_pop_5yrs, colors },
+        { name: "District (non-English speakers)", short: "Non-English",
+          spanish: dc_tot_spanish, total: dc_tot_non_english, colors: colors_inner, inner: true },
+        { name: "State", short: "State",
+          spanish: state_tot_spanish, total: state_tot_pop_5yrs, colors },
+        { name: "State (non-English speakers)", short: "Non-English",
+          spanish: state_tot_spanish, total: state_tot_non_english, colors: colors_inner, inner: true },
+        { name: "Nation", short: "Country",
+          spanish: usa_tot_spanish, total: usa_tot_pop_5yrs, colors },
+        { name: "Nation (non-English speakers)", short: "Non-English",
+          spanish: usa_tot_spanish, total: usa_tot_non_english, colors: colors_inner, inner: true },
+      ]
+    : [
+        { name: "Congressional Community", short: "Community",
+          spanish: cc_tot_spanish, total: cc_tot_pop_5yrs, colors },
+        { name: "Congressional Community (non-English speakers)", short: "Non-English",
+          spanish: cc_tot_spanish, total: cc_tot_non_english, colors: colors_inner, inner: true },
+        { name: "Congressional District", short: "District",
+          spanish: dc_tot_spanish, total: dc_tot_pop_5yrs, colors },
+        { name: "District (non-English speakers)", short: "Non-English",
+          spanish: dc_tot_spanish, total: dc_tot_non_english, colors: colors_inner, inner: true },
+        { name: "State", short: "State",
+          spanish: state_tot_spanish, total: state_tot_pop_5yrs, colors },
+        { name: "State (non-English speakers)", short: "Non-English",
+          spanish: state_tot_spanish, total: state_tot_non_english, colors: colors_inner, inner: true },
+      ];
+
+  // group entries into cells; an inner entry attaches to the previous cell
+  const cells = [];
+  entries.forEach(e => {
+    if (e.inner) cells[cells.length - 1].inner = e;
+    else cells.push({ outer: e });
+  });
+
+  const n = cells.length;
+  const gap = 0.04;                    // fraction of total width
+  const w = (1 - gap * (n - 1)) / n;   // width of each cell
+  const scale = 0.6;                   // inner ring size relative to outer
+
+  const makePie = (d, domain, hole) => ({
+    type: "pie",
+    name: d.name,
+    values: [d.spanish, d.total - d.spanish],
+    labels: ["Spanish", "Other than Spanish"],
+    domain,
+    marker: { colors: d.colors },
+    hole,
+    hoverinfo: "label+percent+name",
+    textinfo: "none",
+    sort: false,
+  });
+
+  const pct = d => ((d.spanish / d.total) * 100).toFixed(1) + "%";
+  const annotations = [];
+
+  cells.forEach((c, i) => {
+    const x0 = i * (w + gap);
+    const cx = x0 + w / 2;
+
+    // outer ring
+    traces.push(makePie(c.outer, { x: [x0, x0 + w], y: [0, 1] }, 0.7));
+
+    // inner ring, centered in the same cell
+    if (c.inner) {
+      const half = (w * scale) / 2;
+      traces.push(makePie(
+        c.inner,
+        { x: [cx - half, cx + half], y: [(1 - scale) / 2, (1 + scale) / 2] },
+        0.6
+      ));
+    }
+
+    annotations.push({
+    x: cx,
+    y: 0.05,
+    xref: "paper",
+    yref: "paper",
+    xanchor: "center",
+    yanchor: "middle",
+    showarrow: false,
+    align: "center",
+    font: { size: c.inner ? 10 : 12, color: "#5b534a" },
+    text: c.inner
+      ? `${c.outer.short}`
+      : `${c.outer.short}`,
+    });
+  });
+
+  const layout = {
+    annotations,
+    height: 150,
+    margin: { l: 0, r: 0, t: 0, b: 0 },
+    paper_bgcolor: "rgba(0,0,0,0)",
+    plot_bgcolor: "rgba(0,0,0,0)",
+    showlegend: false,
+  };
+
+  const config = { displaylogo: false, displayModeBar: false };
+  return { traces, layout, config };
+}
+```
+
+
+<!-- Waffle chart -->
+
+
+```js assign_lang_waffle.js
+// waffle 
+const langCols = ["english", "not_english"];
+const countsByLabel_lang = {
+  english: cc_tot_english_only,
+  not_english: cc_tot_non_english
+}
+const langGroupNames = ["Only English", "Primarily Not English"]
+const langKey = ['prop_english_only', 'prop_non_english'];
+
+```
+
+
+```js
+async function buildMapDcLang() {
+  const container_lang = document.createElement("div");
+  container_lang.style = "height: 270px;";
+  const map = await create_dc_map(container_lang, current_ccn_merged_geojson_lang, langKey, langGroupNames, { invalidation });
+  requestAnimationFrame(() => map.resize());
+  return container_lang;
+}
+const map_dc_lang = buildMapDcLang()
+const title_lang = makeMapDCTitle("Language Spoken at Home");
+```
+
+<!-- rendering waffle -->
+
+<div class="grid grid-cols-3" >
+  <div class="card">${
+    resize((width) => renderFullWaffle(langCols, countsByLabel_lang, "lang", langGroupNames))
+  }</div>
+  <div class="card grid-colspan-2"><h2>${title_lang}</h2>${
+    resize((width) => map_dc_lang)
+  }
+  </div>
+</div>
+
+<!-- text-->
+
+Looking at how what language your community speaks in ... 
+
+<!-- title -->
+
+<div class="grid grid-cols-3">
+  <div class="card grid-colspan-3">
+  <center>
+  <span style="color: #5b534a; font-weight: bold;">Your ${title_choice} In Comparison</span>
+  <br>
+  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the graph to zoom in and to reset axes press 🏠 </span>
+  <span style="color: #5b534a; font-size: 11px;"> <br> ---<br> For the <strong>Spanish Speakers</strong> block, the outer ring represents the proportion of spanish speakers <em>relative to the poopulation older than 5</em> while the inner ring represents the proportion of spanish speakers <em>relative to those who speak a langauge other than english at home</em></span>
+  </center>
+  </div>
+</div>
+
+
+
+<!-- cards with big numbers -->
+
+<div class="grid grid-cols-3">
+  <div class="card">
+    <h3>${highlight("Speaks Only English", 0)}</h3>
+    <span class="big">${highlight(format_number(cc_tot_english_only), 0)}</span>
+  </div>
+  <div class="card grid-colspan-2">
+    <h3>${highlight("Speaks a Language Other Than English", 1)}</h3>
+    <span class="big">${highlight(format_number(cc_tot_non_english), 1)}</span>
+  </div>
+  </div>
+</div>
+
+
+
+
+<!-- plotly graphs -->
+
+<div class="grid grid-cols-3">
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("english", langCols, langKey[0], "lang", isDC);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("not_english", langCols, langKey[1], "lang", isDC);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+  <div class="card">
+    <center><h3>Spanish Speakers</h3></center>
+    ${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeSpanishDonutsPlotly(isDC);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    })
+  }</div>
+</div>
+
+```js lang_text.js
+const lang_closing = html`This kind of linguistic diversity helps shape the fabric of your community.
+  However, different languages come with different needs, such as knowing which interpreters to hire or
+  which languages official materials should be translated into for the greatest impact.`;
+
+const lang_summary = html`In your ${title_choice.toLowerCase()}, <strong>${pct_pts(cc_prop_english_only)}%</strong>
+    of the <strong>${format_number(cc_tot_pop_5yrs)}</strong> residents age 5 and older speak only English, while
+    <strong>${format_number(cc_tot_non_english)}</strong> speak another language at home.
+    <strong>${pct_pts(cc_prop_span)}%</strong> of residents speak Spanish, which is
+    <strong>${pct_pts(span_diff_state)} percentage points ${span_diff_state > 0 ? "higher" : "lower"}</strong>
+    than <strong>${states.fullName(state_name)}</strong> and
+    <strong>${pct_pts(span_diff_ref)} percentage points ${span_diff_ref > 0 ? "higher" : "lower"}</strong>
+    than ${span_ref_name}. Among those who speak a language other than English,
+    <strong>${pct_pts(cc_prop_span_nonEnglishn)}%</strong> speak Spanish. ${lang_closing}`;
+
+```
+
+<center>${lang_summary}</center>
+
+
+<div class="return-top-container">${btn}</div>
+
+<hr>
+
+## Employment 
+
+
+```sql id=create_tables_employment
+
+CREATE OR REPLACE TABLE cc_data_employment_table AS
+SELECT
+    ccn20,
+    cd119,
+    State,
+    tot_emp, 
+    tot_unemp, 
+    tot_civilian_lf, 
+    tot_working_age_pop,
+  
+    tot_unemp 
+        / NULLIF(tot_civilian_lf, 0)::DOUBLE
+        AS unemp_rate3,
+
+    tot_emp 
+        / NULLIF(tot_civilian_lf, 0)::DOUBLE
+        AS emp_rate3,
+
+    tot_civilian_lf
+        / NULLIF(tot_working_age_pop, 0)::DOUBLE
+        AS lfp_rate,
+
+    tot_emp 
+        / NULLIF(tot_working_age_pop, 0)::DOUBLE
+        AS emp_to_pop,   
+
+ FROM cc_data_updated;
+
+
+CREATE OR REPLACE TABLE dc_data_employment_table AS
+SELECT
+    cd119,
+
+    SUM(tot_emp) AS tot_emp,
+    SUM(tot_unemp) AS tot_unemp,
+    SUM(tot_civilian_lf) AS tot_civilian_lf,
+    SUM(tot_working_age_pop) AS tot_working_age_pop,
+
+    SUM(tot_unemp)
+        / NULLIF(SUM(tot_civilian_lf), 0)::DOUBLE
+        AS unemp_rate3,
+
+    SUM(tot_emp)
+        / NULLIF(SUM(tot_civilian_lf), 0)::DOUBLE
+        AS emp_rate3,
+
+    SUM(tot_civilian_lf)
+        / NULLIF(SUM(tot_working_age_pop), 0)::DOUBLE
+        AS lfp_rate,
+
+    SUM(tot_emp)
+        / NULLIF(SUM(tot_working_age_pop), 0)::DOUBLE
+        AS emp_to_pop,   
+
+FROM cc_data_updated
+GROUP BY cd119;
+
+
+CREATE OR REPLACE TABLE state_data_employment_table AS
+SELECT
+    State,
+
+    SUM(tot_emp) AS tot_emp,
+    SUM(tot_unemp) AS tot_unemp,
+    SUM(tot_civilian_lf) AS tot_civilian_lf,
+    SUM(tot_working_age_pop) AS tot_working_age_pop,
+
+    SUM(tot_unemp)
+        / NULLIF(SUM(tot_civilian_lf), 0)::DOUBLE
+        AS unemp_rate3,
+
+    SUM(tot_emp)
+        / NULLIF(SUM(tot_civilian_lf), 0)::DOUBLE
+        AS emp_rate3,
+
+    SUM(tot_civilian_lf)
+        / NULLIF(SUM(tot_working_age_pop), 0)::DOUBLE
+        AS lfp_rate,
+
+    SUM(tot_emp)
+        / NULLIF(SUM(tot_working_age_pop), 0)::DOUBLE
+        AS emp_to_pop,   
+
+FROM cc_data_updated
+GROUP BY State;
+```
+
+
+<!-- Filtering the data-->
+
+
+```js cc_data_employment_calc.js
+const cc_data_employment = isDC
+  ? await sql`
+    SELECT 
+      d.*,
+      c.State
+    FROM dc_data_employment_table AS d
+    INNER JOIN cc_data_employment_table AS c
+      ON c.cd119 = d.cd119
+    WHERE d.cd119 = ${ccn}
+    LIMIT 1`
+  : await sql`
+    SELECT *, 
+    FROM cc_data_employment_table
+    WHERE ccn20 = ${ccn}`;
+```
+
+```js dc_data_employment_calc.js
+const dc_data_employment = isDC
+  ? await sql`
+    SELECT *, 
+    FROM dc_data_employment_table
+    WHERE cd119 = ${ccn}` 
+  : await sql`
+    SELECT *, 
+    FROM dc_data_employment_table
+    WHERE cd119 = (
+        SELECT cd119
+        FROM cc_data_employment_table
+        WHERE ccn20 = ${ccn}
+    )`;
+```
+
+```js state_data_employment_calc.js
+const state_data_employment = isDC
+  ? await sql`
+    SELECT *, 
+    FROM state_data_employment_table
+    WHERE State = (
+        SELECT State
+        FROM cc_data_employment_table
+        WHERE cd119 = ${ccn} 
+        LIMIT 1
+    )`
+  : await sql`
+    SELECT *, 
+    FROM state_data_employment_table
+    WHERE State = (
+        SELECT State
+        FROM cc_data_employment_table
+        WHERE ccn20 = ${ccn}
+    )`;
+```
+
+
+<!-- Cleaning and extracting data-->
+```js select_housing_vars.js
+// employed
+const cc_tot_emp = extract_var(cc_data_employment, "tot_emp");
+const dc_tot_emp = extract_var(dc_data_employment, "tot_emp");
+const state_tot_emp = extract_var(state_data_employment, "tot_emp");
+
+// unemployed
+const cc_tot_unemp = extract_var(cc_data_employment, "tot_unemp");
+const dc_tot_unemp = extract_var(dc_data_employment, "tot_unemp");
+const state_tot_unemp = extract_var(state_data_employment, "tot_unemp");
+
+// U3
+const cc_unemp_rate3 = extract_var(cc_data_employment, "unemp_rate3"); 
+const dc_unemp_rate3 = extract_var(dc_data_employment, "unemp_rate3"); 
+const state_unemp_rate3 = extract_var(state_data_employment, "unemp_rate3"); 
+
+// employment rate 
+const cc_emp_rate3 = extract_var(cc_data_employment, "emp_rate3"); 
+const dc_emp_rate3 = extract_var(dc_data_employment, "emp_rate3"); 
+const state_emp_rate3 = extract_var(state_data_employment, "emp_rate3"); 
+
+// lfp 
+const cc_lfp_rate = extract_var(cc_data_employment, "lfp_rate"); 
+const dc_lfp_rate = extract_var(dc_data_employment, "lfp_rate"); 
+const state_lfp_rate = extract_var(state_data_employment, "lfp_rate"); 
+
+// employment to pop
+const cc_emp_to_pop = extract_var(cc_data_employment, "emp_to_pop"); 
+const dc_emp_to_pop = extract_var(dc_data_employment, "emp_to_pop"); 
+const state_emp_to_pop = extract_var(state_data_employment, "emp_to_pop"); 
+
+const cc_dc_diff_unemp_rate =
+  cc_unemp_rate3 - dc_unemp_rate3;
+
+const cc_dc_unemp =
+  cc_dc_diff_unemp_rate > 0 ? "higher" : "lower";
+
+const cc_state_diff_unemp_rate =
+  cc_unemp_rate3 - state_unemp_rate3;
+
+const cc_state_unemp =
+  cc_state_diff_unemp_rate > 0 ? "higher" : "lower";
+```
+
+
+
+```sql id=current_ccn_merged_employment
+SELECT
+  g.CCN20,
+  g.cd119,
+  g.State,
+  o.* EXCLUDE (cd119, STATE, ccn20),
+  g.geometry
+FROM ccn20_geo AS g
+JOIN cc_data_employment_table AS o
+  ON g.ccn20 = o.ccn20
+WHERE g.cd119 = ${dc_name};
+```
+
+```js merge_age_data_employment.js 
+const current_ccn_merged_geojson_employment = {
+  type: "FeatureCollection",
+  features: current_ccn_merged_employment.toArray()
+    .filter(row => row.geometry != null)
+    .map(row => {
+      const { geometry, ...properties } = row;   // everything except geometry becomes a property
+      return {
+        type: "Feature",
+        properties,
+        geometry: JSON.parse(geometry)
+      };
+    })
+};
+```
+
+
+
+<!-- Waffle chart -->
+
+
+```js assign_employment_waffle.js
+// waffle 
+const empCols = ["employed", "unemployed"];
+const countsByLabel_emp = {
+  employed: cc_tot_emp,
+  unemployed: cc_tot_unemp,
+}
+const empGroupNames = ["Employed", "Unemployed"]
+
+// for plotly and map
+const emp_measureCols = ["e3", "lfp", "etp"]
+const empKey = ['emp_rate3', 'lfp_rate', 'emp_to_pop'];
+const emp_measureGroupNames = ['Employment Rate', 'Labor Force Participation', 'Employment to Working Age Pop']
+```
+
+
+```js
+async function buildMapDcEmp() {
+  const container_emp = document.createElement("div");
+  container_emp.style = "height: 270px;";
+  const map = await create_dc_map(container_emp, current_ccn_merged_geojson_employment, empKey, emp_measureGroupNames, { invalidation });
+  requestAnimationFrame(() => map.resize());
+  return container_emp;
+}
+const map_dc_emp = buildMapDcEmp()
+const title_emp = makeMapDCTitle("Employment Rate");
+```
+
+
+<div class="grid grid-cols-3" >
+  <div class="card">${
+    resize((width) => renderFullWaffle(empCols, countsByLabel_emp, "employment", empGroupNames))
+  }</div>
+  <div class="card grid-colspan-2"><h2>${title_emp}</h2>${
+    resize((width) => map_dc_emp)
+  }
+  </div>
+</div>
+
+Looking at different measures of employment...
+
+<!-- title -->
+
+<div class="grid grid-cols-3">
+  <div class="card grid-colspan-3">
+  <center>
+  <span style="color: #5b534a; font-weight: bold;">Your ${title_choice} In Comparison</span>
+  <br>
+  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the graph to zoom in and to reset axes press 🏠 </span>
+  </center>
+  </div>
+</div>
+
+<!-- cards with big numbers -->
+
+<div class="grid grid-cols-3">
+  <div class="card">
+    <h3>${highlight("Employment rate", 0)}</h3>
+    <span class="big">${highlight(Math.abs(cc_emp_rate3 * 100).toLocaleString("en-us", { maximumFractionDigits: 1 })+ '%', 0)}</span>
+  </div>
+  <div class="card">
+    <h3>${highlight("Labor Force Participation rate", 1)}</h3>
+    <span class="big">${highlight(Math.abs(cc_lfp_rate * 100).toLocaleString("en-us", { maximumFractionDigits: 1 }) + '%', 1)}</span>
+  </div>
+  <div class="card">
+    <h3>${highlight("Employment-to-population ratio", 2)}</h3>
+    <span class="big">${highlight(Math.abs(cc_emp_to_pop * 100).toLocaleString("en-us", { maximumFractionDigits: 1 }) + '%', 2)}</span>
+  </div>
+</div>
+
+
+<!-- plotly graphs -->
+
+<div class="grid grid-cols-3">
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("e3", emp_measureCols, empKey[0], "employment", isDC);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("lfp", emp_measureCols, empKey[1], "employment", isDC);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+  <div class="card">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makeLineCompChartPlotly("etp", emp_measureCols, empKey[2], "employment", isDC);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    }) 
+  }</div>
+</div>
+
+```js
+const emp_summary = isDC
+  ? html`The unemployment rate in your ${title_choice.toLowerCase()} is
+      <strong>${pct_pts(cc_unemp_rate3)}%</strong>, which is
+      <strong>${pct_pts(cc_state_diff_unemp_rate)} percentage points ${cc_state_unemp}</strong> than
+      <strong>${states.fullName(state_name)}</strong>.
+      <strong>${pct_pts(cc_lfp_rate)}%</strong> of working-age residents are in the labor force, and
+      <strong>${pct_pts(cc_emp_to_pop)}%</strong> are employed.`
+  : html`The unemployment rate in your ${title_choice.toLowerCase()} is
+      <strong>${pct_pts(cc_unemp_rate3)}%</strong>, which is
+      <strong>${pct_pts(cc_dc_diff_unemp_rate)} percentage points ${cc_dc_unemp}</strong> than your
+      congressional district and
+      <strong>${pct_pts(cc_state_diff_unemp_rate)} percentage points ${cc_state_unemp}</strong> than
+      <strong>${states.fullName(state_name)}</strong>.
+      <strong>${pct_pts(cc_lfp_rate)}%</strong> of working-age residents are in the labor force, and
+      <strong>${pct_pts(cc_emp_to_pop)}%</strong> are employed.`;
+```
+
+<center>${emp_summary}</center>
