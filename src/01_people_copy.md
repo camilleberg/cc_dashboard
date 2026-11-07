@@ -473,6 +473,19 @@ function renderFullWaffle(labels, countsByLabel, type, group_name_list) {
 }
 ```
 
+```js find_axes_bounds.js
+function findAxisBounds(isDC, xCc, xCd, xState, xCountry){
+    // dynamically adjust x range
+  const xs = isDC
+    ? [xCd, xState, xCountry].filter(Number.isFinite)
+    : [xCc, xCd, xState].filter(Number.isFinite);
+  const xMin = Math.min(...xs) - 0.02;
+  const xMax = Math.max(...xs) + 0.02;
+
+  return [xMin, xMax];
+}
+```
+
 
 ```js make_plotly_charts.js
 function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
@@ -563,9 +576,7 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
     if (isDC) traces.push(country_trace);
 
   // dynamically adjust x range
-  const xs = [xCc, xCd, xState, xCountry].filter(Number.isFinite);
-  const xMin = floorToDecimals(Math.min(...xs), 1) - 0.01;
-  const xMax = ceilToDecimals(Math.max(...xs), 2) + 0.07;
+  const [xMin, xMax] = findAxisBounds(isDC, xCc, xCd, xState, xCountry);
 
   const layout = {
     xaxis: {
@@ -589,7 +600,7 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
       visible: true, 
       showgrid: false, // for lines
       showticklabels: false,   
-      zeroline: true,      // Set to false if you want to hide the vertical line at x=0
+      zeroline: true,      
       zerolinecolor: 'darkgrey', // Change the color of the zero line 
       zerolinewidth: 1,     // Change the thickness of the line in pixels
      },
@@ -613,6 +624,12 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
   };
 
   return { traces, layout, config };
+}
+```
+
+```js
+function makePlotlyLongChart(){
+
 }
 ```
 
@@ -1195,6 +1212,22 @@ const age_summary = isDC
     <span class="big">${highlight(format_number(age_over65), 0)}</span>
   </div>
 </div>
+
+
+```js
+function getZoomInfo(div){
+  div.on('plotly_relayout',
+    function(eventdata){
+        alert( 'ZOOM!' + '\n\n' +
+            'Event data:' + '\n' +
+             JSON.stringify(eventdata) + '\n\n' +
+            'x-axis start:' + eventdata['xaxis.range[0]'] + '\n' +
+            'x-axis end:' + eventdata['xaxis.range[1]'] );
+    });
+}
+
+```
+
 
 
 <!-- plotly graphs -->

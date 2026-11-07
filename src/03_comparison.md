@@ -137,12 +137,12 @@ vg.vconcat(
   // usa map 
   vg.plot(
     // background: every community, neutral
-    vg.geo(vg.from("cd119_geos"), {
+/*     vg.geo(vg.from("cd119_geos"), {
       geometry: "geometry",
       fill: "#e5e0db",
       stroke: "currentColor",
       strokeWidth: 0.3
-    }),
+    }), */
 
     // foreground: only rows matching the brush, colored by the chosen variable
     vg.geo(vg.from("cc_data_all", { filterBy: $query }), {
@@ -159,6 +159,6 @@ vg.vconcat(
     vg.margin(0),
     vg.width(map_width),
     vg.height(400)
-  )
+  ) // want to add table 
 )
 ```
