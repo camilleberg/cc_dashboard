@@ -1,14 +1,25 @@
 ---
-title: Main Page 
+title: Main Page
 sql:
   ccn20_geo: data/ccn20_geo.parquet
   cd119_geos: ./data/cd119_geos.parquet
   cc_data_updated: ./data/cc_data_updated.parquet
   ccn20_to_cd119: ./data/ccn20_to_cd119.parquet
   usa_data_updated: ./data/usa_data_updated.parquet
+  cc_data_age_table: ./data/cc_tables/age/cc_data_age_table.parquet
+  dc_data_age_table: ./data/cc_tables/age/dc_data_age_table.parquet
+  state_data_age_table: ./data/cc_tables/age/state_data_age_table.parquet 
+  cc_data_housing_table: ./data/cc_tables/housing/cc_data_housing_table.parquet 
+  dc_data_housing_table: ./data/cc_tables/housing/dc_data_housing_table.parquet 
+  state_data_housing_table: ./data/cc_tables/housing/state_data_housing_table.parquet 
+  cc_data_lang_table: ./data/cc_tables/lang/cc_data_lang_table.parquet 
+  dc_data_lang_table: ./data/cc_tables/lang/dc_data_lang_table.parquet 
+  state_data_lang_table: ./data/cc_tables/lang/state_data_lang_table.parquet 
+  cc_data_employment_table: ./data/cc_tables/emp/cc_data_employment_table.parquet 
+  dc_data_employment_table: ./data/cc_tables/emp/dc_data_employment_table.parquet 
+  state_data_employment_table: ./data/cc_tables/emp/state_data_employment_table.parquet 
 head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10/dist/css/autoComplete.min.css">'
 ---
-
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-2M9HMSTWCC"></script>
@@ -122,89 +133,6 @@ const homeIcon = {
 const usa_data_updated = await sql`SELECT * FROM usa_data_updated`;
 ```
 
-<!-- creating the tables-->
-
-
-
-```sql id=create_tables_age
--- for congressional community level 
-CREATE OR REPLACE TABLE cc_data_age_table AS
-  SELECT
-    ccn20,
-    cd119,
-    State,
-    tot_pop, 
-    ageGroup_under18, 
-    ageGroup_18_65, 
-    ageGroup_over65,
-    ageGroup_under18
-        / NULLIF(tot_pop, 0)::DOUBLE
-        AS age_prop_under18,
-
-    ageGroup_18_65
-        / NULLIF(tot_pop, 0)::DOUBLE
-        AS age_prop_18_65,
-
-    ageGroup_over65
-        / NULLIF(tot_pop, 0)::DOUBLE
-        AS age_prop_over65
-
-FROM cc_data_updated;
-
--- for congressional district level 
-CREATE OR REPLACE TABLE dc_data_age_table AS
-SELECT
-    cd119,
-
-    SUM(tot_pop) AS tot_pop,
-    SUM(ageGroup_under18) AS ageGroup_under18,
-    SUM(ageGroup_18_65) AS ageGroup_18_65,
-    SUM(ageGroup_over65) AS ageGroup_over65,
-
-    SUM(ageGroup_under18)
-        / NULLIF(SUM(tot_pop), 0)::DOUBLE
-        AS age_prop_under18,
-
-    SUM(ageGroup_18_65)
-        / NULLIF(SUM(tot_pop), 0)::DOUBLE
-        AS age_prop_18_65,
-
-    SUM(ageGroup_over65)
-        / NULLIF(SUM(tot_pop), 0)::DOUBLE
-        AS age_prop_over65
-
-FROM cc_data_updated
-GROUP BY cd119;
-
--- for state
-CREATE OR REPLACE TABLE state_data_age_table AS
-SELECT
-    State,
-
-    SUM(tot_pop) AS tot_pop,
-    SUM(ageGroup_under18) AS ageGroup_under18,
-    SUM(ageGroup_18_65) AS ageGroup_18_65,
-    SUM(ageGroup_over65) AS ageGroup_over65,
-
-    SUM(ageGroup_under18)
-        / NULLIF(SUM(tot_pop), 0)::DOUBLE
-        AS age_prop_under18,
-
-    SUM(ageGroup_18_65)
-        / NULLIF(SUM(tot_pop), 0)::DOUBLE
-        AS age_prop_18_65,
-
-    SUM(ageGroup_over65)
-        / NULLIF(SUM(tot_pop), 0)::DOUBLE
-        AS age_prop_over65
-
-FROM cc_data_updated
-GROUP BY State;
-```
-
-<!-- selecting the community-->
-
-
 ```js
 const ccnList = await sql`
     SELECT DISTINCT ccn20
@@ -225,9 +153,6 @@ const dc_array = [...dc_list];
 const all_dc  = dc_array.map(d => d.cd119);
 ```
 
-```js
-
-```
 
 ```js
 const all_options = [
@@ -235,6 +160,7 @@ const all_options = [
   ...all_dc.map(d => ({ Community: "", District: d }))
 ];
 ```
+
 
 
 ```js import_autocomplete.js
@@ -304,7 +230,6 @@ events: {
 ```js assining_output.js
 const ccn = Generators.input(autoCompleteJS.input);
 ```
-
 
 ```js check_dc.js
 const isDC = ccn.length < 7;
@@ -548,6 +473,19 @@ function renderFullWaffle(labels, countsByLabel, type, group_name_list) {
 }
 ```
 
+```js find_axes_bounds.js
+function findAxisBounds(isDC, xCc, xCd, xState, xCountry){
+    // dynamically adjust x range
+  const xs = isDC
+    ? [xCd, xState, xCountry].filter(Number.isFinite)
+    : [xCc, xCd, xState].filter(Number.isFinite);
+  const xMin = Math.min(...xs) - 0.02;
+  const xMax = Math.max(...xs) + 0.02;
+
+  return [xMin, xMax];
+}
+```
+
 
 ```js make_plotly_charts.js
 function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
@@ -638,9 +576,7 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
     if (isDC) traces.push(country_trace);
 
   // dynamically adjust x range
-  const xs = [xCc, xCd, xState, xCountry].filter(Number.isFinite);
-  const xMin = floorToDecimals(Math.min(...xs), 1) - 0.01;
-  const xMax = ceilToDecimals(Math.max(...xs), 2) + 0.07;
+  const [xMin, xMax] = findAxisBounds(isDC, xCc, xCd, xState, xCountry);
 
   const layout = {
     xaxis: {
@@ -664,7 +600,7 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
       visible: true, 
       showgrid: false, // for lines
       showticklabels: false,   
-      zeroline: true,      // Set to false if you want to hide the vertical line at x=0
+      zeroline: true,      
       zerolinecolor: 'darkgrey', // Change the color of the zero line 
       zerolinewidth: 1,     // Change the thickness of the line in pixels
      },
@@ -688,6 +624,12 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
   };
 
   return { traces, layout, config };
+}
+```
+
+```js
+function makePlotlyLongChart(){
+
 }
 ```
 
@@ -1272,6 +1214,22 @@ const age_summary = isDC
 </div>
 
 
+```js
+function getZoomInfo(div){
+  div.on('plotly_relayout',
+    function(eventdata){
+        alert( 'ZOOM!' + '\n\n' +
+            'Event data:' + '\n' +
+             JSON.stringify(eventdata) + '\n\n' +
+            'x-axis start:' + eventdata['xaxis.range[0]'] + '\n' +
+            'x-axis end:' + eventdata['xaxis.range[1]'] );
+    });
+}
+
+```
+
+
+
 <!-- plotly graphs -->
 
 <div class="grid grid-cols-3" >
@@ -1318,89 +1276,6 @@ Communities with different age cohorts individuals often have different prioriti
 
 
 ## Housing
-
-
-
-<!-- creating the tables for housing-->
-
-```sql id=create_tables_housing 
-
-CREATE OR REPLACE TABLE cc_data_housing_table AS
-SELECT
-    ccn20,
-    cd119,
-    State,
-    tot_housing,
-    tot_hholds,
-    tot_owned_hholds,
-    tot_vacant_units,
-    tot_rented_hholds,
-  
-    tot_hholds 
-        / NULLIF(tot_housing, 0)::DOUBLE
-        AS housing_occupancy_rate,
-
-    tot_owned_hholds
-        / NULLIF(tot_hholds, 0)::DOUBLE
-        AS housing_ownership_rate,
-
-    --adding in extra  rates
-    1 - housing_occupancy_rate AS housing_vacancy_rate, 
-    1 - housing_ownership_rate AS housing_rental_rate
-    
-
- FROM cc_data_updated;
-
-
-CREATE OR REPLACE TABLE dc_data_housing_table AS
-SELECT
-    cd119,
-
-    SUM(tot_housing) AS tot_housing,
-    SUM(tot_hholds) AS tot_hholds,
-    SUM(tot_owned_hholds) AS tot_owned_hholds,
-    SUM(tot_vacant_units) AS tot_vacant_units,
-    SUM(tot_rented_hholds) AS tot_rented_hholds,
-
-    SUM(tot_hholds)
-        / NULLIF(SUM(tot_housing), 0)::DOUBLE
-        AS housing_occupancy_rate,
-
-    SUM(tot_owned_hholds)
-        / NULLIF(SUM(tot_hholds), 0)::DOUBLE
-        AS housing_ownership_rate,
-
-    1 - housing_occupancy_rate AS housing_vacancy_rate, 
-    1 - housing_ownership_rate AS housing_rental_rate
-
-FROM cc_data_updated
-GROUP BY cd119;
-
-
-CREATE OR REPLACE TABLE state_data_housing_table AS
-SELECT
-    State,
-
-    SUM(tot_housing) AS tot_housing,
-    SUM(tot_hholds) AS tot_hholds,
-    SUM(tot_owned_hholds) AS tot_owned_hholds,
-    SUM(tot_vacant_units) AS tot_vacant_units,
-    SUM(tot_rented_hholds) AS tot_rented_hholds,
-
-    SUM(tot_hholds)
-        / NULLIF(SUM(tot_housing), 0)::DOUBLE
-        AS housing_occupancy_rate,
-
-    SUM(tot_owned_hholds)
-        / NULLIF(SUM(tot_hholds), 0)::DOUBLE
-        AS housing_ownership_rate,
-
-    1 - housing_occupancy_rate AS housing_vacancy_rate, 
-    1 - housing_ownership_rate AS housing_rental_rate
-
-FROM cc_data_updated
-GROUP BY State;
-```
 
 
 <!-- Filtering the data-->
@@ -1737,89 +1612,6 @@ Given the current state of the housing market, homeownership rates say a lot abo
 
 ## Languages
 
-
-```sql id=create_tables_lang
-
-CREATE OR REPLACE TABLE cc_data_lang_table AS
-SELECT
-    ccn20,
-    cd119,
-    State,
-    tot_pop_5yrs, 
-    tot_english_only, 
-    tot_non_english, 
-    tot_spanish,
-  
-    tot_english_only 
-        / NULLIF(tot_pop_5yrs, 0)::DOUBLE
-        AS prop_english_only,
-
-    1 - prop_english_only AS prop_non_english,
-
-    tot_spanish
-        / NULLIF(tot_pop_5yrs, 0)::DOUBLE
-        AS prop_span,
-
-    tot_spanish
-        / NULLIF(tot_non_english, 0)::DOUBLE
-        AS prop_span_nonEnglish,
-
- FROM cc_data_updated;
-
-
-CREATE OR REPLACE TABLE dc_data_lang_table AS
-SELECT
-    cd119,
-
-    SUM(tot_pop_5yrs) AS tot_pop_5yrs,
-    SUM(tot_english_only) AS tot_english_only, 
-    SUM(tot_non_english) AS tot_non_english, 
-    SUM(tot_spanish) AS tot_spanish,
-  
-    SUM(tot_english_only) 
-        / NULLIF(SUM(tot_pop_5yrs), 0)::DOUBLE
-        AS prop_english_only,
-
-    1 - prop_english_only AS prop_non_english,
-
-    SUM(tot_spanish)
-        / NULLIF(SUM(tot_pop_5yrs), 0)::DOUBLE
-        AS prop_span,
-
-    SUM(tot_spanish)
-        / NULLIF(SUM(tot_non_english), 0)::DOUBLE
-        AS prop_span_nonEnglish,
-
-FROM cc_data_updated
-GROUP BY cd119;
-
-
-CREATE OR REPLACE TABLE state_data_lang_table AS
-SELECT
-    State,
-
-    SUM(tot_pop_5yrs) AS tot_pop_5yrs,
-    SUM(tot_english_only) AS tot_english_only, 
-    SUM(tot_non_english) AS tot_non_english, 
-    SUM(tot_spanish) AS tot_spanish,
-  
-    SUM(tot_english_only) 
-        / NULLIF(SUM(tot_pop_5yrs), 0)::DOUBLE
-        AS prop_english_only,
-
-    1 - prop_english_only AS prop_non_english,
-
-    SUM(tot_spanish)
-        / NULLIF(SUM(tot_pop_5yrs), 0)::DOUBLE
-        AS prop_span,
-
-    SUM(tot_spanish)
-        / NULLIF(SUM(tot_non_english), 0)::DOUBLE
-        AS prop_span_nonEnglish,  
-
-FROM cc_data_updated
-GROUP BY State;
-```
 
 
 <!-- Filtering the data-->
@@ -2206,96 +1998,6 @@ const lang_summary = html`In your ${title_choice.toLowerCase()}, <strong>${pct_p
 <hr>
 
 ## Employment 
-
-
-```sql id=create_tables_employment
-
-CREATE OR REPLACE TABLE cc_data_employment_table AS
-SELECT
-    ccn20,
-    cd119,
-    State,
-    tot_emp, 
-    tot_unemp, 
-    tot_civilian_lf, 
-    tot_working_age_pop,
-  
-    tot_unemp 
-        / NULLIF(tot_civilian_lf, 0)::DOUBLE
-        AS unemp_rate3,
-
-    tot_emp 
-        / NULLIF(tot_civilian_lf, 0)::DOUBLE
-        AS emp_rate3,
-
-    tot_civilian_lf
-        / NULLIF(tot_working_age_pop, 0)::DOUBLE
-        AS lfp_rate,
-
-    tot_emp 
-        / NULLIF(tot_working_age_pop, 0)::DOUBLE
-        AS emp_to_pop,   
-
- FROM cc_data_updated;
-
-
-CREATE OR REPLACE TABLE dc_data_employment_table AS
-SELECT
-    cd119,
-
-    SUM(tot_emp) AS tot_emp,
-    SUM(tot_unemp) AS tot_unemp,
-    SUM(tot_civilian_lf) AS tot_civilian_lf,
-    SUM(tot_working_age_pop) AS tot_working_age_pop,
-
-    SUM(tot_unemp)
-        / NULLIF(SUM(tot_civilian_lf), 0)::DOUBLE
-        AS unemp_rate3,
-
-    SUM(tot_emp)
-        / NULLIF(SUM(tot_civilian_lf), 0)::DOUBLE
-        AS emp_rate3,
-
-    SUM(tot_civilian_lf)
-        / NULLIF(SUM(tot_working_age_pop), 0)::DOUBLE
-        AS lfp_rate,
-
-    SUM(tot_emp)
-        / NULLIF(SUM(tot_working_age_pop), 0)::DOUBLE
-        AS emp_to_pop,   
-
-FROM cc_data_updated
-GROUP BY cd119;
-
-
-CREATE OR REPLACE TABLE state_data_employment_table AS
-SELECT
-    State,
-
-    SUM(tot_emp) AS tot_emp,
-    SUM(tot_unemp) AS tot_unemp,
-    SUM(tot_civilian_lf) AS tot_civilian_lf,
-    SUM(tot_working_age_pop) AS tot_working_age_pop,
-
-    SUM(tot_unemp)
-        / NULLIF(SUM(tot_civilian_lf), 0)::DOUBLE
-        AS unemp_rate3,
-
-    SUM(tot_emp)
-        / NULLIF(SUM(tot_civilian_lf), 0)::DOUBLE
-        AS emp_rate3,
-
-    SUM(tot_civilian_lf)
-        / NULLIF(SUM(tot_working_age_pop), 0)::DOUBLE
-        AS lfp_rate,
-
-    SUM(tot_emp)
-        / NULLIF(SUM(tot_working_age_pop), 0)::DOUBLE
-        AS emp_to_pop,   
-
-FROM cc_data_updated
-GROUP BY State;
-```
 
 
 <!-- Filtering the data-->

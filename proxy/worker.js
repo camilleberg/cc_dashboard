@@ -1,7 +1,8 @@
 // proxy/worker.js
 const UPSTREAM = "https://api.congressionalcommunities.org";
 const ALLOWED_ORIGINS = [
-  "https://your-framework-site.example",
+  "https://camilleberg.github.io/cc_dashboard/01_people_copy",
+  "https://camilleberg.github.io/cc_dashboard/01_people",
   "http://127.0.0.1:3000",
   "http://localhost:3000"
 ];
