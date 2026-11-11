@@ -45,8 +45,9 @@ SELECT * FROM cd119_geos LIMIT 2
 ```
 
 ```js
-const map_width  = 550;
+const map_width  = 650;
 const grid_height = 200;
+const map_height = 400;
 ```
 
 # comparison
@@ -73,6 +74,7 @@ const var2 = view(Inputs.select(
   ["tot_rented_hholds", "tot_owned_hholds"],
   { label: "Variable 2", format: (d) => labels[d] }
 ));
+
 ```
 
 
@@ -84,7 +86,7 @@ vg.vconcat(
     vg.plot(
       vg.rectY(
         vg.from("cc_data_all"),
-        { x: vg.bin(var1), y: vg.count(), fill: blue_color, inset: 0.5 }
+        { x: vg.bin(var1), y: vg.count(), step: 100, fill: blue_color, inset: 0.5 }
       ),
       vg.intervalX({ as: $query }),
       vg.margins({ left: 5, right: 5, top: 30, bottom: 0 }),
@@ -121,7 +123,7 @@ vg.vconcat(
     vg.plot(
       vg.rectX(
         vg.from("cc_data_all"),
-        { x: vg.count(), y: vg.bin(var2), fill: blue_color, inset: 0.5 }
+        { x: vg.count(), y: vg.bin(var2),  step: 100 , fill: blue_color, inset: 0.5 }
       ),
       vg.intervalY({ as: $query }),
       vg.margins({ left: 0, right: 50, top: 4, bottom: 5 }),
@@ -135,30 +137,42 @@ vg.vconcat(
   ),
 
   // usa map 
-  vg.plot(
-    // background: every community, neutral
-/*     vg.geo(vg.from("cd119_geos"), {
-      geometry: "geometry",
-      fill: "#e5e0db",
-      stroke: "currentColor",
-      strokeWidth: 0.3
-    }), */
-
-    // foreground: only rows matching the brush, colored by the chosen variable
-    vg.geo(vg.from("cc_data_all", { filterBy: $query }), {
-      geometry: "geometry",
-      fill: var1,
-      fillOpacity: 0.8,
-      stroke: "currentColor",
-      strokeWidth: 0.5
+  vg.hconcat(
+      vg.table({
+        from: "cc_data_all",
+        maxWidth: 150 + 80,
+        height: map_height,
+        filterBy: $query,
+        // as: $hover,
+        columns: ["cd119", "State", var1, var2],
+        width: {cd119: 45, State: 15, [var1]: 60, [var2]: 60}
     }),
+    vg.hspace(15),
+    vg.plot(
+      // background: every community, neutral
+  /*     vg.geo(vg.from("cd119_geos"), {
+        geometry: "geometry",
+        fill: "#e5e0db",
+        stroke: "currentColor",
+        strokeWidth: 0.3
+      }), */
 
-    vg.colorScheme("ylgnbu"),
-    vg.colorScale("linear"),
-    vg.projectionType("albers"),
-    vg.margin(0),
-    vg.width(map_width),
-    vg.height(400)
-  ) // want to add table 
+      // foreground: only rows matching the brush, colored by the chosen variable
+      vg.geo(vg.from("cc_data_all", { filterBy: $query }), {
+        geometry: "geometry",
+        fill: var1,
+        fillOpacity: 0.8,
+        stroke: "currentColor",
+        strokeWidth: 0.5
+      }),
+
+      vg.colorScheme("ylgnbu"),
+      vg.colorScale("linear"),
+      vg.projectionType("albers"),
+      vg.margin(0),
+      vg.width(map_width - 150),
+      vg.height(map_height)
+    ), 
+  )
 )
 ```
