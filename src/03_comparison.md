@@ -44,6 +44,21 @@ SELECT * FROM cc_data_all LIMIT 2
 SELECT * FROM cd119_geos LIMIT 2
 ```
 
+
+```js
+function calc_steps(col, table) {
+  const values = Array.from(table, (row) => row[col]).filter((v) => v != null);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  return (max - min) / 15;
+}
+```
+
+```js
+const cc_data_table = await sql([`SELECT "${var1}", "${var2}" FROM cc_data_all`]);
+```
+
+
 ```js
 const map_width  = 650;
 const grid_height = 200;
@@ -78,35 +93,39 @@ const var2 = view(Inputs.select(
 
 ```
 
+```js
+const var1_steps = calc_steps(var1, cc_data_table)
+const var2_steps = calc_steps(var2, cc_data_table)
+```
+
 
 ```js
 vg.hconcat(
   vg.vconcat(
-    vg.hconcat(
-
+    vg.hconcat( 
+      vg.hspace(80),
       // top graph 
       vg.plot(
         vg.rectY(
           vg.from("cc_data_all"),
-          { x: vg.bin(var1), y: vg.count(), step: 100, fill: blue_color, inset: 0.5 }
+          { x: vg.bin(var1, {step: var1_steps}), y: vg.count(), fill: blue_color, inset: 0.5 }
         ),
         vg.intervalX({ as: $query }),
-        vg.margins({ left: 5, right: 5, top: 30, bottom: 0 }),
+        vg.margins({ left: 5, right: 5, top: 40, bottom: 0 }),
         vg.xAxis("top"),
         vg.yAxis(null),
         vg.xLabelAnchor("center"),
         vg.xLabel(labels[var1]),
         vg.width(map_width),
         vg.height(70)
-      ),
-      vg.hspace(80)
+      )
     ),
     vg.hconcat(
-            /// left side bar 
+      /// left side bar 
       vg.plot(
         vg.rectX(
           vg.from("cc_data_all"),
-          {  x: vg.sql`-1 * ${vg.count()}`, y: vg.bin(var2),  step: 100 , fill: blue_color, inset: 0.5 }
+          {  x: vg.sql`-1 * ${vg.count()}`, y: vg.bin(var2, { step: var2_steps }) , fill: blue_color, inset: 0.5 }
         ),
         vg.intervalY({ as: $query }),
         vg.margins({ left: 70, right: 0, top: 4, bottom: 5 }),
@@ -119,10 +138,15 @@ vg.hconcat(
       ),
       // hex grid 
       vg.plot(
+
+        // colorful bins
         vg.hexbin(
           vg.from("cc_data_all", { filterBy: $query }),
           { x: var1, y: var2, fill: vg.count(), binWidth: 10 }
         ),
+        vg.intervalXY({ as: $hover, pixelSize: 2 }),  // brush-select instead of hover
+
+        // underlyign grid
         vg.hexgrid({ binWidth: 10 }),
         vg.name("hexbins"),
         vg.colorScheme("ylgnbu"),
@@ -173,7 +197,13 @@ vg.hconcat(
         ),
 
         // dots for hover
-        // vg.dot(vg.from("cc_data_all"), { x: -98, y: 39, r: 5, fill: "red" }),
+        /* vg.dot(
+          vg.from("cc_data_all"),
+          {  
+              x: vg.centroidX("geometry"),
+              y: vg.centroidY("geometry"),
+             r: 5, fill: "red" }
+        ), */
         vg.colorScheme("ylgnbu"),
         vg.colorScale("linear"),
         vg.projectionType("albers-usa"),
