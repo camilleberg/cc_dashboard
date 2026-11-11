@@ -103,7 +103,7 @@ const var2_steps = calc_steps(var2, cc_data_table)
 vg.hconcat(
   vg.vconcat(
     vg.hconcat( 
-      vg.hspace(80),
+      vg.hspace(100),
       // top graph 
       vg.plot(
         vg.rectY(
