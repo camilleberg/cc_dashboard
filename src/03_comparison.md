@@ -2,7 +2,6 @@
 title: Comparisons
 sql:
   cc_data_all:  ./data/cc_tables/all/cc_data_all.parquet
-  cd119_geos: ./data/cd119_geos.parquet
 head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10/dist/css/autoComplete.min.css">'
 ---
 
@@ -40,10 +39,6 @@ Below we use hexagonal bins to visualize the density (number of flights) by both
 SELECT * FROM cc_data_all LIMIT 2
 ```
 
-```sql
-SELECT * FROM cd119_geos LIMIT 2
-```
-
 
 ```js
 function calc_steps(col, table) {
@@ -55,7 +50,7 @@ function calc_steps(col, table) {
 ```
 
 ```js
-const cc_data_table = await sql([`SELECT "${var1}", "${var2}" FROM cc_data_all`]);
+const cc_data_table = await sql([`SELECT cd119, State, "${var1}", "${var2}" FROM cc_data_all`]);
 ```
 
 
@@ -74,32 +69,69 @@ const $hover = vg.Selection.intersect({empty: true});
 
 ```js
 const labels = {
-  age_prop_under18: "Proportion under 18",
-  age_prop_18_65: "Proportion 18 to 64",
-  age_prop_over65: "Proportion 65 and over",
+  age_prop_under18: "% under 18",
+  age_prop_18_65: "% 18 to 64",
+  age_prop_over65: "% 65 and over",
   tot_rented_hholds: "Total renter households",
-  tot_owned_hholds: "Total owner households"
+  tot_owned_hholds: "Total owner households", 
+  unemp_rate3: "Unemployment %", 
+  lfp_rate: "Labor Force Participation %", 
+  emp_to_pop: "Employment to Pop Ratio"
 };
 
+const selections = ["age_prop_under18", "age_prop_18_65", "age_prop_over65", 
+  "tot_rented_hholds", "tot_owned_hholds",
+  "unemp_rate3", "lfp_rate", "emp_to_pop"]
+
 const var1 = view(Inputs.select(
-  ["age_prop_under18", "age_prop_18_65", "age_prop_over65"],
+  selections,
   { label: "Variable 1", format: (d) => labels[d] }
 ));
 
 const var2 = view(Inputs.select(
-  ["tot_rented_hholds", "tot_owned_hholds"],
+  selections,
   { label: "Variable 2", format: (d) => labels[d] }
 ));
-
 ```
 
-```js
+```js calc_steps.js
+const cc_data_table_filter = await sql([`SELECT ccn20 AS Community, State, "${var1}" AS  "${labels[var1]}",  "${var2}" AS  "${labels[var2]}," FROM cc_data_all`]);
+
 const var1_steps = calc_steps(var1, cc_data_table)
 const var2_steps = calc_steps(var2, cc_data_table)
 ```
 
 
+```js subset_ready.js
+const subset_ready = await vg.coordinator().exec(`
+  CREATE OR REPLACE TABLE cc_subset AS
+  SELECT ccn20,
+         State, 
+         "${var1}", 
+         "${var2}",
+         geometry,
+         ccn20      AS "Community",
+         "${var1}"  AS "${labels[var1]}",
+         "${var2}"  AS "${labels[var2]}"
+  FROM cc_data_all
+`);
+```
+
+```js satte_totals.js
+const totals_ready = await vg.coordinator().exec(`
+  CREATE OR REPLACE VIEW cc_with_totals AS
+  SELECT c.*, t.state_total
+  FROM cc_data_all c
+  JOIN (SELECT State, COUNT(*) AS state_total FROM cc_data_all GROUP BY State) t
+    USING (State)
+`);
+```
+
+
 ```js
+subset_ready; 
+totals_ready;
+display(
 vg.hconcat(
   vg.vconcat(
     vg.hconcat( 
@@ -107,7 +139,7 @@ vg.hconcat(
       // top graph 
       vg.plot(
         vg.rectY(
-          vg.from("cc_data_all"),
+          vg.from("cc_subset"),
           { x: vg.bin(var1, {step: var1_steps}), y: vg.count(), fill: blue_color, inset: 0.5 }
         ),
         vg.intervalX({ as: $query }),
@@ -124,7 +156,7 @@ vg.hconcat(
       /// left side bar 
       vg.plot(
         vg.rectX(
-          vg.from("cc_data_all"),
+          vg.from("cc_subset"),
           {  x: vg.sql`-1 * ${vg.count()}`, y: vg.bin(var2, { step: var2_steps }) , fill: blue_color, inset: 0.5 }
         ),
         vg.intervalY({ as: $query }),
@@ -141,7 +173,7 @@ vg.hconcat(
 
         // colorful bins
         vg.hexbin(
-          vg.from("cc_data_all", { filterBy: $query }),
+          vg.from("cc_subset", { filterBy: $query }),
           { x: var1, y: var2, fill: vg.count(), binWidth: 10 }
         ),
         vg.intervalXY({ as: $hover, pixelSize: 2 }),  // brush-select instead of hover
@@ -164,13 +196,13 @@ vg.hconcat(
     // table
     vg.hconcat(
         vg.table({
-          from: "cc_data_all",
-          maxWidth: 150 + 80,
+          from: "cc_subset",
+          maxWidth: 150 + 80 + 30,
           height: map_height,
           filterBy: $query,
           // as: $hover,
-          columns: ["cd119", "State", var1, var2],
-          width: {cd119: 45, State: 15, [var1]: 60, [var2]: 60}
+          columns: ["Community", "State", labels[var1], labels[var2]],
+          width: {Community: 80, State: 40, [labels[var1]]: 60, [labels[var2]]: 60}, 
       }),
       vg.hspace(15),
 
@@ -186,7 +218,7 @@ vg.hconcat(
 
         // foreground: only rows matching the brush, colored by the chosen variable
         vg.geo(
-          vg.from("cc_data_all", { filterBy: $query }),
+          vg.from("cc_subset", { filterBy: $query }),
           {
             geometry: "geometry",
             fill: var1,
@@ -216,22 +248,34 @@ vg.hconcat(
   vg.hspace(20),
   // counter by state
    vg.plot(
-    vg.rectX(
-      vg.from("cc_data_all"),
-      { x: vg.count(), y: "State", fill: null, stroke: "black", inset: 0.5 }
+    // outlines 
+    vg.rectX(vg.from("cc_data_all"), { x: vg.count(), y: "State", fill: null, stroke: "black", inset: 0.5 }),
+
+    // actual plots
+    vg.rectX(vg.from("cc_data_all", {filterBy: $query}), { x: vg.count(), y: "State", fill: blue_color, inset: 0.5 }),
+
+    // text 
+    vg.text(
+      vg.from("cc_with_totals", {filterBy: $query}),
+      {
+        x: vg.max("state_total"),   // anchor: total (outline bar end), unaffected by the brush
+        y: "State",
+        text: vg.count(),           // number: filtered count, changes with the brush
+        dx: 4,
+        textAnchor: "start",
+        fontSize: 9, 
+        fill: blue_color   
+      }
     ),
-    vg.rectX(
-      vg.from("cc_data_all", {filterBy: $query}),
-      { x: vg.count(), y: "State", fill: blue_color, inset: 0.5 }
-    ),
-    vg.margins({ left: 50, right: 9, top: 5, bottom: 5 }),
+
+    vg.margins({ left: 50, right: 25, top: 5, bottom: 5 }),   // right margin raised for the labels
+    vg.yTickSize(0),
     vg.xAxis(null),
     vg.yAxis("left"),
-    vg.yLabelAnchor("center"),
     vg.yLabel("State"),
     vg.width(100),
-    vg.height(grid_height + map_height + 70 )
+    vg.height(grid_height + map_height + 70)
   ),
 )
-
+)
 ```
