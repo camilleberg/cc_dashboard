@@ -681,7 +681,7 @@ function makePlotlyLineChart(xRange, color){
 
 
 ```js import_maplibre.js
-import * as maplibregl from "npm:maplibre-gl";
+import * as maplibregl from "npm:maplibre-gl@6.11.2";
 // bright basemap
 ```
 
@@ -690,7 +690,7 @@ display(html`<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.11.2/d
 ```
 
 ```js import_extensions.js
-import * as mlc from "npm:maplibre-gl-components@0.16.3";
+import * as mlc from "npm:maplibre-gl-components@0.31.1";
 ```
 
 ```js find_bounds.js
