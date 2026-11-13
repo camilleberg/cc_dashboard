@@ -689,8 +689,6 @@ import * as maplibregl from "npm:maplibre-gl";
 display(html`<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.11.2/dist/maplibre-gl.css">`);
 ```
 
-
-
 ```js import_extensions.js
 import * as mlc from "npm:maplibre-gl-components@0.16.3";
 ```
