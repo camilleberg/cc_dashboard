@@ -1694,23 +1694,50 @@ const hhold_summary = isDC
 
 <!-- plotly graphs -->
 
+```js
+const xRange_hholds1 = Mutable(null);
+const setXRange_hholds1 = (r) => { xRange_hholds1.value = r; };
+
+const xRange_hholds2 = Mutable(null);
+const setXRange_hholds2 = (r) => { xRange_hholds2.value = r; };
+
+```
+
+
+
 <div class="grid grid-cols-2">
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
       const { traces, layout, config } = makeLineCompChartPlotly("owned", ownershipCols, ownershipKey[0], "housing", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
+      watchZoom(div, layout.xaxis.range, setXRange_hholds1);
       return div;
     }) 
-  }</div>
+  }<div style="margin-top: -70px; margin-bottom: -50px;">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makePlotlyLineChart(xRange_hholds1, okabeItoColors[0]);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    })
+  }</div></div>
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
       const { traces, layout, config } = makeLineCompChartPlotly("rented", ownershipCols, ownershipKey[1], "housing", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
+      watchZoom(div, layout.xaxis.range, setXRange_hholds2);
       return div;
     }) 
-  }</div>
+  }<div style="margin-top: -70px; margin-bottom: -50px;">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makePlotlyLineChart(xRange_hholds2, okabeItoColors[1]);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    })
+  }</div></div>
 </div>
 
 <center>
@@ -2056,23 +2083,49 @@ Looking at how what language your community speaks in ...
 
 <!-- plotly graphs -->
 
+```js
+const xRange_lang1 = Mutable(null);
+const setXRange_lang1 = (r) => { xRange_lang1.value = r; };
+
+const xRange_lang2 = Mutable(null);
+const setXRange_lang2 = (r) => { xRange_lang2.value = r; };
+
+```
+
+
 <div class="grid grid-cols-3">
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
       const { traces, layout, config } = makeLineCompChartPlotly("english", langCols, langKey[0], "lang", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
+      watchZoom(div, layout.xaxis.range, setXRange_lang1);
       return div;
     }) 
-  }</div>
+  }<div style="margin-top: -70px; margin-bottom: -50px;">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makePlotlyLineChart(xRange_lang1, okabeItoColors[0]);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    })
+  }</div></div>
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
       const { traces, layout, config } = makeLineCompChartPlotly("not_english", langCols, langKey[1], "lang", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
+      watchZoom(div, layout.xaxis.range, setXRange_lang2);
       return div;
     }) 
-  }</div>
+  }<div style="margin-top: -70px; margin-bottom: -50px;">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makePlotlyLineChart(xRange_lang2, okabeItoColors[1]);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    })
+  }</div></div>
   <div class="card">
     <center><h3>Spanish Speakers</h3></center>
     ${
@@ -2324,31 +2377,68 @@ Looking at different measures of employment...
 
 <!-- plotly graphs -->
 
+```js
+const xRange_emp1 = Mutable(null);
+const setXRange_emp1 = (r) => { xRange_emp1.value = r; };
+
+const xRange_emp2 = Mutable(null);
+const setXRange_emp2 = (r) => { xRange_emp2.value = r; };
+
+const xRange_emp3 = Mutable(null);
+const setXRange_emp3 = (r) => { xRange_emp3.value = r; };
+
+```
+
+
 <div class="grid grid-cols-3">
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
       const { traces, layout, config } = makeLineCompChartPlotly("e3", emp_measureCols, empKey[0], "employment", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
+      watchZoom(div, layout.xaxis.range, setXRange_emp1);
       return div;
     }) 
-  }</div>
+  }<div style="margin-top: -70px; margin-bottom: -50px;">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makePlotlyLineChart(xRange_emp1, okabeItoColors[0]);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    })
+  }</div></div>
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
       const { traces, layout, config } = makeLineCompChartPlotly("lfp", emp_measureCols, empKey[1], "employment", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
+      watchZoom(div, layout.xaxis.range, setXRange_emp2);
       return div;
     }) 
-  }</div>
+  }<div style="margin-top: -70px; margin-bottom: -50px;">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makePlotlyLineChart(xRange_emp2, okabeItoColors[1]);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    })
+  }</div></div>
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
       const { traces, layout, config } = makeLineCompChartPlotly("etp", emp_measureCols, empKey[2], "employment", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
+      watchZoom(div, layout.xaxis.range, setXRange_emp3);
       return div;
-    }) 
-  }</div>
+    })
+  }<div style="margin-top: -70px; margin-bottom: -50px;">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makePlotlyLineChart(xRange_emp3, okabeItoColors[2]);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    })
+  }</div></div>
 </div>
 
 ```js
