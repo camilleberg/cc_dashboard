@@ -629,10 +629,10 @@ function makePlotlyLineChart(xRange, color){
     hoverinfo: "skip", 
     mode: "lines",
     type: 'scatter', 
-    opacity: 0.4,
+    opacity: 0.5,
     line: {
       color: color,
-      width: 10, 
+      width: 15, 
     }
 
   });
@@ -654,8 +654,8 @@ function makePlotlyLineChart(xRange, color){
       showgrid: false, // for lines
       showticklabels: false,   
       zeroline: true,      
-      zerolinecolor: 'darkgrey', // Change the color of the zero line 
-      zerolinewidth: 1,     // Change the thickness of the line in pixels
+      zerolinecolor: 'rgba(169, 169, 169, 0.2)', // Change the color of the zero line 
+      zerolinewidth: 10,     // Change the thickness of the line in pixels
      },
     legend: { orientation: "h", yanchor: "bottom", y: 1.02, xanchor: "center", x: 0.5, 
       "itemsizing": "constant", "itemwidth": 10
