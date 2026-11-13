@@ -699,6 +699,10 @@ import * as mlc from "npm:maplibre-gl-components";
 const { Marker } = mlc;
 ```
 
+```js
+const marker = new maplibregl.Marker();
+```
+
 ```js find_bounds.js
 function boundsFromGeoJSON(geojson) {
   const bounds = new maplibregl.LngLatBounds();
