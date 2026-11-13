@@ -670,7 +670,8 @@ function makePlotlyLineChart(xRange, color){
   const config = {
     modeBarButtons: [[
     ]],
-    displaylogo: false
+    displaylogo: false, 
+    staticPlot: true,
   };
   
   return { traces, layout, config };
