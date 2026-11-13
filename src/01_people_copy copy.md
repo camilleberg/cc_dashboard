@@ -731,16 +731,6 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
 
   const traces = [];
 
-  // baseline number line (tick marks along y=0)
-  // traces.push({
-  //   x: intervals,
-  //   y: intervals.map(() => 0),
-  //   mode: "lines+markers",
-  //   marker: { symbol: "line-ns", size: 10, color: "darkgrey", line: { width: 1 } },
-  //   opacity: 0.5,
-  //   hoverinfo: "skip",
-  //   showlegend: false
-  // });
 
   // State
   traces.push({
@@ -791,7 +781,7 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
   // dynamically adjust x range
   const xs = [xCc, xCd, xState, xCountry].filter(Number.isFinite);
   const xMin = floorToDecimals(Math.min(...xs), 1) - 0.01;
-  const xMax = ceilToDecimals(Math.max(...xs), 2) + 0.07;
+  const xMax = ceilToDecimals(Math.max(...xs), 2) + 0.02;
 
   const layout = {
     xaxis: {
