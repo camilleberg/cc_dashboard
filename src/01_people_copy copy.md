@@ -833,8 +833,12 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
 ```
 
 ```js import_maplibre.js
-import * as maplibregl from "https://unpkg.com/maplibre-gl@6.11.2/dist/maplibre-gl.mjs";
+import * as maplibregl from "npm:maplibre-gl@6.11.2";
 // bright basemap
+```
+
+```js import_colorbar.js
+import { createColorbarControl } from "./components/colorbar.js";
 ```
 
 ```js
@@ -842,14 +846,6 @@ display(html`<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.11.2/d
 ```
 
 
-
-```js import_extensions.js
-import * as mlc from "npm:maplibre-gl-components";
-```
-
-```js
-const { Marker } = mlc;
-```
 
 ```js find_bounds.js
 function boundsFromGeoJSON(geojson) {
@@ -1217,8 +1213,7 @@ function create_dc_map(container, ccn_geo_data, array_labels, array_names, { inv
       });
       map_district.addControl(layerControl, 'bottom-left');
 
-      // ---- colorbar (mlc = maplibre-gl-components, imported earlier) ----
-      // options for the colorbar of layer i, built from the same breaks/ramp as the fill
+      // Options for the colorbar of layer i, built from the same breaks/ramp as the fill.
       const colorbarOptions = (i) => {
         const breaks = computeQuantileBreaks(ccn_geo_data.features, array_labels[i], 5);
         const ramp = [lighterItoColors_80[i], lighterItoColors_60[i], lighterItoColors[i], lighterItoColors_20[i], okabeItoColors[i]];
@@ -1231,10 +1226,7 @@ function create_dc_map(container, ccn_geo_data, array_labels, array_names, { inv
         };
       };
 
-      const colorbar = new mlc.Colorbar({
-        ...colorbarOptions(0),
-        orientation: 'horizontal'
-      });
+      const colorbar = createColorbarControl(colorbarOptions(0));
       map_district.addControl(colorbar, 'top-right');
 
       // LayerControl toggles visibility without an event we can hook,
