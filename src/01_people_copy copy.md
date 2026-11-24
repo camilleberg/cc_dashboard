@@ -1,14 +1,25 @@
 ---
-title: Main Page to check api 
+title: Main Page
 sql:
   ccn20_geo: data/ccn20_geo.parquet
   cd119_geos: ./data/cd119_geos.parquet
   cc_data_updated: ./data/cc_data_updated.parquet
   ccn20_to_cd119: ./data/ccn20_to_cd119.parquet
   usa_data_updated: ./data/usa_data_updated.parquet
+  cc_data_age_table: ./data/cc_tables/age/cc_data_age_table.parquet
+  dc_data_age_table: ./data/cc_tables/age/dc_data_age_table.parquet
+  state_data_age_table: ./data/cc_tables/age/state_data_age_table.parquet 
+  cc_data_housing_table: ./data/cc_tables/housing/cc_data_housing_table.parquet 
+  dc_data_housing_table: ./data/cc_tables/housing/dc_data_housing_table.parquet 
+  state_data_housing_table: ./data/cc_tables/housing/state_data_housing_table.parquet 
+  cc_data_lang_table: ./data/cc_tables/lang/cc_data_lang_table.parquet 
+  dc_data_lang_table: ./data/cc_tables/lang/dc_data_lang_table.parquet 
+  state_data_lang_table: ./data/cc_tables/lang/state_data_lang_table.parquet 
+  cc_data_employment_table: ./data/cc_tables/emp/cc_data_employment_table.parquet 
+  dc_data_employment_table: ./data/cc_tables/emp/dc_data_employment_table.parquet 
+  state_data_employment_table: ./data/cc_tables/emp/state_data_employment_table.parquet 
 head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10/dist/css/autoComplete.min.css">'
 ---
-
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-2M9HMSTWCC"></script>
@@ -122,89 +133,6 @@ const homeIcon = {
 const usa_data_updated = await sql`SELECT * FROM usa_data_updated`;
 ```
 
-<!-- creating the tables-->
-
-
-
-```sql id=create_tables_age
--- for congressional community level 
-CREATE OR REPLACE TABLE cc_data_age_table AS
-  SELECT
-    ccn20,
-    cd119,
-    State,
-    tot_pop, 
-    ageGroup_under18, 
-    ageGroup_18_65, 
-    ageGroup_over65,
-    ageGroup_under18
-        / NULLIF(tot_pop, 0)::DOUBLE
-        AS age_prop_under18,
-
-    ageGroup_18_65
-        / NULLIF(tot_pop, 0)::DOUBLE
-        AS age_prop_18_65,
-
-    ageGroup_over65
-        / NULLIF(tot_pop, 0)::DOUBLE
-        AS age_prop_over65
-
-FROM cc_data_updated;
-
--- for congressional district level 
-CREATE OR REPLACE TABLE dc_data_age_table AS
-SELECT
-    cd119,
-
-    SUM(tot_pop) AS tot_pop,
-    SUM(ageGroup_under18) AS ageGroup_under18,
-    SUM(ageGroup_18_65) AS ageGroup_18_65,
-    SUM(ageGroup_over65) AS ageGroup_over65,
-
-    SUM(ageGroup_under18)
-        / NULLIF(SUM(tot_pop), 0)::DOUBLE
-        AS age_prop_under18,
-
-    SUM(ageGroup_18_65)
-        / NULLIF(SUM(tot_pop), 0)::DOUBLE
-        AS age_prop_18_65,
-
-    SUM(ageGroup_over65)
-        / NULLIF(SUM(tot_pop), 0)::DOUBLE
-        AS age_prop_over65
-
-FROM cc_data_updated
-GROUP BY cd119;
-
--- for state
-CREATE OR REPLACE TABLE state_data_age_table AS
-SELECT
-    State,
-
-    SUM(tot_pop) AS tot_pop,
-    SUM(ageGroup_under18) AS ageGroup_under18,
-    SUM(ageGroup_18_65) AS ageGroup_18_65,
-    SUM(ageGroup_over65) AS ageGroup_over65,
-
-    SUM(ageGroup_under18)
-        / NULLIF(SUM(tot_pop), 0)::DOUBLE
-        AS age_prop_under18,
-
-    SUM(ageGroup_18_65)
-        / NULLIF(SUM(tot_pop), 0)::DOUBLE
-        AS age_prop_18_65,
-
-    SUM(ageGroup_over65)
-        / NULLIF(SUM(tot_pop), 0)::DOUBLE
-        AS age_prop_over65
-
-FROM cc_data_updated
-GROUP BY State;
-```
-
-<!-- selecting the community-->
-
-
 ```js
 const ccnList = await sql`
     SELECT DISTINCT ccn20
@@ -225,9 +153,6 @@ const dc_array = [...dc_list];
 const all_dc  = dc_array.map(d => d.cd119);
 ```
 
-```js
-
-```
 
 ```js
 const all_options = [
@@ -237,225 +162,74 @@ const all_options = [
 ```
 
 
+
 ```js import_autocomplete.js
 //https://tarekraafat.github.io/autoComplete.js/#/installation
 import autoComplete from "npm:@tarekraafat/autocomplete.js";
 ```
 
-```js import_api.js
-import {suggestTowns, findCommunities, membersFor, toStabcd} from "./components/cc-api.js";
-```
 
-```js
-const KIND_TAG = {ZIP: "ZIP code", Town: "Town", Community: "Community", District: "District"};
-
-const norm = (s) => String(s ?? "")
-  .normalize("NFD").replace(/[\u0300-\u036f]/g, "")        // accents
-  .replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ")  // punctuation
-  .trim().toLowerCase();
-
-const esc = (s) => String(s).replace(/[&<>"']/g, (c) =>
-  ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
-
-function mark(label, query) {
-  const q = query.trim().toLowerCase();
-  const i = q ? label.toLowerCase().indexOf(q) : -1;
-  if (i < 0) return esc(label);
-  return `${esc(label.slice(0, i))}<mark>${esc(label.slice(i, i + q.length))}</mark>${esc(label.slice(i + q.length))}`;
-}
-
-// Local search over your all_options (assumes rows like {Community, District}). Max 5 per group.
-function searchLocal(q, key, limit = 5) {
-  const seen = new Set(), starts = [], contains = [];
-  for (const row of all_options) {
-    const label = row[key];
-    if (!label) continue;
-    const n = norm(label);
-    // Districts repeat across many communities, so de-dupe by label.
-    // Communities de-dupe by name+district so same-named ones in different districts survive.
-    const id = key === "District" ? n : `${n}|${norm(row.District)}`;
-    if (seen.has(id)) continue;
-    const i = q ? n.indexOf(q) : 0;                // empty query (click) -> first 5 of each
-    if (i < 0) continue;
-    seen.add(id);
-    (i === 0 ? starts : contains).push({kind: key, label: String(label), record: row});
-  }
-  return [...starts, ...contains].slice(0, limit);
-}
-
-let inFlight, lastResults = [];
-
-async function source(query) {
-  inFlight?.abort();
-  inFlight = new AbortController();
-  const {signal} = inFlight;
-  const raw = query.trim(), q = norm(raw), out = [];
-
-  // 1) ZIP: exactly 5 digits
-  if (/^\d{5}$/.test(raw)) out.push({kind: "ZIP", label: raw, zip: raw});
-
-  // 2) Towns (API, unlimited): >= 2 chars, not digits-only
-  if (raw.length >= 2 && !/^\d+$/.test(raw)) {
-    try {
-      const places = await suggestTowns(raw, {signal});
-      for (const p of places.slice(0, 5))
-        out.push({kind: "Town", label: p.label, geoid: p.geoid, place: p});
-    } catch (error) {
-      if (error.name === "AbortError") return lastResults;   // a newer keystroke superseded this
-      console.warn("Town suggestions failed:", error.message); // degrade to local results only
-    }
-  }
-
-  // 3) Local Community + District
-  out.push(...searchLocal(q, "Community"), ...searchLocal(q, "District"));
-  return (lastResults = out);
-}
-
+```js create_autocomplete.js
 const autoCompleteJS = new autoComplete({
-  selector: "#autoComplete",
-  placeHolder: "Search by ZIP code, town, community or district...",
-  submit: true,
-  debounce: 200,
-  threshold: 0,                                   // still shows results on click
-  data: {
-    src: source,
-    keys: ["label"],
-    cache: false                                  // dynamic source: must not be cached
-  },
-  searchEngine: (query, record) => record,        // source() already filtered
-  resultsList: {maxResults: 20},
-  resultItem: {
-    highlight: false,                             // done manually in element()
-    element: (item, data) => {
-      const {kind, label} = data.value;
-      item.style = "display:flex;justify-content:space-between;gap:.75rem;";
-      item.innerHTML = `
-        <span style="text-overflow:ellipsis;white-space:nowrap;overflow:hidden;">
-          ${mark(label, autoCompleteJS.input.value)}
-        </span>
-        <span style="display:flex;align-items:center;font-size:12px;font-weight:100;text-transform:uppercase;color:rgba(0,0,0,.3);">
-          ${esc(KIND_TAG[kind] ?? kind)}
-        </span>`;
-    }
-  },
-  events: {
+    // enter button
+    submit: true,
+    // message
+    placeHolder: "Search for Your Community or District...",
+    // HOLDS HISTROY
+    cache: true,
+    data: {
+        src: all_options,
+        keys: ["Community", "District"],
+        cache: true,
+        // makes so resulst are 5 per group 
+        filter: (list) => {
+            const grouped = {};
+            for (const item of list) {
+                if (!grouped[item.key]) grouped[item.key] = [];
+                if (grouped[item.key].length < 5) {
+                    grouped[item.key].push(item);
+                }
+            }
+            return Object.values(grouped).flat();
+        }   
+    },
+    // SHOWS RESULTS ON CLICK 
+    threshold: 0,
+    resultsList: {
+        maxResults: undefined
+    },
+    // Need to figure out how to export, displays community or didtrict tag 
+    resultItem: {
+      element: (item, data) => {
+          item.style = "display: flex; justify-content: space-between;";
+          item.innerHTML = `
+          <span style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+              ${data.match}
+          </span>
+          <span style="display: flex; align-items: center; font-size: 12px; font-weight: 100; text-transform: uppercase; color: rgba(0,0,0,.3);">
+              ${data.key}
+          </span>`;
+      },
+      highlight: true
+    },
+    // actual event
+events: {
     input: {
-      selection: (event) => {
-        const item = event.detail.selection.value;            // the object returned by source()
-        autoCompleteJS.input.value = item.label;
-        autoCompleteJS.close();
-        autoCompleteJS.input.dispatchEvent(new CustomEvent("cc-select", {detail: item}));
-      }
+        selection: (event) => {
+            const feedback = event.detail;
+            const selection = feedback.selection.value[feedback.selection.key];
+            autoCompleteJS.input.value = selection;
+            autoCompleteJS.input.dispatchEvent(new Event("input", { bubbles: true }));
+        }
     }
   }
 });
 
-// Enter on a bare 5-digit ZIP with nothing highlighted
-function onEnter(e) {
-  if (e.key !== "Enter") return;
-  const raw = autoCompleteJS.input.value.trim();
-  if (/^\d{5}$/.test(raw) && (autoCompleteJS.cursor ?? -1) < 0) {
-    e.preventDefault();
-    autoCompleteJS.close();
-    autoCompleteJS.input.dispatchEvent(new CustomEvent("cc-select", {detail: {kind: "ZIP", label: raw, zip: raw}}));
-  }
-}
-autoCompleteJS.input.addEventListener("keydown", onEnter);
-
-invalidation.then(() => {
-  autoCompleteJS.input.removeEventListener("keydown", onEnter);
-  autoCompleteJS.unInit?.();
-});
 ```
 
-```js
-const ccn = Generators.observe((notify) => {
-  const input = autoCompleteJS.input;
-  const emit = () => notify(input.value);
-  input.addEventListener("input", emit);
-  input.addEventListener("cc-select", emit);
-  emit();
-  return () => {
-    input.removeEventListener("input", emit);
-    input.removeEventListener("cc-select", emit);
-  };
-});
+```js assining_output.js
+const ccn = Generators.input(autoCompleteJS.input);
 ```
-
-```js
-// {kind: "ZIP"|"Town"|"Community"|"District", label, ...} or null
-const selected = Generators.observe((notify) => {
-  const input = autoCompleteJS.input;
-  const onSelect = (e) => notify(e.detail);
-  const onInput = () => { if (!input.value.trim()) notify(null); };   // clearing the box clears results
-  input.addEventListener("cc-select", onSelect);
-  input.addEventListener("input", onInput);
-  notify(null);
-  return () => {
-    input.removeEventListener("cc-select", onSelect);
-    input.removeEventListener("input", onInput);
-  };
-});
-```
-
-```js
-const lookupState = await (async () => {
-  if (!selected || !["ZIP", "Town"].includes(selected.kind)) return null;
-  const controller = new AbortController();
-  invalidation.then(() => controller.abort());
-  try {
-    return {data: await findCommunities(selected, {signal: controller.signal})};
-  } catch (error) {
-    if (error.name === "AbortError") return null;
-    return {error};
-  }
-})();
-```
-
-```js
-if (lookupState?.error) {
-  display(html`<div class="warning">${lookupState.error.message}</div>`);
-} else if (lookupState?.data && lookupState.data.communities.length === 0) {
-  display(html`<div class="note">No communities found for ${selected.label}. This can happen for ZIP codes that only cover water or a federal facility.</div>`);
-} else if (lookupState?.data?.searches_remaining <= 1) {
-  // from_cache responses omit this field, so it only appears after a real upstream search
-  display(html`<div class="note">Heads up: ${lookupState.data.searches_remaining} new ZIP/town search(es) left today.</div>`);
-}
-```
-
-```js
-const candidates = (() => {
-  if (!selected) return [];
-  if (lookupState?.data) return lookupState.data.communities;
-  if (selected.kind === "District" || selected.kind === "Community") {
-    const parsed = toStabcd(selected.kind === "District" ? selected.label : selected.record?.District);
-    return parsed ? [{...parsed, custom_id: null}] : [];
-  }
-  return [];
-})();
-```
-
-```js
-const formatCommunity = (c) =>
-  [c.district, c.custom_id, c.zip && `ZIP ${c.zip}`].filter(Boolean).join(" · ");
-
-// One candidate: auto-selected. Several: starts unselected so the user must choose.
-const community = view(Inputs.radio(candidates, {
-  label: candidates.length > 1 ? "Your ZIP or town spans several communities. Which is yours?"
-       : candidates.length === 1 ? "Your community" : "",
-  format: formatCommunity,
-  value: candidates.length === 1 ? candidates[0] : null
-}));
-```
-
-```js
-// Remember the choice, as the docs suggest (store custom_id + stabcd, not a re-search)
-if (community) {
-  try { localStorage.setItem("cc:community", JSON.stringify({custom_id: community.custom_id, stabcd: community.stabcd})); }
-  catch {}
-}
-```
-
 
 ```js check_dc.js
 const isDC = ccn.length < 7;
@@ -699,6 +473,19 @@ function renderFullWaffle(labels, countsByLabel, type, group_name_list) {
 }
 ```
 
+```js find_axes_bounds.js
+function findAxisBounds(isDC, xCc, xCd, xState, xCountry){
+    // dynamically adjust x range
+  const xs = isDC
+    ? [xCd, xState, xCountry].filter(Number.isFinite)
+    : [xCc, xCd, xState].filter(Number.isFinite);
+  const xMin = Math.min(...xs) - 0.02;
+  const xMax = Math.max(...xs) + 0.02;
+
+  return [xMin, xMax];
+}
+```
+
 
 ```js make_plotly_charts.js
 function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
@@ -730,7 +517,6 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
   const xCountry = df_country.getChild(var_list).get(0);
 
   const traces = [];
-
 
   // State
   traces.push({
@@ -779,15 +565,14 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
     if (isDC) traces.push(country_trace);
 
   // dynamically adjust x range
-  const xs = [xCc, xCd, xState, xCountry].filter(Number.isFinite);
-  const xMin = floorToDecimals(Math.min(...xs), 1) - 0.01;
-  const xMax = ceilToDecimals(Math.max(...xs), 2) + 0.02;
+  const [xMin, xMax] = findAxisBounds(isDC, xCc, xCd, xState, xCountry);
 
   const layout = {
     xaxis: {
       range: [xMin, xMax],
       tickmode: "auto",          // let Plotly choose spacing as the user zooms
       nticks: 3,
+      ticklen: 0.5,
       tickformatstops: [
         { enabled: true, dtickrange: [null, 0.001], value: ".2%" },  // zoomed far in: 12.34%
         { enabled: true, dtickrange: [0.001, 0.01], value: ".1%" },  // moderate zoom: 12.3%
@@ -805,7 +590,7 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
       visible: true, 
       showgrid: false, // for lines
       showticklabels: false,   
-      zeroline: true,      // Set to false if you want to hide the vertical line at x=0
+      zeroline: true,      
       zerolinecolor: 'darkgrey', // Change the color of the zero line 
       zerolinewidth: 1,     // Change the thickness of the line in pixels
      },
@@ -832,6 +617,69 @@ function makeLineCompChartPlotly(label_list, group_list, var_list, type, isDC) {
 }
 ```
 
+```js
+function makePlotlyLineChart(xRange, color){
+  const [min, max] = xRange ?? [0, 1];
+
+  const traces = [];
+
+  traces.push({
+    x: [min, max],
+    y: [0, 0], 
+    hoverinfo: "skip", 
+    mode: "lines",
+    type: 'scatter', 
+    opacity: 0.5,
+    line: {
+      color: color,
+      width: 15, 
+    }
+
+  });
+
+  const layout = {
+    xaxis: {
+      range: [0, 1],
+      showgrid: false, // for lines
+      gridcolor: color, 
+      gridwidth: 1,
+      showticklabels: false, 
+      //griddash: 'dash',
+      zeroline: false, 
+      color: "darkgrey"
+    },
+    yaxis: { 
+      range: [-0.1, 0.1],    
+      visible: true, 
+      showgrid: false, // for lines
+      showticklabels: false,   
+      zeroline: true,      
+      zerolinecolor: 'rgba(169, 169, 169, 0.2)', // Change the color of the zero line 
+      zerolinewidth: 10,     // Change the thickness of the line in pixels
+     },
+    legend: { orientation: "h", yanchor: "bottom", y: 1.02, xanchor: "center", x: 0.5, 
+      "itemsizing": "constant", "itemwidth": 10
+     },
+    height: 160,
+    margin: { l: 20, r: 20, t: 0, b: 0 },
+    paper_bgcolor: 'rgba(0,0,0,0)', // Makes the outer container transparent
+    plot_bgcolor: 'rgba(0,0,0,0)' , 
+    hovermode: 'x'
+  };
+
+  const config = {
+    modeBarButtons: [[
+    ]],
+    displaylogo: false, 
+    staticPlot: true,
+  };
+  
+  return { traces, layout, config };
+}
+```
+
+
+
 ```js import_maplibre.js
 import * as maplibregl from "https://unpkg.com/maplibre-gl@6.11.2/dist/maplibre-gl.mjs";
 // bright basemap
@@ -844,8 +692,6 @@ import { createColorbarControl } from "./components/colorbar.js";
 ```js
 display(html`<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.11.2/dist/maplibre-gl.css">`);
 ```
-
-
 
 ```js find_bounds.js
 function boundsFromGeoJSON(geojson) {
@@ -1405,6 +1251,36 @@ const age_summary = isDC
 </div>
 
 
+```js
+function watchZoom(div, initialRange, setter) {
+  setter([...initialRange]); // start the linked chart in sync
+
+  div.on("plotly_relayout", (e) => {
+    if (e["xaxis.autorange"]) {
+      // Reset axes / double-click: restore the original range, not the data extent.
+      // This fires another relayout with xaxis.range[0], which publishes below (no loop).
+      Plotly.relayout(div, { "xaxis.range": [...initialRange] });
+    } else if ("xaxis.range[0]" in e) {
+      setter([e["xaxis.range[0]"], e["xaxis.range[1]"]]);
+    } else if (Array.isArray(e["xaxis.range"])) {
+      setter(e["xaxis.range"]);
+    }
+  });
+}
+```
+
+```js
+const xRange_age1 = Mutable(null);
+const setXRange_age1 = (r) => { xRange_age1.value = r; };
+
+const xRange_age2 = Mutable(null);
+const setXRange_age2 = (r) => { xRange_age2.value = r; };
+
+const xRange_age3 = Mutable(null);
+const setXRange_age3 = (r) => { xRange_age3.value = r; };
+```
+
+
 <!-- plotly graphs -->
 
 <div class="grid grid-cols-3" >
@@ -1413,26 +1289,51 @@ const age_summary = isDC
       const div = document.createElement("div");
       const { traces, layout, config } = makeLineCompChartPlotly("under18", ageBracketCols, ageKey[0], "age", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
+      watchZoom(div, layout.xaxis.range, setXRange_age1);   // pass the setter
       return div;
-    }) 
-  }</div>
+    })
+  }<div style="margin-top: -70px; margin-bottom: -50px;">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makePlotlyLineChart(xRange_age1, okabeItoColors[2]);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    })
+  }</div></div>
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
       const { traces, layout, config } = makeLineCompChartPlotly("18_65", ageBracketCols, ageKey[1], "age", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
+      watchZoom(div, layout.xaxis.range, setXRange_age2);
       return div;
     }) 
-  }</div>
+  }<div style="margin-top: -70px; margin-bottom: -50px;">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makePlotlyLineChart(xRange_age2, okabeItoColors[1]);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    })
+  }</div></div>
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
       const { traces, layout, config } = makeLineCompChartPlotly("over65", ageBracketCols, ageKey[2], "age", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
+      watchZoom(div, layout.xaxis.range, setXRange_age3);
       return div;
     }) 
-  }</div>
+  }<div style="margin-top: -70px; margin-bottom: -50px;">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makePlotlyLineChart(xRange_age3, okabeItoColors[0]);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    })
+  }</div></div>
 </div>
+
 
 
 
@@ -1451,89 +1352,6 @@ Communities with different age cohorts individuals often have different prioriti
 
 
 ## Housing
-
-
-
-<!-- creating the tables for housing-->
-
-```sql id=create_tables_housing 
-
-CREATE OR REPLACE TABLE cc_data_housing_table AS
-SELECT
-    ccn20,
-    cd119,
-    State,
-    tot_housing,
-    tot_hholds,
-    tot_owned_hholds,
-    tot_vacant_units,
-    tot_rented_hholds,
-  
-    tot_hholds 
-        / NULLIF(tot_housing, 0)::DOUBLE
-        AS housing_occupancy_rate,
-
-    tot_owned_hholds
-        / NULLIF(tot_hholds, 0)::DOUBLE
-        AS housing_ownership_rate,
-
-    --adding in extra  rates
-    1 - housing_occupancy_rate AS housing_vacancy_rate, 
-    1 - housing_ownership_rate AS housing_rental_rate
-    
-
- FROM cc_data_updated;
-
-
-CREATE OR REPLACE TABLE dc_data_housing_table AS
-SELECT
-    cd119,
-
-    SUM(tot_housing) AS tot_housing,
-    SUM(tot_hholds) AS tot_hholds,
-    SUM(tot_owned_hholds) AS tot_owned_hholds,
-    SUM(tot_vacant_units) AS tot_vacant_units,
-    SUM(tot_rented_hholds) AS tot_rented_hholds,
-
-    SUM(tot_hholds)
-        / NULLIF(SUM(tot_housing), 0)::DOUBLE
-        AS housing_occupancy_rate,
-
-    SUM(tot_owned_hholds)
-        / NULLIF(SUM(tot_hholds), 0)::DOUBLE
-        AS housing_ownership_rate,
-
-    1 - housing_occupancy_rate AS housing_vacancy_rate, 
-    1 - housing_ownership_rate AS housing_rental_rate
-
-FROM cc_data_updated
-GROUP BY cd119;
-
-
-CREATE OR REPLACE TABLE state_data_housing_table AS
-SELECT
-    State,
-
-    SUM(tot_housing) AS tot_housing,
-    SUM(tot_hholds) AS tot_hholds,
-    SUM(tot_owned_hholds) AS tot_owned_hholds,
-    SUM(tot_vacant_units) AS tot_vacant_units,
-    SUM(tot_rented_hholds) AS tot_rented_hholds,
-
-    SUM(tot_hholds)
-        / NULLIF(SUM(tot_housing), 0)::DOUBLE
-        AS housing_occupancy_rate,
-
-    SUM(tot_owned_hholds)
-        / NULLIF(SUM(tot_hholds), 0)::DOUBLE
-        AS housing_ownership_rate,
-
-    1 - housing_occupancy_rate AS housing_vacancy_rate, 
-    1 - housing_ownership_rate AS housing_rental_rate
-
-FROM cc_data_updated
-GROUP BY State;
-```
 
 
 <!-- Filtering the data-->
@@ -1729,6 +1547,17 @@ Text here
 <!-- plotly graphs -->
 
 
+```js
+const xRange_housing1 = Mutable(null);
+const setXRange_housing1 = (r) => { xRange_housing1.value = r; };
+
+const xRange_housing2 = Mutable(null);
+const setXRange_housing2 = (r) => { xRange_housing2.value = r; };
+
+```
+
+
+
 
 <div class="grid grid-cols-2" >
   <div class="card">${
@@ -1736,17 +1565,33 @@ Text here
       const div = document.createElement("div");
       const { traces, layout, config } = makeLineCompChartPlotly("occupied", vacancyCols, vacancyKey[0], "housing", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
+      watchZoom(div, layout.xaxis.range, setXRange_housing1);
       return div;
     }) 
-  }</div>
+  }<div style="margin-top: -70px; margin-bottom: -50px;">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makePlotlyLineChart(xRange_housing1, okabeItoColors[0]);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    })
+  }</div></div>
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
       const { traces, layout, config } = makeLineCompChartPlotly("vacant", vacancyCols, vacancyKey[1], "housing", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
+      watchZoom(div, layout.xaxis.range, setXRange_housing2);
       return div;
     }) 
-  }</div>
+  }<div style="margin-top: -70px; margin-bottom: -50px;">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makePlotlyLineChart(xRange_housing2, okabeItoColors[1]);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    })
+  }</div></div>
 </div>
 
 
@@ -1840,23 +1685,50 @@ const hhold_summary = isDC
 
 <!-- plotly graphs -->
 
+```js
+const xRange_hholds1 = Mutable(null);
+const setXRange_hholds1 = (r) => { xRange_hholds1.value = r; };
+
+const xRange_hholds2 = Mutable(null);
+const setXRange_hholds2 = (r) => { xRange_hholds2.value = r; };
+
+```
+
+
+
 <div class="grid grid-cols-2">
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
       const { traces, layout, config } = makeLineCompChartPlotly("owned", ownershipCols, ownershipKey[0], "housing", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
+      watchZoom(div, layout.xaxis.range, setXRange_hholds1);
       return div;
     }) 
-  }</div>
+  }<div style="margin-top: -70px; margin-bottom: -50px;">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makePlotlyLineChart(xRange_hholds1, okabeItoColors[0]);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    })
+  }</div></div>
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
       const { traces, layout, config } = makeLineCompChartPlotly("rented", ownershipCols, ownershipKey[1], "housing", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
+      watchZoom(div, layout.xaxis.range, setXRange_hholds2);
       return div;
     }) 
-  }</div>
+  }<div style="margin-top: -70px; margin-bottom: -50px;">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makePlotlyLineChart(xRange_hholds2, okabeItoColors[1]);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    })
+  }</div></div>
 </div>
 
 <center>
@@ -1870,89 +1742,6 @@ Given the current state of the housing market, homeownership rates say a lot abo
 
 ## Languages
 
-
-```sql id=create_tables_lang
-
-CREATE OR REPLACE TABLE cc_data_lang_table AS
-SELECT
-    ccn20,
-    cd119,
-    State,
-    tot_pop_5yrs, 
-    tot_english_only, 
-    tot_non_english, 
-    tot_spanish,
-  
-    tot_english_only 
-        / NULLIF(tot_pop_5yrs, 0)::DOUBLE
-        AS prop_english_only,
-
-    1 - prop_english_only AS prop_non_english,
-
-    tot_spanish
-        / NULLIF(tot_pop_5yrs, 0)::DOUBLE
-        AS prop_span,
-
-    tot_spanish
-        / NULLIF(tot_non_english, 0)::DOUBLE
-        AS prop_span_nonEnglish,
-
- FROM cc_data_updated;
-
-
-CREATE OR REPLACE TABLE dc_data_lang_table AS
-SELECT
-    cd119,
-
-    SUM(tot_pop_5yrs) AS tot_pop_5yrs,
-    SUM(tot_english_only) AS tot_english_only, 
-    SUM(tot_non_english) AS tot_non_english, 
-    SUM(tot_spanish) AS tot_spanish,
-  
-    SUM(tot_english_only) 
-        / NULLIF(SUM(tot_pop_5yrs), 0)::DOUBLE
-        AS prop_english_only,
-
-    1 - prop_english_only AS prop_non_english,
-
-    SUM(tot_spanish)
-        / NULLIF(SUM(tot_pop_5yrs), 0)::DOUBLE
-        AS prop_span,
-
-    SUM(tot_spanish)
-        / NULLIF(SUM(tot_non_english), 0)::DOUBLE
-        AS prop_span_nonEnglish,
-
-FROM cc_data_updated
-GROUP BY cd119;
-
-
-CREATE OR REPLACE TABLE state_data_lang_table AS
-SELECT
-    State,
-
-    SUM(tot_pop_5yrs) AS tot_pop_5yrs,
-    SUM(tot_english_only) AS tot_english_only, 
-    SUM(tot_non_english) AS tot_non_english, 
-    SUM(tot_spanish) AS tot_spanish,
-  
-    SUM(tot_english_only) 
-        / NULLIF(SUM(tot_pop_5yrs), 0)::DOUBLE
-        AS prop_english_only,
-
-    1 - prop_english_only AS prop_non_english,
-
-    SUM(tot_spanish)
-        / NULLIF(SUM(tot_pop_5yrs), 0)::DOUBLE
-        AS prop_span,
-
-    SUM(tot_spanish)
-        / NULLIF(SUM(tot_non_english), 0)::DOUBLE
-        AS prop_span_nonEnglish,  
-
-FROM cc_data_updated
-GROUP BY State;
-```
 
 
 <!-- Filtering the data-->
@@ -2285,23 +2074,49 @@ Looking at how what language your community speaks in ...
 
 <!-- plotly graphs -->
 
+```js
+const xRange_lang1 = Mutable(null);
+const setXRange_lang1 = (r) => { xRange_lang1.value = r; };
+
+const xRange_lang2 = Mutable(null);
+const setXRange_lang2 = (r) => { xRange_lang2.value = r; };
+
+```
+
+
 <div class="grid grid-cols-3">
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
       const { traces, layout, config } = makeLineCompChartPlotly("english", langCols, langKey[0], "lang", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
+      watchZoom(div, layout.xaxis.range, setXRange_lang1);
       return div;
     }) 
-  }</div>
+  }<div style="margin-top: -70px; margin-bottom: -50px;">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makePlotlyLineChart(xRange_lang1, okabeItoColors[0]);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    })
+  }</div></div>
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
       const { traces, layout, config } = makeLineCompChartPlotly("not_english", langCols, langKey[1], "lang", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
+      watchZoom(div, layout.xaxis.range, setXRange_lang2);
       return div;
     }) 
-  }</div>
+  }<div style="margin-top: -70px; margin-bottom: -50px;">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makePlotlyLineChart(xRange_lang2, okabeItoColors[1]);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    })
+  }</div></div>
   <div class="card">
     <center><h3>Spanish Speakers</h3></center>
     ${
@@ -2339,96 +2154,6 @@ const lang_summary = html`In your ${title_choice.toLowerCase()}, <strong>${pct_p
 <hr>
 
 ## Employment 
-
-
-```sql id=create_tables_employment
-
-CREATE OR REPLACE TABLE cc_data_employment_table AS
-SELECT
-    ccn20,
-    cd119,
-    State,
-    tot_emp, 
-    tot_unemp, 
-    tot_civilian_lf, 
-    tot_working_age_pop,
-  
-    tot_unemp 
-        / NULLIF(tot_civilian_lf, 0)::DOUBLE
-        AS unemp_rate3,
-
-    tot_emp 
-        / NULLIF(tot_civilian_lf, 0)::DOUBLE
-        AS emp_rate3,
-
-    tot_civilian_lf
-        / NULLIF(tot_working_age_pop, 0)::DOUBLE
-        AS lfp_rate,
-
-    tot_emp 
-        / NULLIF(tot_working_age_pop, 0)::DOUBLE
-        AS emp_to_pop,   
-
- FROM cc_data_updated;
-
-
-CREATE OR REPLACE TABLE dc_data_employment_table AS
-SELECT
-    cd119,
-
-    SUM(tot_emp) AS tot_emp,
-    SUM(tot_unemp) AS tot_unemp,
-    SUM(tot_civilian_lf) AS tot_civilian_lf,
-    SUM(tot_working_age_pop) AS tot_working_age_pop,
-
-    SUM(tot_unemp)
-        / NULLIF(SUM(tot_civilian_lf), 0)::DOUBLE
-        AS unemp_rate3,
-
-    SUM(tot_emp)
-        / NULLIF(SUM(tot_civilian_lf), 0)::DOUBLE
-        AS emp_rate3,
-
-    SUM(tot_civilian_lf)
-        / NULLIF(SUM(tot_working_age_pop), 0)::DOUBLE
-        AS lfp_rate,
-
-    SUM(tot_emp)
-        / NULLIF(SUM(tot_working_age_pop), 0)::DOUBLE
-        AS emp_to_pop,   
-
-FROM cc_data_updated
-GROUP BY cd119;
-
-
-CREATE OR REPLACE TABLE state_data_employment_table AS
-SELECT
-    State,
-
-    SUM(tot_emp) AS tot_emp,
-    SUM(tot_unemp) AS tot_unemp,
-    SUM(tot_civilian_lf) AS tot_civilian_lf,
-    SUM(tot_working_age_pop) AS tot_working_age_pop,
-
-    SUM(tot_unemp)
-        / NULLIF(SUM(tot_civilian_lf), 0)::DOUBLE
-        AS unemp_rate3,
-
-    SUM(tot_emp)
-        / NULLIF(SUM(tot_civilian_lf), 0)::DOUBLE
-        AS emp_rate3,
-
-    SUM(tot_civilian_lf)
-        / NULLIF(SUM(tot_working_age_pop), 0)::DOUBLE
-        AS lfp_rate,
-
-    SUM(tot_emp)
-        / NULLIF(SUM(tot_working_age_pop), 0)::DOUBLE
-        AS emp_to_pop,   
-
-FROM cc_data_updated
-GROUP BY State;
-```
 
 
 <!-- Filtering the data-->
@@ -2643,31 +2368,68 @@ Looking at different measures of employment...
 
 <!-- plotly graphs -->
 
+```js
+const xRange_emp1 = Mutable(null);
+const setXRange_emp1 = (r) => { xRange_emp1.value = r; };
+
+const xRange_emp2 = Mutable(null);
+const setXRange_emp2 = (r) => { xRange_emp2.value = r; };
+
+const xRange_emp3 = Mutable(null);
+const setXRange_emp3 = (r) => { xRange_emp3.value = r; };
+
+```
+
+
 <div class="grid grid-cols-3">
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
       const { traces, layout, config } = makeLineCompChartPlotly("e3", emp_measureCols, empKey[0], "employment", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
+      watchZoom(div, layout.xaxis.range, setXRange_emp1);
       return div;
     }) 
-  }</div>
+  }<div style="margin-top: -70px; margin-bottom: -50px;">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makePlotlyLineChart(xRange_emp1, okabeItoColors[0]);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    })
+  }</div></div>
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
       const { traces, layout, config } = makeLineCompChartPlotly("lfp", emp_measureCols, empKey[1], "employment", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
+      watchZoom(div, layout.xaxis.range, setXRange_emp2);
       return div;
     }) 
-  }</div>
+  }<div style="margin-top: -70px; margin-bottom: -50px;">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makePlotlyLineChart(xRange_emp2, okabeItoColors[1]);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    })
+  }</div></div>
   <div class="card">${
     resize((width) => {
       const div = document.createElement("div");
       const { traces, layout, config } = makeLineCompChartPlotly("etp", emp_measureCols, empKey[2], "employment", isDC);
       Plotly.newPlot(div, traces, { ...layout, width }, config);
+      watchZoom(div, layout.xaxis.range, setXRange_emp3);
       return div;
-    }) 
-  }</div>
+    })
+  }<div style="margin-top: -70px; margin-bottom: -50px;">${
+    resize((width) => {
+      const div = document.createElement("div");
+      const { traces, layout, config } = makePlotlyLineChart(xRange_emp3, okabeItoColors[2]);
+      Plotly.newPlot(div, traces, { ...layout, width }, config);
+      return div;
+    })
+  }</div></div>
 </div>
 
 ```js

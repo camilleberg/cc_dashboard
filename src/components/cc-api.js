@@ -70,7 +70,13 @@ export async function findCommunities(selection, {signal, geometry = false} = {}
     method: "POST",
     body: isZip ? {zip: id} : {geoid: id}
   });
-  const result = {...data, communities: data.communities ?? []};   // empty list = "no results", not an error
+  const communities = (data.communities ?? []).map((community) => {
+    const ccn20 = community.ccn20 ?? community.community_id ?? community.geoid;
+    return ccn20 == null
+      ? community
+      : {...community, ccn20: String(ccn20), community_id: String(ccn20), geoid: String(ccn20)};
+  });
+  const result = {...data, communities};   // empty list = "no results", not an error
   lookupCache.set(geometry ? fullKey : slimKey, result);
   return result;
 }

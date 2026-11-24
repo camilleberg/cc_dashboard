@@ -1,0 +1,1778 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+   <meta name="generator" content="TIGERweb 508 Generator"/>
+  <title>State of Utah Census Designated Places - ACS25 - Data as of January 1, 2025</title>
+</head>
+<body>
+  <table width='95%' role='table' border='2' summary='This table contains the State of Utah Census Designated Places - ACS25 - Data as of January 1, 2025 and provides the data (headers) for each cdp record (rows). For the record layout, please reference the Record Layout link on the TIGERweb State‑Based Tabular Data Files page for the given record type.'>
+  <caption style='font-size:x-large; font-weight:bold; text-align:left;'>State of Utah Census Designated Places - ACS25 - Data as of January 1, 2025</caption>
+  <thead>
+<tr>
+<th id='header1'>MTFCC</th>
+<th id='header2'>OID</th>
+<th id='header3'>GEOID</th>
+<th id='header4'>STATE</th>
+<th id='header5'>PLACE</th>
+<th id='header6'>PLACENS</th>
+<th id='header7'>BASENAME</th>
+<th id='header8'>NAME</th>
+<th id='header9'>LSADC</th>
+<th id='header10'>FUNCSTAT</th>
+<th id='header11'>PLACECC</th>
+<th id='header12'>AREALAND</th>
+<th id='header13'>AREAWATER</th>
+<th id='header14'>DISP_CLR</th>
+<th id='header15'>CBSAPCI</th>
+<th id='header16'>NECTAPCI</th>
+<th id='header17'>CENTLAT</th>
+<th id='header18'>CENTLON</th>
+<th id='header19'>INTPTLAT</th>
+<th id='header20'>INTPTLON</th>
+ </tr>
+  </thead>
+  <tbody>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280551349680506</td>
+    <td headers='header3'>4901530</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>01530</td>
+    <td headers='header6'>02407743</td>
+    <td headers='header7'>Aneth</td>
+    <td headers='header8'>Aneth CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>28366210</td>
+    <td headers='header13'>1019007</td>
+    <td headers='header14'>1.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+37.2058806</td>
+    <td headers='header18'>-109.1625868</td>
+    <td headers='header19'>+37.2184312</td>
+    <td headers='header20'>-109.1621602</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055227850335</td>
+    <td headers='header3'>4902960</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>02960</td>
+    <td headers='header6'>02407786</td>
+    <td headers='header7'>Avon</td>
+    <td headers='header8'>Avon CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>18386752</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>3.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+41.5353282</td>
+    <td headers='header18'>-111.8124326</td>
+    <td headers='header19'>+41.5353282</td>
+    <td headers='header20'>-111.8124326</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055478495689</td>
+    <td headers='header3'>4904720</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>04720</td>
+    <td headers='header6'>02407828</td>
+    <td headers='header7'>Benjamin</td>
+    <td headers='header8'>Benjamin CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>22129844</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>4.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.0968663</td>
+    <td headers='header18'>-111.7289697</td>
+    <td headers='header19'>+40.0968663</td>
+    <td headers='header20'>-111.7289697</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055227850336</td>
+    <td headers='header3'>4905050</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>05050</td>
+    <td headers='header6'>02407829</td>
+    <td headers='header7'>Benson</td>
+    <td headers='header8'>Benson CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>78009254</td>
+    <td headers='header13'>7735717</td>
+    <td headers='header14'>1.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+41.7492679</td>
+    <td headers='header18'>-111.9173177</td>
+    <td headers='header19'>+41.7528567</td>
+    <td headers='header20'>-111.9258524</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553940364509</td>
+    <td headers='header3'>4905380</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>05380</td>
+    <td headers='header6'>02629946</td>
+    <td headers='header7'>Beryl Junction</td>
+    <td headers='header8'>Beryl Junction CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>4728304</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>2.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+37.7009833</td>
+    <td headers='header18'>-113.6534952</td>
+    <td headers='header19'>+37.7009833</td>
+    <td headers='header20'>-113.6534952</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553717187835</td>
+    <td headers='header3'>4906590</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>06590</td>
+    <td headers='header6'>02584756</td>
+    <td headers='header7'>Bluebell</td>
+    <td headers='header8'>Bluebell CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>25231335</td>
+    <td headers='header13'>50906</td>
+    <td headers='header14'>3.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.3576389</td>
+    <td headers='header18'>-110.2231877</td>
+    <td headers='header19'>+40.3513743</td>
+    <td headers='header20'>-110.2238169</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553717187926</td>
+    <td headers='header3'>4906920</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>06920</td>
+    <td headers='header6'>02584757</td>
+    <td headers='header7'>Bonanza</td>
+    <td headers='header8'>Bonanza CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>7288006</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>5.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.0304741</td>
+    <td headers='header18'>-109.1884385</td>
+    <td headers='header19'>+40.0304741</td>
+    <td headers='header20'>-109.1884385</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055227850337</td>
+    <td headers='header3'>4909725</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>09725</td>
+    <td headers='header6'>02407937</td>
+    <td headers='header7'>Cache</td>
+    <td headers='header8'>Cache CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U2</td>
+    <td headers='header12'>14895729</td>
+    <td headers='header13'>865307</td>
+    <td headers='header14'>4.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+41.8308591</td>
+    <td headers='header18'>-112.0052418</td>
+    <td headers='header19'>+41.8301510</td>
+    <td headers='header20'>-112.0187375</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553717187846</td>
+    <td headers='header3'>4910440</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>10440</td>
+    <td headers='header6'>02584758</td>
+    <td headers='header7'>Carbonville</td>
+    <td headers='header8'>Carbonville CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>14467134</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>5.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+39.6268770</td>
+    <td headers='header18'>-110.8332624</td>
+    <td headers='header19'>+39.6268770</td>
+    <td headers='header20'>-110.8332624</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>2805525649295955</td>
+    <td headers='header3'>4911435</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>11435</td>
+    <td headers='header6'>02829873</td>
+    <td headers='header7'>Cedar Highlands</td>
+    <td headers='header8'>Cedar Highlands CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>2422837</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>2.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+37.6358421</td>
+    <td headers='header18'>-113.0410371</td>
+    <td headers='header19'>+37.6358421</td>
+    <td headers='header20'>-113.0410371</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553940364526</td>
+    <td headers='header3'>4912200</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>12200</td>
+    <td headers='header6'>02629947</td>
+    <td headers='header7'>Central</td>
+    <td headers='header8'>Central CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>6518226</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>5.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+37.4150054</td>
+    <td headers='header18'>-113.6262477</td>
+    <td headers='header19'>+37.4150054</td>
+    <td headers='header20'>-113.6262477</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553717187858</td>
+    <td headers='header3'>4913740</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>13740</td>
+    <td headers='header6'>02584759</td>
+    <td headers='header7'>Clear Creek</td>
+    <td headers='header8'>Clear Creek CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>529495</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>3.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+39.6433428</td>
+    <td headers='header18'>-111.1548395</td>
+    <td headers='header19'>+39.6433428</td>
+    <td headers='header20'>-111.1548395</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055227850340</td>
+    <td headers='header3'>4916490</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>16490</td>
+    <td headers='header6'>02407674</td>
+    <td headers='header7'>Cove</td>
+    <td headers='header8'>Cove CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>38091168</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>3.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+41.9682584</td>
+    <td headers='header18'>-111.7793876</td>
+    <td headers='header19'>+41.9682584</td>
+    <td headers='header20'>-111.7793876</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553940364581</td>
+    <td headers='header3'>4918090</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>18090</td>
+    <td headers='header6'>02629948</td>
+    <td headers='header7'>Dammeron Valley</td>
+    <td headers='header8'>Dammeron Valley CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>12661356</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>2.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+37.3041734</td>
+    <td headers='header18'>-113.6658699</td>
+    <td headers='header19'>+37.3041734</td>
+    <td headers='header20'>-113.6658699</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553716841881</td>
+    <td headers='header3'>4919020</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>19020</td>
+    <td headers='header6'>02584761</td>
+    <td headers='header7'>Deseret</td>
+    <td headers='header8'>Deseret CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>7948230</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>4.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+39.2876213</td>
+    <td headers='header18'>-112.6511157</td>
+    <td headers='header19'>+39.2876213</td>
+    <td headers='header20'>-112.6511157</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055477153766</td>
+    <td headers='header3'>4920450</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>20450</td>
+    <td headers='header6'>02408694</td>
+    <td headers='header7'>Dugway</td>
+    <td headers='header8'>Dugway CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>M2</td>
+    <td headers='header12'>13493880</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>5.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.2306864</td>
+    <td headers='header18'>-112.7540543</td>
+    <td headers='header19'>+40.2306864</td>
+    <td headers='header20'>-112.7540543</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>2805515672791054</td>
+    <td headers='header3'>4920850</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>20850</td>
+    <td headers='header6'>02807121</td>
+    <td headers='header7'>East Basin</td>
+    <td headers='header8'>East Basin CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>23306273</td>
+    <td headers='header13'>20748</td>
+    <td headers='header14'>2.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.7359123</td>
+    <td headers='header18'>-111.4707864</td>
+    <td headers='header19'>+40.7415442</td>
+    <td headers='header20'>-111.4645629</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553717187884</td>
+    <td headers='header3'>4921880</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>21880</td>
+    <td headers='header6'>02584763</td>
+    <td headers='header7'>Echo</td>
+    <td headers='header8'>Echo CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>2117648</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>5.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.9802594</td>
+    <td headers='header18'>-111.4392459</td>
+    <td headers='header19'>+40.9802594</td>
+    <td headers='header20'>-111.4392459</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553717187894</td>
+    <td headers='header3'>4921990</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>21990</td>
+    <td headers='header6'>02584764</td>
+    <td headers='header7'>Eden</td>
+    <td headers='header8'>Eden CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>10880341</td>
+    <td headers='header13'>7005</td>
+    <td headers='header14'>1.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+41.3022482</td>
+    <td headers='header18'>-111.8085782</td>
+    <td headers='header19'>+41.3061599</td>
+    <td headers='header20'>-111.8037822</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055478495693</td>
+    <td headers='header3'>4922210</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>22210</td>
+    <td headers='header6'>02408067</td>
+    <td headers='header7'>Elberta</td>
+    <td headers='header8'>Elberta CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U2</td>
+    <td headers='header12'>2873348</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>1.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+39.9557896</td>
+    <td headers='header18'>-111.9569232</td>
+    <td headers='header19'>+39.9557896</td>
+    <td headers='header20'>-111.9569232</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553717187882</td>
+    <td headers='header3'>4923310</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>23310</td>
+    <td headers='header6'>02584766</td>
+    <td headers='header7'>Enterprise</td>
+    <td headers='header8'>Enterprise CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>9783880</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>5.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+41.1069856</td>
+    <td headers='header18'>-111.7307130</td>
+    <td headers='header19'>+41.1069856</td>
+    <td headers='header20'>-111.7307130</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553717187863</td>
+    <td headers='header3'>4925910</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>25910</td>
+    <td headers='header6'>02584767</td>
+    <td headers='header7'>Flaming Gorge</td>
+    <td headers='header8'>Flaming Gorge CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U2</td>
+    <td headers='header12'>5908488</td>
+    <td headers='header13'>20522</td>
+    <td headers='header14'>5.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.8890582</td>
+    <td headers='header18'>-109.4751260</td>
+    <td headers='header19'>+40.8891500</td>
+    <td headers='header20'>-109.4759312</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055477366421</td>
+    <td headers='header3'>4926610</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>26610</td>
+    <td headers='header6'>02408237</td>
+    <td headers='header7'>Fort Duchesne</td>
+    <td headers='header8'>Fort Duchesne CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>18475174</td>
+    <td headers='header13'>1700510</td>
+    <td headers='header14'>3.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.2809114</td>
+    <td headers='header18'>-109.8774527</td>
+    <td headers='header19'>+40.2818019</td>
+    <td headers='header20'>-109.8772410</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553940364624</td>
+    <td headers='header3'>4927270</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>27270</td>
+    <td headers='header6'>02629949</td>
+    <td headers='header7'>Fremont</td>
+    <td headers='header8'>Fremont CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>4538361</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>4.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+38.4554486</td>
+    <td headers='header18'>-111.6149526</td>
+    <td headers='header19'>+38.4554486</td>
+    <td headers='header20'>-111.6149526</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055244331136</td>
+    <td headers='header3'>4927902</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>27902</td>
+    <td headers='header6'>02408276</td>
+    <td headers='header7'>Garden</td>
+    <td headers='header8'>Garden CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>68706297</td>
+    <td headers='header13'>68733</td>
+    <td headers='header14'>2.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+41.8866321</td>
+    <td headers='header18'>-111.4326019</td>
+    <td headers='header19'>+41.8742690</td>
+    <td headers='header20'>-111.4170295</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055190531723</td>
+    <td headers='header3'>4930900</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>30900</td>
+    <td headers='header6'>02408319</td>
+    <td headers='header7'>Granite</td>
+    <td headers='header8'>Granite CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>2635446</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>5.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.5688867</td>
+    <td headers='header18'>-111.8008201</td>
+    <td headers='header19'>+40.5756618</td>
+    <td headers='header20'>-111.7912523</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280551349680508</td>
+    <td headers='header3'>4933002</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>33002</td>
+    <td headers='header6'>02408345</td>
+    <td headers='header7'>Halchita</td>
+    <td headers='header8'>Halchita CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>44321357</td>
+    <td headers='header13'>20311</td>
+    <td headers='header14'>5.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+37.1314162</td>
+    <td headers='header18'>-109.9131409</td>
+    <td headers='header19'>+37.1497730</td>
+    <td headers='header20'>-109.9045935</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280551349680509</td>
+    <td headers='header3'>4933027</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>33027</td>
+    <td headers='header6'>02408346</td>
+    <td headers='header7'>Halls Crossing</td>
+    <td headers='header8'>Halls Crossing CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>34831290</td>
+    <td headers='header13'>10644733</td>
+    <td headers='header14'>3.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+37.4578598</td>
+    <td headers='header18'>-110.6830792</td>
+    <td headers='header19'>+37.4658163</td>
+    <td headers='header20'>-110.6654429</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>2805519627124874</td>
+    <td headers='header3'>4935823</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>35823</td>
+    <td headers='header6'>02813359</td>
+    <td headers='header7'>Hobble Creek</td>
+    <td headers='header8'>Hobble Creek CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>5548116</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>4.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.2084452</td>
+    <td headers='header18'>-111.4858260</td>
+    <td headers='header19'>+40.1917204</td>
+    <td headers='header20'>-111.4967074</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553717187889</td>
+    <td headers='header3'>4936730</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>36730</td>
+    <td headers='header6'>02584768</td>
+    <td headers='header7'>Hoytsville</td>
+    <td headers='header8'>Hoytsville CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>11676691</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>5.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.8757656</td>
+    <td headers='header18'>-111.3847344</td>
+    <td headers='header19'>+40.8757656</td>
+    <td headers='header20'>-111.3847344</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553940364494</td>
+    <td headers='header3'>4939040</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>39040</td>
+    <td headers='header6'>02629950</td>
+    <td headers='header7'>Jensen</td>
+    <td headers='header8'>Jensen CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>8365398</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>1.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.3695285</td>
+    <td headers='header18'>-109.3555719</td>
+    <td headers='header19'>+40.3695285</td>
+    <td headers='header20'>-109.3555719</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553717187853</td>
+    <td headers='header3'>4941020</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>41020</td>
+    <td headers='header6'>02584769</td>
+    <td headers='header7'>Kenilworth</td>
+    <td headers='header8'>Kenilworth CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>1947967</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>5.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+39.6803245</td>
+    <td headers='header18'>-110.8145389</td>
+    <td headers='header19'>+39.6803245</td>
+    <td headers='header20'>-110.8145389</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280551349680510</td>
+    <td headers='header3'>4943110</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>43110</td>
+    <td headers='header6'>02408517</td>
+    <td headers='header7'>La Sal</td>
+    <td headers='header8'>La Sal CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>123191305</td>
+    <td headers='header13'>328325</td>
+    <td headers='header14'>1.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+38.3025422</td>
+    <td headers='header18'>-109.2645759</td>
+    <td headers='header19'>+38.3011469</td>
+    <td headers='header20'>-109.2656514</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055478495699</td>
+    <td headers='header3'>4942230</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>42230</td>
+    <td headers='header6'>02408551</td>
+    <td headers='header7'>Lake Shore</td>
+    <td headers='header8'>Lake Shore CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>17764444</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>2.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.1294422</td>
+    <td headers='header18'>-111.7361807</td>
+    <td headers='header19'>+40.1294422</td>
+    <td headers='header20'>-111.7361807</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>2805515504165004</td>
+    <td headers='header3'>4942890</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>42890</td>
+    <td headers='header6'>02807122</td>
+    <td headers='header7'>Lapoint</td>
+    <td headers='header8'>Lapoint CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>1701225</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>4.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.4042175</td>
+    <td headers='header18'>-109.7969783</td>
+    <td headers='header19'>+40.4042175</td>
+    <td headers='header20'>-109.7969783</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553717187908</td>
+    <td headers='header3'>4944870</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>44870</td>
+    <td headers='header6'>02584770</td>
+    <td headers='header7'>Liberty</td>
+    <td headers='header8'>Liberty CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>15152176</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>2.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+41.3425357</td>
+    <td headers='header18'>-111.8648802</td>
+    <td headers='header19'>+41.3425357</td>
+    <td headers='header20'>-111.8648802</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055477366422</td>
+    <td headers='header3'>4947180</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>47180</td>
+    <td headers='header6'>02408160</td>
+    <td headers='header7'>Maeser</td>
+    <td headers='header8'>Maeser CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>16746653</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>4.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.4718380</td>
+    <td headers='header18'>-109.5786205</td>
+    <td headers='header19'>+40.4718380</td>
+    <td headers='header20'>-109.5786205</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553717187915</td>
+    <td headers='header3'>4948170</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>48170</td>
+    <td headers='header6'>02584771</td>
+    <td headers='header7'>Marion</td>
+    <td headers='header8'>Marion CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>12405296</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>3.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.6810222</td>
+    <td headers='header18'>-111.2773189</td>
+    <td headers='header19'>+40.6810222</td>
+    <td headers='header20'>-111.2773189</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280551349680511</td>
+    <td headers='header3'>4949380</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>49380</td>
+    <td headers='header6'>02408827</td>
+    <td headers='header7'>Mexican Hat</td>
+    <td headers='header8'>Mexican Hat CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>21271940</td>
+    <td headers='header13'>802056</td>
+    <td headers='header14'>2.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+37.1731112</td>
+    <td headers='header18'>-109.8730739</td>
+    <td headers='header19'>+37.1742580</td>
+    <td headers='header20'>-109.8835779</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>2805515500898954</td>
+    <td headers='header3'>4950810</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>50810</td>
+    <td headers='header6'>02629951</td>
+    <td headers='header7'>Modena</td>
+    <td headers='header8'>Modena CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>606900</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>3.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+37.7947118</td>
+    <td headers='header18'>-113.9274604</td>
+    <td headers='header19'>+37.7947118</td>
+    <td headers='header20'>-113.9274604</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280551349680512</td>
+    <td headers='header3'>4951470</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>51470</td>
+    <td headers='header6'>02408862</td>
+    <td headers='header7'>Montezuma Creek</td>
+    <td headers='header8'>Montezuma Creek CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>30636226</td>
+    <td headers='header13'>1119690</td>
+    <td headers='header14'>3.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+37.2561777</td>
+    <td headers='header18'>-109.3026334</td>
+    <td headers='header19'>+37.2510748</td>
+    <td headers='header20'>-109.2922758</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553717187876</td>
+    <td headers='header3'>4952460</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>52460</td>
+    <td headers='header6'>02584772</td>
+    <td headers='header7'>Mountain Green</td>
+    <td headers='header8'>Mountain Green CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>14020013</td>
+    <td headers='header13'>134267</td>
+    <td headers='header14'>5.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+41.1475405</td>
+    <td headers='header18'>-111.7899898</td>
+    <td headers='header19'>+41.1476725</td>
+    <td headers='header20'>-111.7876353</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280551349680513</td>
+    <td headers='header3'>4953890</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>53890</td>
+    <td headers='header6'>02408905</td>
+    <td headers='header7'>Navajo Mountain</td>
+    <td headers='header8'>Navajo Mountain CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>86414186</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>1.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+37.0470302</td>
+    <td headers='header18'>-110.7899320</td>
+    <td headers='header19'>+37.0470302</td>
+    <td headers='header20'>-110.7899320</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055475358591</td>
+    <td headers='header3'>4954110</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>54110</td>
+    <td headers='header6'>02408913</td>
+    <td headers='header7'>Neola</td>
+    <td headers='header8'>Neola CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>9768292</td>
+    <td headers='header13'>12319</td>
+    <td headers='header14'>5.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.4342756</td>
+    <td headers='header18'>-110.0308736</td>
+    <td headers='header19'>+40.4348058</td>
+    <td headers='header20'>-110.0308204</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553940364504</td>
+    <td headers='header3'>4954330</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>54330</td>
+    <td headers='header6'>02629952</td>
+    <td headers='header7'>Newcastle</td>
+    <td headers='header8'>Newcastle CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>10302929</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>2.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+37.6628540</td>
+    <td headers='header18'>-113.5643662</td>
+    <td headers='header19'>+37.6628540</td>
+    <td headers='header20'>-113.5643662</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553716841883</td>
+    <td headers='header3'>4955760</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>55760</td>
+    <td headers='header6'>02584773</td>
+    <td headers='header7'>Oasis</td>
+    <td headers='header8'>Oasis CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>990357</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>5.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+39.2923055</td>
+    <td headers='header18'>-112.6289509</td>
+    <td headers='header19'>+39.2923055</td>
+    <td headers='header20'>-112.6289509</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280551349680514</td>
+    <td headers='header3'>4956440</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>56440</td>
+    <td headers='header6'>02408988</td>
+    <td headers='header7'>Oljato-Monument Valley</td>
+    <td headers='header8'>Oljato-Monument Valley CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U2</td>
+    <td headers='header12'>75199760</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>3.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+37.0307470</td>
+    <td headers='header18'>-110.2510942</td>
+    <td headers='header19'>+37.0307470</td>
+    <td headers='header20'>-110.2510942</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280557120059009</td>
+    <td headers='header3'>4956750</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>56750</td>
+    <td headers='header6'>02787910</td>
+    <td headers='header7'>Ophir</td>
+    <td headers='header8'>Ophir CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>330529</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>1.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.3717407</td>
+    <td headers='header18'>-112.2503231</td>
+    <td headers='header19'>+40.3700553</td>
+    <td headers='header20'>-112.2559630</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055478495704</td>
+    <td headers='header3'>4957630</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>57630</td>
+    <td headers='header6'>02409020</td>
+    <td headers='header7'>Palmyra</td>
+    <td headers='header8'>Palmyra CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>17219845</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>1.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.1341760</td>
+    <td headers='header18'>-111.6930492</td>
+    <td headers='header19'>+40.1341760</td>
+    <td headers='header20'>-111.6930492</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553717187878</td>
+    <td headers='header3'>4959280</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>59280</td>
+    <td headers='header6'>02584774</td>
+    <td headers='header7'>Peoa</td>
+    <td headers='header8'>Peoa CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>9038193</td>
+    <td headers='header13'>19581</td>
+    <td headers='header14'>3.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.7296038</td>
+    <td headers='header18'>-111.3434571</td>
+    <td headers='header19'>+40.7325374</td>
+    <td headers='header20'>-111.3293568</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055227850352</td>
+    <td headers='header3'>4959555</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>59555</td>
+    <td headers='header6'>02409057</td>
+    <td headers='header7'>Peter</td>
+    <td headers='header8'>Peter CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U2</td>
+    <td headers='header12'>55380649</td>
+    <td headers='header13'>2272122</td>
+    <td headers='header14'>2.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+41.7718766</td>
+    <td headers='header18'>-111.9859324</td>
+    <td headers='header19'>+41.7947100</td>
+    <td headers='header20'>-112.0042670</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553940364592</td>
+    <td headers='header3'>4960270</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>60270</td>
+    <td headers='header6'>02629953</td>
+    <td headers='header7'>Pine Valley</td>
+    <td headers='header8'>Pine Valley CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>8864751</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>3.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+37.3903687</td>
+    <td headers='header18'>-113.5060334</td>
+    <td headers='header19'>+37.3903687</td>
+    <td headers='header20'>-113.5060334</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055477366424</td>
+    <td headers='header3'>4962910</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>62910</td>
+    <td headers='header6'>02409142</td>
+    <td headers='header7'>Randlett</td>
+    <td headers='header8'>Randlett CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>13526273</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>3.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.2267483</td>
+    <td headers='header18'>-109.8308100</td>
+    <td headers='header19'>+40.2267483</td>
+    <td headers='header20'>-109.8308100</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055474722526</td>
+    <td headers='header3'>4964230</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>64230</td>
+    <td headers='header6'>02409189</td>
+    <td headers='header7'>Riverside</td>
+    <td headers='header8'>Riverside CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>17338577</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>2.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+41.8105866</td>
+    <td headers='header18'>-112.1403146</td>
+    <td headers='header19'>+41.8105866</td>
+    <td headers='header20'>-112.1403146</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055675555196</td>
+    <td headers='header3'>4967400</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>67400</td>
+    <td headers='header6'>02409244</td>
+    <td headers='header7'>Samak</td>
+    <td headers='header8'>Samak CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>6390127</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>3.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.6389070</td>
+    <td headers='header18'>-111.2413005</td>
+    <td headers='header19'>+40.6389070</td>
+    <td headers='header20'>-111.2413005</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553717187818</td>
+    <td headers='header3'>4969280</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>69280</td>
+    <td headers='header6'>02584775</td>
+    <td headers='header7'>Silver Summit</td>
+    <td headers='header8'>Silver Summit CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>29106754</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>3.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.7489260</td>
+    <td headers='header18'>-111.5139072</td>
+    <td headers='header19'>+40.7489260</td>
+    <td headers='header20'>-111.5139072</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553717187827</td>
+    <td headers='header3'>4970190</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>70190</td>
+    <td headers='header6'>02584776</td>
+    <td headers='header7'>Snyderville</td>
+    <td headers='header8'>Snyderville CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>28146097</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>5.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.7041184</td>
+    <td headers='header18'>-111.5433754</td>
+    <td headers='header19'>+40.7041184</td>
+    <td headers='header20'>-111.5433754</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055474722528</td>
+    <td headers='header3'>4971255</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>71255</td>
+    <td headers='header6'>02408779</td>
+    <td headers='header7'>South Willard</td>
+    <td headers='header8'>South Willard CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>13996929</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>2.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+41.3571584</td>
+    <td headers='header18'>-112.0412411</td>
+    <td headers='header19'>+41.3623035</td>
+    <td headers='header20'>-112.0419805</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280551349680515</td>
+    <td headers='header3'>4971455</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>71455</td>
+    <td headers='header6'>02408786</td>
+    <td headers='header7'>Spanish Valley</td>
+    <td headers='header8'>Spanish Valley CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>36780029</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>4.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+38.4742626</td>
+    <td headers='header18'>-109.4209722</td>
+    <td headers='header19'>+38.4742626</td>
+    <td headers='header20'>-109.4209722</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553717187850</td>
+    <td headers='header3'>4972060</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>72060</td>
+    <td headers='header6'>02584777</td>
+    <td headers='header7'>Spring Glen</td>
+    <td headers='header8'>Spring Glen CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>8801415</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>1.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+39.6560098</td>
+    <td headers='header18'>-110.8460807</td>
+    <td headers='header19'>+39.6560098</td>
+    <td headers='header20'>-110.8460807</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055478495711</td>
+    <td headers='header3'>4972170</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>72170</td>
+    <td headers='header6'>02408794</td>
+    <td headers='header7'>Spring Lake</td>
+    <td headers='header8'>Spring Lake CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>4241362</td>
+    <td headers='header13'>27969</td>
+    <td headers='header14'>4.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.0058359</td>
+    <td headers='header18'>-111.7505219</td>
+    <td headers='header19'>+40.0085342</td>
+    <td headers='header20'>-111.7506365</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055477153771</td>
+    <td headers='header3'>4972720</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>72720</td>
+    <td headers='header6'>02409995</td>
+    <td headers='header7'>Stansbury Park</td>
+    <td headers='header8'>Stansbury Park CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>7060638</td>
+    <td headers='header13'>488338</td>
+    <td headers='header14'>3.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.6341268</td>
+    <td headers='header18'>-112.3063197</td>
+    <td headers='header19'>+40.6330305</td>
+    <td headers='header20'>-112.3057920</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553940364599</td>
+    <td headers='header3'>4974040</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>74040</td>
+    <td headers='header6'>02629954</td>
+    <td headers='header7'>Summit</td>
+    <td headers='header8'>Summit CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>1758392</td>
+    <td headers='header13'>5852</td>
+    <td headers='header14'>5.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+37.8013704</td>
+    <td headers='header18'>-112.9350091</td>
+    <td headers='header19'>+37.8053369</td>
+    <td headers='header20'>-112.9331349</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055675555198</td>
+    <td headers='header3'>4974095</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>74095</td>
+    <td headers='header6'>02410020</td>
+    <td headers='header7'>Summit Park</td>
+    <td headers='header8'>Summit Park CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>34998545</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>4.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.7423338</td>
+    <td headers='header18'>-111.5872448</td>
+    <td headers='header19'>+40.7423338</td>
+    <td headers='header20'>-111.5872448</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>2805519627124875</td>
+    <td headers='header3'>4974260</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>74260</td>
+    <td headers='header6'>02813360</td>
+    <td headers='header7'>Sundance</td>
+    <td headers='header8'>Sundance CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>3662754</td>
+    <td headers='header13'>622</td>
+    <td headers='header14'>4.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.3938546</td>
+    <td headers='header18'>-111.5913609</td>
+    <td headers='header19'>+40.3927225</td>
+    <td headers='header20'>-111.5908787</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553716841885</td>
+    <td headers='header3'>4974590</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>74590</td>
+    <td headers='header6'>02584778</td>
+    <td headers='header7'>Sutherland</td>
+    <td headers='header8'>Sutherland CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>5623107</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>2.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+39.3895808</td>
+    <td headers='header18'>-112.6399402</td>
+    <td headers='header19'>+39.3895808</td>
+    <td headers='header20'>-112.6399402</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553940364641</td>
+    <td headers='header3'>4975470</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>75470</td>
+    <td headers='header6'>02629955</td>
+    <td headers='header7'>Teasdale</td>
+    <td headers='header8'>Teasdale CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>10390029</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>2.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+38.2850969</td>
+    <td headers='header18'>-111.4723666</td>
+    <td headers='header19'>+38.2850969</td>
+    <td headers='header20'>-111.4723666</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553716841878</td>
+    <td headers='header3'>4975800</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>75800</td>
+    <td headers='header6'>02584779</td>
+    <td headers='header7'>Thatcher</td>
+    <td headers='header8'>Thatcher CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>31005320</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>4.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+41.6815219</td>
+    <td headers='header18'>-112.3200432</td>
+    <td headers='header19'>+41.6815219</td>
+    <td headers='header20'>-112.3200432</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553717187866</td>
+    <td headers='header3'>4976180</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>76180</td>
+    <td headers='header6'>02584780</td>
+    <td headers='header7'>Thompson Springs</td>
+    <td headers='header8'>Thompson Springs CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>8252124</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>4.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+38.9635749</td>
+    <td headers='header18'>-109.7037194</td>
+    <td headers='header19'>+38.9635749</td>
+    <td headers='header20'>-109.7037194</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055478858070</td>
+    <td headers='header3'>4976280</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>76280</td>
+    <td headers='header6'>02409322</td>
+    <td headers='header7'>Timber Lakes</td>
+    <td headers='header8'>Timber Lakes CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>22899391</td>
+    <td headers='header13'>302067</td>
+    <td headers='header14'>1.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.4733364</td>
+    <td headers='header18'>-111.2533039</td>
+    <td headers='header19'>+40.4749568</td>
+    <td headers='header20'>-111.2558383</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280551349680516</td>
+    <td headers='header3'>4977697</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>77697</td>
+    <td headers='header6'>02409354</td>
+    <td headers='header7'>Tselakai Dezza</td>
+    <td headers='header8'>Tselakai Dezza CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>51732875</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>5.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+37.2099985</td>
+    <td headers='header18'>-109.6090928</td>
+    <td headers='header19'>+37.2099985</td>
+    <td headers='header20'>-109.6090928</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553940364558</td>
+    <td headers='header3'>4980310</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>80310</td>
+    <td headers='header6'>02629956</td>
+    <td headers='header7'>Veyo</td>
+    <td headers='header8'>Veyo CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>5350015</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>2.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+37.3375016</td>
+    <td headers='header18'>-113.6930276</td>
+    <td headers='header19'>+37.3375016</td>
+    <td headers='header20'>-113.6930276</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553717187888</td>
+    <td headers='header3'>4981190</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>81190</td>
+    <td headers='header6'>02584781</td>
+    <td headers='header7'>Wanship</td>
+    <td headers='header8'>Wanship CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>13085161</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>4.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.8167593</td>
+    <td headers='header18'>-111.4150892</td>
+    <td headers='header19'>+40.8167593</td>
+    <td headers='header20'>-111.4150892</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055478495714</td>
+    <td headers='header3'>4983252</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>83252</td>
+    <td headers='header6'>02409557</td>
+    <td headers='header7'>West Mountain</td>
+    <td headers='header8'>West Mountain CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>27362220</td>
+    <td headers='header13'>16518</td>
+    <td headers='header14'>2.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.0509150</td>
+    <td headers='header18'>-111.7849992</td>
+    <td headers='header19'>+40.0518161</td>
+    <td headers='header20'>-111.7833525</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553717187856</td>
+    <td headers='header3'>4983730</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>83730</td>
+    <td headers='header6'>02584782</td>
+    <td headers='header7'>West Wood</td>
+    <td headers='header8'>West Wood CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>2757825</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>2.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+39.6051581</td>
+    <td headers='header18'>-110.8424243</td>
+    <td headers='header19'>+39.6051581</td>
+    <td headers='header20'>-110.8424243</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280551349680517</td>
+    <td headers='header3'>4984095</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>84095</td>
+    <td headers='header6'>02409583</td>
+    <td headers='header7'>White Mesa</td>
+    <td headers='header8'>White Mesa CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>40527281</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>2.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+37.4596213</td>
+    <td headers='header18'>-109.4599635</td>
+    <td headers='header19'>+37.4596213</td>
+    <td headers='header20'>-109.4599635</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055477366426</td>
+    <td headers='header3'>4984160</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>84160</td>
+    <td headers='header6'>02409589</td>
+    <td headers='header7'>Whiterocks</td>
+    <td headers='header8'>Whiterocks CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>6096099</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>4.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.4721466</td>
+    <td headers='header18'>-109.9412201</td>
+    <td headers='header19'>+40.4721466</td>
+    <td headers='header20'>-109.9412201</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>280553717187900</td>
+    <td headers='header3'>4984950</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>84950</td>
+    <td headers='header6'>02584783</td>
+    <td headers='header7'>Wolf Creek</td>
+    <td headers='header8'>Wolf Creek CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>8183771</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>5.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+41.3253005</td>
+    <td headers='header18'>-111.8287561</td>
+    <td headers='header19'>+41.3253005</td>
+    <td headers='header20'>-111.8287561</td>
+  </tr>
+<tr>
+    <td headers='header1'>G4210</td>
+    <td headers='header2'>28055675555199</td>
+    <td headers='header3'>4985040</td>
+    <td headers='header4'>49</td>
+    <td headers='header5'>85040</td>
+    <td headers='header6'>02409623</td>
+    <td headers='header7'>Woodland</td>
+    <td headers='header8'>Woodland CDP</td>
+    <td headers='header9'>57</td>
+    <td headers='header10'>S</td>
+    <td headers='header11'>U1</td>
+    <td headers='header12'>5361315</td>
+    <td headers='header13'>0</td>
+    <td headers='header14'>5.0</td>
+    <td headers='header15'>N</td>
+    <td headers='header16'>N</td>
+    <td headers='header17'>+40.5837974</td>
+    <td headers='header18'>-111.2357607</td>
+    <td headers='header19'>+40.5837974</td>
+    <td headers='header20'>-111.2357607</td>
+  </tr>
+  </tbody>
+</table>
+</body>
+</html>
