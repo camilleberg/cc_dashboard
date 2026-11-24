@@ -2,12 +2,22 @@
 title:  for search verifictation
 sql:
   cc_data_all:  ./data/cc_tables/all/cc_data_all.parquet
+  cdp: ./data/input/cdp_lists/acs2025_cdp.parquet
+  zcta: ./data/input/zcta5.parquet
 head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10/dist/css/autoComplete.min.css">'
 ---
 
 
 ```sql
 SELECT * FROM cc_data_all LIMIT 3
+```
+
+```sql
+SELECT * FROM cdp LIMIT 3
+```
+
+```sql
+SELECT * FROM zcta LIMIT 3
 ```
 
 

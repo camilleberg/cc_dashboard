@@ -60,7 +60,10 @@ def download_all_htmls(ABBRS):
 def save_to_parquet(df, export_dir):
     df = df.copy()
     df["state"] = df["state"].astype(str)
+    df["state"] = df["state"].apply(lambda x: fips_to_abbr.get(x.zfill(2), x))
+    df['state_no'] = df['state'].map({v: k for k, v in fips_to_abbr.items()})
     df["basename"] = df["basename"].astype(str)
+    df['label'] = df['basename'] + ', ' + df['state']
     df.to_parquet(Path(export_dir) / "acs2025_cdp.parquet", index=False)
 
 if __name__ == '__main__':
