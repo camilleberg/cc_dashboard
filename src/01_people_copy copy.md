@@ -1,5 +1,5 @@
 ---
-title: Main Page
+title: Main Page, to check API 
 sql:
   ccn20_geo: data/ccn20_geo.parquet
   cd119_geos: ./data/cd119_geos.parquet
@@ -18,6 +18,8 @@ sql:
   cc_data_employment_table: ./data/cc_tables/emp/cc_data_employment_table.parquet 
   dc_data_employment_table: ./data/cc_tables/emp/dc_data_employment_table.parquet 
   state_data_employment_table: ./data/cc_tables/emp/state_data_employment_table.parquet 
+  cdp: ./data/input/acs2025_cdp.parquet
+  zcta: ./data/input/zcta5.parquet
 head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10/dist/css/autoComplete.min.css">'
 ---
 
@@ -70,6 +72,18 @@ import * as turf from "@turf/turf";
 import states from 'us-state-converter'
 ```
 
+```js import_maplibre.js
+import * as maplibregl from "https://unpkg.com/maplibre-gl@6.11.2/dist/maplibre-gl.mjs";
+// bright basemap
+```
+
+```js import_colorbar.js
+import { createColorbarControl } from "./components/colorbar.js";
+```
+
+```js
+display(html`<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.11.2/dist/maplibre-gl.css">`);
+```
 
 
 ```js
@@ -134,6 +148,7 @@ const usa_data_updated = await sql`SELECT * FROM usa_data_updated`;
 ```
 
 ```js
+// for communities 
 const ccnList = await sql`
     SELECT DISTINCT ccn20
     FROM cc_data_updated
@@ -143,6 +158,7 @@ const ccnList = await sql`
 const ccnArray = [...ccnList];
 const all_ccn = ccnArray.map(d => d.ccn20);
 
+// for districts
 const dc_list = await sql`
     SELECT DISTINCT cd119
     FROM cc_data_updated
@@ -151,17 +167,41 @@ const dc_list = await sql`
 
 const dc_array = [...dc_list];
 const all_dc  = dc_array.map(d => d.cd119);
+
+// for zipcodes 
+const zcta_list = await sql`
+    SELECT DISTINCT zcta5
+    FROM zcta
+    ORDER BY zcta5
+`;
+
+const zcta_array = [...zcta_list];
+const all_zcta  = zcta_array.map(d => d.zcta5);
+
+// for placed
+const cdp_list = await sql`
+    SELECT DISTINCT label
+    FROM cdp
+    ORDER BY label
+`;
+
+const cdp_array = [...cdp_list];
+const all_cdp  = cdp_array.map(d => d.label);
 ```
 
 
 ```js
 const all_options = [
-  ...all_ccn.map(d => ({ Community: d, District: "" })),
-  ...all_dc.map(d => ({ Community: "", District: d }))
+  ...all_ccn.map(d => ({ Community: d, District: "", Zipcode: "", Place: "" })),
+  ...all_dc.map(d => ({ Community: "", District: d, Zipcode: "", Place: "" })), 
+  ...all_zcta.map(d => ({Community: "", District: "", Zipcode: d, Place: "" })), 
+  ...all_cdp.map(d => ({ Community: "", District: "", Zipcdoe: "", Place: d}))
 ];
 ```
 
 
+
+<!-- Setting up autocomplete  -->
 
 ```js import_autocomplete.js
 //https://tarekraafat.github.io/autoComplete.js/#/installation
@@ -174,19 +214,19 @@ const autoCompleteJS = new autoComplete({
     // enter button
     submit: true,
     // message
-    placeHolder: "Search for Your Community or District...",
+    placeHolder: "Search for Your Community...",
     // HOLDS HISTROY
     cache: true,
     data: {
         src: all_options,
-        keys: ["Community", "District"],
+        keys: ["Community", "District", "Zipcode", "Place"],
         cache: true,
-        // makes so resulst are 5 per group 
+        // makes so resulst are 4 per group 
         filter: (list) => {
             const grouped = {};
             for (const item of list) {
                 if (!grouped[item.key]) grouped[item.key] = [];
-                if (grouped[item.key].length < 5) {
+                if (grouped[item.key].length < 4) {
                     grouped[item.key].push(item);
                 }
             }
@@ -227,12 +267,146 @@ events: {
 
 ```
 
-```js assining_output.js
-const ccn = Generators.input(autoCompleteJS.input);
+```js
+const selection = Generators.observe((notify) => {
+  const handler = (event) => {
+    const { key, value } = event.detail.selection;
+    notify({ key, value: value[key] });   // e.g. {key: "District", value: "Capitol Hill"}
+  };
+  autoCompleteJS.input.addEventListener("selection", handler);
+  return () => autoCompleteJS.input.removeEventListener("selection", handler);
+});
 ```
 
+```js assigning_search.js
+const searchType = selection?.key;
+const searchResult = selection?.value;
+```
+
+
+<!-- Setting up API  -->
+
+```js assign_wroker
+const query = (searchResult ?? "").trim();
+const WORKER = "https://cc-proxy.congress-comm-dev.workers.dev";   // match your deployed Worker
+```
+
+
+
+```js call_zip.js
+// if the result is a zipcode, want to extract community 
+const result_list = await (async () => {
+  if (searchType == "Zipcode") {
+    const res = await fetch(`${WORKER}/lookup`, {              // adjust path to your Worker
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ zip: query })
+    });
+    if (!res.ok) return { error: `Lookup failed (${res.status})` };
+    return await res.json();
+  }
+})();
+```
+
+```js
+const rows = await sql`
+    SELECT geoid
+    FROM cdp
+    WHERE label = ${searchResult}
+`;
+
+const place_geoid = rows.get(0)?.geoid;
+```
+
+
+```js
+const placeData = place_geoid
+  ? await (async () => {
+      const res = await fetch("https://zip-proxy.congress-comm-dev.workers.dev/place-lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ geoid: String(place_geoid) })
+      });
+      if (!res.ok) return { error: `Lookup failed (${res.status})` };
+      return await res.json();
+    })()
+  : null;
+```
+
+the geoid is ${place_geoid}
+
+${placeData ? Object.keys(placeData).join(", ") : "no data yet"}
+
+${placeData?.place?.label}
+${placeData?.communities?.map(c => c.custom_id).join(", ")}
+
+
+for now, the ccn will be the first one i.e ${placeData?.communities?.[0]?.geoid}
+
+<!-- makign map to select appropriate one  -->
+
+```js
+// countign options 
+const nOptions = placeData?.communities?.length ?? 0;
+const multipleOptions = nOptions > 1
+```
+check ${nOptions} and ${multipleOptions}
+
+```js
+// converting to geojson 
+const parseGeom = g => (typeof g === "string" ? JSON.parse(g) : g);
+
+const selection_features = (placeData?.communities ?? [])
+  .filter(c => c.geometry)
+  .map(c => ({
+    type: "Feature",
+    properties: { geoid: c.geoid, name: c.name ?? c.custom_id },  // use your real name field
+    geometry: parseGeom(c.geometry)
+  }));
+
+const selection_geojson = { type: "FeatureCollection", features: selection_features };
+```
+
+```js
+// 1. state (must exist, and must be its own cell)
+const selected_geoid = Mutable(null);
+const set_selected_geoid = (g) => { selected_geoid.value = g; };
+```
+
+<!-- makign map to select appropriate one  -->
+
+
+
+```js
+// 5. consumer
+const selected_feature = selection_features.find(f => f.properties.geoid === selected_geoid);
+```
+
+Selected geoid: ${selected_geoid ?? "none yet"}
+
+Selected: **${selected_feature?.properties.name ?? "click a community on the map"}**
+
+<!-- settign seleciton for ccn  -->
+```js
+const ccn = (() => {
+  switch (searchType) {
+    case "Community":
+    case "District":
+      return searchResult;
+    case "Zipcode":
+      return result_list?.communities?.[0]?.geoid;
+    case "Place":
+      return placeData?.communities?.[0]?.geoid;
+    default:
+      return undefined;
+  }
+})();
+```
+
+reading in ${ccn}
+
 ```js check_dc.js
-const isDC = ccn.length < 7;
+const isDC = (searchType == "District");
 const debugCheck = `${ccn} | len=${ccn.length} | isDC=${isDC}`;
 ```
 
@@ -680,18 +854,6 @@ function makePlotlyLineChart(xRange, color){
 
 
 
-```js import_maplibre.js
-import * as maplibregl from "https://unpkg.com/maplibre-gl@6.11.2/dist/maplibre-gl.mjs";
-// bright basemap
-```
-
-```js import_colorbar.js
-import { createColorbarControl } from "./components/colorbar.js";
-```
-
-```js
-display(html`<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.11.2/dist/maplibre-gl.css">`);
-```
 
 ```js find_bounds.js
 function boundsFromGeoJSON(geojson) {
@@ -1229,7 +1391,7 @@ const age_summary = isDC
   <center>
   <span style="color: #5b534a; font-weight: bold;">Your ${title_choice} In Comparison</span>
   <br>
-  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the graph to zoom in and to reset axes press 🏠 </span>
+  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drag the graph to zoom in and to reset axes press 🏠 </span>
   </center>
   </div>
 </div>
@@ -1526,7 +1688,7 @@ Text here
   <center>
   <span style="color: #5b534a; font-weight: bold;">Your ${title_choice} In Comparison</span>
   <br>
-  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the graph to zoom in and to reset axes press 🏠 </span>
+  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drag the graph to zoom in and to reset axes press 🏠 </span>
   </center>
   </div>
 </div>
@@ -1663,7 +1825,7 @@ const hhold_summary = isDC
   <center>
   <span style="color: #5b534a; font-weight: bold;">Your ${title_choice} In Comparison</span>
   <br>
-  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the graph to zoom in and to reset axes press 🏠 </span>
+  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drag the graph to zoom in and to reset axes press 🏠 </span>
   </center>
   </div>
 </div>
@@ -2047,7 +2209,7 @@ Looking at how what language your community speaks in ...
   <center>
   <span style="color: #5b534a; font-weight: bold;">Your ${title_choice} In Comparison</span>
   <br>
-  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the graph to zoom in and to reset axes press 🏠 </span>
+  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drag the graph to zoom in and to reset axes press 🏠 </span>
   <span style="color: #5b534a; font-size: 11px;"> <br> ---<br> For the <strong>Spanish Speakers</strong> block, the outer ring represents the proportion of spanish speakers <em>relative to the poopulation older than 5</em> while the inner ring represents the proportion of spanish speakers <em>relative to those who speak a langauge other than english at home</em></span>
   </center>
   </div>
@@ -2343,7 +2505,7 @@ Looking at different measures of employment...
   <center>
   <span style="color: #5b534a; font-weight: bold;">Your ${title_choice} In Comparison</span>
   <br>
-  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drga the graph to zoom in and to reset axes press 🏠 </span>
+  <span style="color: #5b534a; font-size: 11px;">Click the line graphs to explore how your ${title_choice} compares! <br>Hover over the dots to see the numbers and click and drag the graph to zoom in and to reset axes press 🏠 </span>
   </center>
   </div>
 </div>

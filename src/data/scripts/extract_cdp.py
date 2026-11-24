@@ -38,6 +38,8 @@ ABBRS = [abbr.lower() for abbr in fips_to_abbr.values()]   # ['al', 'ak', 'az', 
 def make_urls(abr):
     # NOTE: this ends in .html. Open one in a browser to confirm it downloads a zip
     # and isn't a web page; if it's a page, find the real zip link.
+    
+    # e.g. https://tigerweb.geo.census.gov/tigerwebmain/Files/acs26/tigerweb_acs26_cdp_2025_acs25_al.html
     return ('https://tigerweb.geo.census.gov/tigerwebmain/Files/acs26/'
             f'tigerweb_acs26_cdp_2025_acs25_{abr}.html')
 
@@ -45,7 +47,7 @@ def make_urls(abr):
 def download_html(url):
     table = pd.read_html(url)[0]
     table.columns = [c.lower() for c in table.columns]
-    table = table[['basename', 'state']]
+    table = table[['basename', 'state', 'geoid']]
     return table
 
 def download_all_htmls(ABBRS):
@@ -63,13 +65,15 @@ def save_to_parquet(df, export_dir):
     df["state"] = df["state"].apply(lambda x: fips_to_abbr.get(x.zfill(2), x))
     df['state_no'] = df['state'].map({v: k for k, v in fips_to_abbr.items()})
     df["basename"] = df["basename"].astype(str)
+    df["geoid"] = df["geoid"].astype(str).str.zfill(7)
     df['label'] = df['basename'] + ', ' + df['state']
     df.to_parquet(Path(export_dir) / "acs2025_cdp.parquet", index=False)
+    print(f"Saved {len(df)} rows to {Path(export_dir) / 'acs2025_cdp.parquet'}")
 
 if __name__ == '__main__':
     # Dedicated temp folder: this gets deleted at the end, so never point it at a
     # folder that holds other data.
-    EXPORT_DIR = "./src/data/input/cdp_lists"
+    EXPORT_DIR = "./src/data/input"
     Path(EXPORT_DIR).mkdir(parents=True, exist_ok=True)
 
     # download

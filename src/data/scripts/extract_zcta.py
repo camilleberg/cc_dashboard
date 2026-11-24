@@ -31,7 +31,7 @@ def download_html(url):
 
 def save_to_parquet(df, export_dir):
     df = df.copy()
-    df["zcta5"] = df["zcta5"].astype(str).zfill(5)
+    df["zcta5"] = df["zcta5"].astype(str).str.zfill(5)
     df.to_parquet(Path(export_dir) / "zcta5.parquet", index=False)
 
 if __name__ == '__main__':

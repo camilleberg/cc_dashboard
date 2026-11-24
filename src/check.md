@@ -2,7 +2,7 @@
 title:  for search verifictation
 sql:
   cc_data_all:  ./data/cc_tables/all/cc_data_all.parquet
-  cdp: ./data/input/cdp_lists/acs2025_cdp.parquet
+  cdp: ./data/input/acs2025_cdp.parquet
   zcta: ./data/input/zcta5.parquet
 head: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10/dist/css/autoComplete.min.css">'
 ---
@@ -56,20 +56,38 @@ const result_list = await (async () => {
 })();
 ```
 
-# now to choose result for 
-
+# now to choose result for the thing 
+we have 
 ${input}
 
 ${result_list
   ? html`<pre>${JSON.stringify(result_list, null, 2)}</pre>`
   : "Enter a town, city, or 5-digit ZIP"}
 
-${result_list?.communities?.[0]?.geoid}
-
-
-
-## gettiing geoid
 ```js
-
-
+const geoid = isZip
+  ? result_list?.communities?.[0]?.geoid
+  : result_list?.places?.[0]?.geoid;
 ```
+
+the geoid is ${geoid}
+
+## to get place 
+
+```js
+const placeData = await (async () => {
+  const res = await fetch("https://zip-proxy.congress-comm-dev.workers.dev/place-lookup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ geoid })   // e.g. the geoid picked from a place-search result
+  });
+  if (!res.ok) return { error: `Lookup failed (${res.status})` };
+  return await res.json();
+})();
+```
+
+${placeData ? Object.keys(placeData).join(", ") : "no data yet"}
+
+${placeData?.place?.label}
+${placeData?.communities?.map(c => c.custom_id).join(", ")}
+${placeData?.searches_remaining}
