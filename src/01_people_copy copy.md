@@ -312,7 +312,7 @@ const result_list = await (async () => {
 const rows = await sql`
     SELECT geoid
     FROM cdp
-    WHERE label = ${searchResult}
+    WHERE label = '${searchResult}'
 `;
 
 const place_geoid = rows.get(0)?.geoid;
@@ -343,48 +343,6 @@ ${placeData?.communities?.map(c => c.custom_id).join(", ")}
 
 for now, the ccn will be the first one i.e ${placeData?.communities?.[0]?.geoid}
 
-<!-- makign map to select appropriate one  -->
-
-```js
-// countign options 
-const nOptions = placeData?.communities?.length ?? 0;
-const multipleOptions = nOptions > 1
-```
-check ${nOptions} and ${multipleOptions}
-
-```js
-// converting to geojson 
-const parseGeom = g => (typeof g === "string" ? JSON.parse(g) : g);
-
-const selection_features = (placeData?.communities ?? [])
-  .filter(c => c.geometry)
-  .map(c => ({
-    type: "Feature",
-    properties: { geoid: c.geoid, name: c.name ?? c.custom_id },  // use your real name field
-    geometry: parseGeom(c.geometry)
-  }));
-
-const selection_geojson = { type: "FeatureCollection", features: selection_features };
-```
-
-```js
-// 1. state (must exist, and must be its own cell)
-const selected_geoid = Mutable(null);
-const set_selected_geoid = (g) => { selected_geoid.value = g; };
-```
-
-<!-- makign map to select appropriate one  -->
-
-
-
-```js
-// 5. consumer
-const selected_feature = selection_features.find(f => f.properties.geoid === selected_geoid);
-```
-
-Selected geoid: ${selected_geoid ?? "none yet"}
-
-Selected: **${selected_feature?.properties.name ?? "click a community on the map"}**
 
 <!-- settign seleciton for ccn  -->
 ```js
