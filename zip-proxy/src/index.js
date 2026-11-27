@@ -1,7 +1,9 @@
 const ALLOWED_ORIGINS = [
   "https://camilleberg.github.io",   // origin only, no path
   "http://127.0.0.1:3000",
-  "http://localhost:3000"
+  "http://127.0.0.1:3001",
+  "http://localhost:3000",
+  "http://localhost:3001"
 ];
 
 const API_BASE = "https://api.congressionalcommunities.org";
@@ -24,6 +26,7 @@ function json(body, status, cors) {
 
 async function forward(url, init, cors) {
   let upstream;
+
   try {
     upstream = await fetch(url, init);
   } catch (err) {

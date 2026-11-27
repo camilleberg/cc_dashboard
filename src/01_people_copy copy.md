@@ -135,6 +135,7 @@ function extract_var(table_name, var_name) {
 }
 
 const maplibre_style = "https://tiles.versatiles.org/assets/styles/colorful/style.json";
+const maplibre_style_select = "https://tiles.versatiles.org/assets/styles/graybeard/style.json";
 const page_background_color = "#f9f0ea";
 const page_background_color_card = "#f2e9e3";
 
@@ -192,10 +193,10 @@ const all_cdp  = cdp_array.map(d => d.label);
 
 ```js
 const all_options = [
+    ...all_zcta.map(d => ({Community: "", District: "", Zipcode: d, Place: "" })), 
+  ...all_cdp.map(d => ({ Community: "", District: "", Zipcdoe: "", Place: d})),
   ...all_ccn.map(d => ({ Community: d, District: "", Zipcode: "", Place: "" })),
   ...all_dc.map(d => ({ Community: "", District: d, Zipcode: "", Place: "" })), 
-  ...all_zcta.map(d => ({Community: "", District: "", Zipcode: d, Place: "" })), 
-  ...all_cdp.map(d => ({ Community: "", District: "", Zipcdoe: "", Place: d}))
 ];
 ```
 
@@ -291,11 +292,11 @@ const query = (searchResult ?? "").trim();
 const WORKER = "https://cc-proxy.congress-comm-dev.workers.dev";   // match your deployed Worker
 ```
 
-
+<!-- Setting up API -- zipcode  -->
 
 ```js call_zip.js
 // if the result is a zipcode, want to extract community 
-const result_list = await (async () => {
+const zipData = await (async () => {
   if (searchType == "Zipcode") {
     const res = await fetch(`${WORKER}/lookup`, {              // adjust path to your Worker
       method: "POST",
@@ -308,18 +309,24 @@ const result_list = await (async () => {
 })();
 ```
 
+<!-- Setting up API -- cities/places  -->
+
 ```js
+// this calls the heoid from the ,list to later call the API 
+// for cities and places 
 const rows = await sql`
     SELECT geoid
     FROM cdp
-    WHERE label = '${searchResult}'
+    WHERE label = ${searchResult}
 `;
 
+// we only need the first geoid 
 const place_geoid = rows.get(0)?.geoid;
 ```
 
 
 ```js
+// calling API for place datat 
 const placeData = place_geoid
   ? await (async () => {
       const res = await fetch("https://zip-proxy.congress-comm-dev.workers.dev/place-lookup", {
@@ -333,18 +340,204 @@ const placeData = place_geoid
   : null;
 ```
 
-the geoid is ${place_geoid}
+```js
+if (selected_ccn?.ccn20) {
+  // load that community into the dashboard, same as picking it in the search box
+  autoCompleteJS.input.value = selected_ccn.ccn20;
+  autoCompleteJS.input.dispatchEvent(new Event("input", { bubbles: true }));
 
-${placeData ? Object.keys(placeData).join(", ") : "no data yet"}
+  // wait for the page to re-render with the new community, then scroll
+  setTimeout(() => {
+    document.getElementById("snapshot_title")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 400);
+}
+```
 
-${placeData?.place?.label}
-${placeData?.communities?.map(c => c.custom_id).join(", ")}
+```js
+// establishing if there are multiple to pick from 
+const hasMultiple = (() => {
+  switch (searchType) {
+    case "Community":
+    case "District":
+      return false;
+    case "Zipcode":
+      return (zipData?.communities?.length  > 1)
+    case "Place":
+      return (placeData?.communities?.length  > 1);
+    default:
+      return undefined;
+  }
+})();
+```
+
+```js
+// whichever lookup has returned data; placeData wins if both exist
+const activeData = placeData?.communities?.length ? placeData : zipData;
+
+// merging with geojson 
+const selection_geo = 
+  await sql`SELECT
+  ccn20,
+  geometry
+  FROM ccn20_geo
+  WHERE ccn20 = ${ccn}`;
+```
+
+```js
+// grabbing relevant geoid matches for map
+const selection_geoids = activeData?.communities?.map(c => c.geoid) ?? [];
+const selection_matches = selection_geoids.length
+  ? await sql(
+      [`SELECT
+      ccn20,
+      geometry
+      FROM ccn20_geo
+      WHERE ccn20 IN (${selection_geoids.map(() => "?").join(", ")})`],
+      ...selection_geoids
+    )
+  : [];
 
 
-for now, the ccn will be the first one i.e ${placeData?.communities?.[0]?.geoid}
+// grabs relevant data and loops over to get geojson 
+const selection_matches_geojson = {
+  type: "FeatureCollection",
+  features: Array.from(selection_matches)
+    .filter(r => r.geometry != null)
+    .map(r => {
+      const id = r.ccn20 ?? r.CCN20;          // column casing can differ
+      return {
+        type: "Feature",
+        properties: { ccn20: id },
+        geometry: JSON.parse(r.geometry)
+      };
+    })
+};
+```
 
 
-<!-- settign seleciton for ccn  -->
+<!-- chcecking map for if communtiies have more than one  -->
+
+
+<div class="grid grid-cols-2">
+  <div class="card">Always visible card</div>
+  ${hasMultiple ? html`<div class="card">Conditional card!</div>` : ""}
+</div>
+
+```js calc_selection_coords.js
+// calculating the lat long
+const selection_center = turf.centroid(selection_matches_geojson)
+const selection_coords = selection_center.geometry.coordinates
+```
+
+```js set_reactive.js
+const selected_ccn = Mutable(null);
+const setSelectedCcn = (v) => { selected_ccn.value = v; };
+```
+
+
+```js create_selectionmap.js
+const selectionMapDiv = display(document.createElement("div"));
+selectionMapDiv.style = "height: 300px;";
+
+// setting up map 
+const selectionMap = new maplibregl.Map({
+    container: selectionMapDiv,
+    style: maplibre_style_select,
+    // close to center of us, but not wuite 
+    center: selection_coords,
+    zoom: 11, 
+    dragPan: false, 
+    scrollZoom: false,
+    doubleClickZoom: false,
+    boxZoom: false,
+    touchZoomRotate: false
+});
+
+
+// laod handler 
+selectionMap.on("load", () => {
+  if (selectionMap.getLayer("background")) {
+    selectionMap.setPaintProperty("background", "background-color", page_background_color);
+  }
+
+  selectionMap.addSource("selection_matches", {
+    type: "geojson",
+    data: selection_matches_geojson
+  });
+  selectionMap.addLayer({
+    id: "comm-fill",
+    type: "fill",
+    source: "selection_matches",
+    paint: { "fill-color": lighterItoColors[6], "fill-opacity": 0.6 }
+  });
+  selectionMap.addLayer({
+    id: "comm-line",
+    type: "line",
+    source: "selection_matches",
+    paint: { "line-color": okabeItoColors[6], "line-width": 3 }
+  });
+
+  if (selection_matches_geojson.features.length) {
+    selectionMap.fitBounds(boundsFromGeoJSON(selection_matches_geojson), { padding: 40 });
+  }
+
+  selectionMap.addControl(new maplibregl.NavigationControl({ showCompass: true }));
+
+  selectionMap.on("click", "comm-fill", (e) => {
+    const feature = e.features[0];
+    const center = turf.centroid(feature).geometry.coordinates;
+    new maplibregl.Popup()
+      .setLngLat(center)
+      .setHTML(`<strong>My community is ${feature.properties.ccn20}!</strong>`)
+      .addTo(selectionMap);
+
+    setSelectedCcn({
+      ccn20: feature.properties.ccn20,
+      coordinates: e.lngLat.toArray()
+    });
+  });
+  
+
+
+  selectionMap.on("mouseenter", "comm-fill", () => {
+    selectionMap.getCanvas().style.cursor = "pointer";
+  });
+  selectionMap.on("mouseleave", "comm-fill", () => {
+    selectionMap.getCanvas().style.cursor = "";
+  });
+});
+
+invalidation.then(() => selectionMap.remove());
+
+```
+
+```js
+const selectionWrapper = html`<div style="display: ${hasMultiple ? "block" : "none"};">
+  ${selectionMapDiv}
+</div>`;
+
+display(selectionWrapper);
+
+if (hasMultiple) {
+  // a map that was hidden has no measured size until it is visible
+  requestAnimationFrame(() => selectionMap.resize());
+}
+```
+
+```js
+const updateSelectionMap = () => {
+  selectionMap.getSource("selection_matches").setData(selection_matches);
+  if (selection_matches.features.length) {
+    selectionMap.fitBounds(boundsFromGeoJSON(selection_matches), { padding: 40 });
+  }
+};
+
+if (selectionMap.getSource("selection_matches")) updateSelectionMap();
+else selectionMap.once("load", updateSelectionMap);
+```
+
+
+<!-- settign selection for ccn  -->
 ```js
 const ccn = (() => {
   switch (searchType) {
@@ -352,20 +545,19 @@ const ccn = (() => {
     case "District":
       return searchResult;
     case "Zipcode":
-      return result_list?.communities?.[0]?.geoid;
     case "Place":
-      return placeData?.communities?.[0]?.geoid;
+      return selected_ccn.ccn20;
     default:
       return undefined;
   }
 })();
 ```
 
-reading in ${ccn}
 
 ```js check_dc.js
+// checking if the search is a distrcit or communtiy
 const isDC = (searchType == "District");
-const debugCheck = `${ccn} | len=${ccn.length} | isDC=${isDC}`;
+const debugCheck = `${ccn ?? "no selection"} | len=${ccn?.length ?? "n/a"} | isDC=${isDC}`;
 ```
 
 
@@ -373,6 +565,7 @@ const debugCheck = `${ccn} | len=${ccn.length} | isDC=${isDC}`;
 
 
 ```js blur_page.js
+// this blurs content so you don't see it 
 const setBlurState = (ccn) => {
   const content = document.getElementById("page-content");
   if (!content) return; // defensive, though this shouldn't happen anymore
@@ -844,6 +1037,7 @@ function boundsFromGeoJSON(geojson) {
 const title_choice = isDC ? "Congressional District" : "Congressional Community";
 ```
 
+<div id="snapshot_title"></div>
 
 ## Snapshot of your ${title_choice}
 
